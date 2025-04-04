@@ -7,4 +7,14 @@
     <RootNamespace>Inventory_Management_System</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="BusinessLogic\Interfaces\" />
+    <Folder Include="BusinessLogic\Services\" />
+    <Folder Include="DataAccess\Context\" />
+    <Folder Include="DataAccess\Repositories\Interfaces\" />
+    <Folder Include="Entities\" />
+    <Folder Include="Middleware\" />
+    <Folder Include="Authentication\" />
+  </ItemGroup>
+
 </Project>
