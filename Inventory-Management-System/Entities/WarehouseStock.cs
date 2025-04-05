@@ -2,16 +2,16 @@
 {
     public class WarehouseStock
     {
-        // foreign key to Warehouse
+        #region Properties
+        // Foreign key to Warehouse
         public Guid WarehouseID { get; set; }
-        // foreign key to Product
+        // Foreign key to Product
         public Guid ProductID { get; set; }
-
         public int StockQuantity { get; set; } = 0;
 
-        // navigation properties
+        // Navigation properties
         public Warehouse Warehouse { get; set; }
         public Product Product { get; set; }
-
+        #endregion
     }
 }

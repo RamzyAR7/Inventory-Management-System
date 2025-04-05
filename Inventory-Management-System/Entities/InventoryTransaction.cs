@@ -5,6 +5,7 @@ namespace Inventory_Management_System.Entities
 {
     public class InventoryTransaction
     {
+        #region Properties
         public Guid TransactionID { get; set; }
         [Required]
         public TransactionType Type { get; set; }
@@ -17,8 +18,9 @@ namespace Inventory_Management_System.Entities
         // Foreign key to Warehouse
         public Guid WarehouseID { get; set; }
 
-        //navigation properties
+        // Navigation properties
         public Product Product { get; set; }
         public Warehouse Warehouse { get; set; }
+        #endregion
     }
 }

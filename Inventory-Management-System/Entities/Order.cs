@@ -5,6 +5,7 @@ namespace Inventory_Management_System.Entities
 {
     public class Order
     {
+        #region Properties
         public Guid OrderID { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
@@ -13,14 +14,15 @@ namespace Inventory_Management_System.Entities
         public decimal TotalAmount => OrderDetails?.Sum(od => od.TotalPrice) ?? 0;
         [Required]
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
-
-        // freign key to User
+        
+        // Foreign key to User
         public Guid CreatedByUserID { get; set; }
 
-        // NAVIGATION PROPERTIES
+        // Navigation properties
         public User CreatedByUser { get; set; }
         public ICollection<CustomerOrder> CustomerOrders { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
         public Shipment Shipment { get; set; }
+        #endregion
     }
 }
