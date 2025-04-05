@@ -9,8 +9,8 @@ namespace Inventory_Management_System.Entities
         [Column(TypeName = "decimal(10,2)")]
         public decimal UnitPrice { get; set; }
         [Column(TypeName = "decimal(10,2)")]
-        public decimal TotalPrice { get; set; }
-
+        [NotMapped]
+        public decimal TotalPrice => Quantity * UnitPrice;
         //freign key to Order
         public Guid OrderID { get; set; }
         public Guid ProductID { get; set; }

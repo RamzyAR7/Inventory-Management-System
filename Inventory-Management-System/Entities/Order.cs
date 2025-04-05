@@ -9,15 +9,16 @@ namespace Inventory_Management_System.Entities
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
         [Column(TypeName = "decimal(10,2)")]
-        public decimal TotalAmount { get; set; }
-
+        [NotMapped]
+        public decimal TotalAmount => OrderDetails?.Sum(od => od.TotalPrice) ?? 0;
         [Required]
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
         // freign key to User
-        public Guid UserID { get; set; }
+        public Guid CreatedByUserID { get; set; }
 
         // NAVIGATION PROPERTIES
+        public User CreatedByUser { get; set; }
         public ICollection<CustomerOrder> CustomerOrders { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
         public Shipment Shipment { get; set; }

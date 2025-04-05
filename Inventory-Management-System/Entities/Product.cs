@@ -15,10 +15,9 @@ namespace Inventory_Management_System.Entities
         public int RecoderLevel { get; set; }
 
         // foreign key to Category
-        public int CategoryID { get; set; }
+        public Guid CategoryID { get; set; }
 
         // navigation properties
-
         public Category Category { get; set; }
         public ICollection<SupplierProduct> SupplierProducts { get; set; }
         public ICollection<WarehouseStock> WarehouseStocks { get; set; }

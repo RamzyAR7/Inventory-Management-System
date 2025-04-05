@@ -3,9 +3,9 @@
     public class CustomerOrder
     {
         // foreign key to Customer
-        public int CustomerID { get; set; }
+        public Guid CustomerID { get; set; }
         // foreign key to Order
-        public int OrderID { get; set; }
+        public Guid OrderID { get; set; }
 
         // NAVIGATION PROPERTIES
         public Customer Customer { get; set; }
