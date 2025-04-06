@@ -10,8 +10,7 @@ namespace Inventory_Management_System.Entities
         public string FullName { get; set; }
         [Required, MaxLength(100)]
         public string PhoneNumber { get; set; }
-        // Why not make email required?
-        [MaxLength(255)]
+        [Required, MaxLength(255)]
         public string Email { get; set; }
         [Required, MaxLength(15)]
         public string Address { get; set; }
