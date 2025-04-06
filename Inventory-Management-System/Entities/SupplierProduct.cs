@@ -2,13 +2,15 @@
 {
     public class SupplierProduct
     {
-        // foreign key to Supplier
+        #region Properties
+        // Foreign key to Supplier
         public Guid SupplierID { get; set; }
-        // foreign key to Product
+        // Foreign key to Product
         public Guid ProductID { get; set; }
 
-        // navigation properties
+        // Navigation properties
         public Supplier Supplier { get; set; }
         public Product Product { get; set; }
+        #endregion
     }
 }

@@ -4,6 +4,7 @@ namespace Inventory_Management_System.Entities
 {
     public class Shipment
     {
+        #region Properties
         public Guid ShipmentID { get; set; }
         [Required, MaxLength(50)]
         public ShipmentStatus Status { get; set; }
@@ -11,14 +12,15 @@ namespace Inventory_Management_System.Entities
         [MaxLength(100)]
         public string Carrier { get; set; } = "Unknown";
 
-        // forign key to Order
+        // Forign key to Order
         public Guid OrderID { get; set; }
-        // forign key to Warehouse
+        // Forign key to Warehouse
         public Guid WarehouseID { get; set; }
 
-        // navigation properties
+        // Navigation properties
 
         public Order Order { get; set; }
         public Warehouse Warehouse { get; set; }
+        #endregion
     }
 }
