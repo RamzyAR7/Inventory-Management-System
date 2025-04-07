@@ -8,7 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DataAccess\Repositories\Interfaces\" />
+    <Compile Remove="DataAccess\Repositories\Interfaces\**" />
+    <Content Remove="DataAccess\Repositories\Interfaces\**" />
+    <EmbeddedResource Remove="DataAccess\Repositories\Interfaces\**" />
+    <None Remove="DataAccess\Repositories\Interfaces\**" />
   </ItemGroup>
 
   <ItemGroup>

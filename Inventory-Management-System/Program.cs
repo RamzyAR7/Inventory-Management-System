@@ -1,4 +1,6 @@
+using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.DataAccess.Context;
+using Inventory_Management_System.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +10,11 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<InventoryDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+
 
 var app = builder.Build();
 
