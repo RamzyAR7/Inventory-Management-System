@@ -176,7 +176,7 @@ namespace Inventory_Management_System.DataAccess.Context
             {
                 UserID = Guid.NewGuid(),
                 FullName = "Admin",
-                Email = "admin@example.com",
+                Email = "admin@gmail.com",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
                 Role = UserRole.Admin,
                 CreatedAt = DateTime.UtcNow

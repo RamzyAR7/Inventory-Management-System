@@ -4,6 +4,7 @@ namespace Inventory_Management_System.Entities
 {
     public class Supplier
     {
+        #region Properties
         public Guid SupplierID { get; set; }
         [Required, MaxLength(100)]
         public string SupplierName { get; set; }
@@ -12,8 +13,8 @@ namespace Inventory_Management_System.Entities
         [MaxLength(255)]
         public string Email { get; set; }
 
-        // navigation properties
-
+        // Navigation properties
         public ICollection<SupplierProduct> SupplierProducts { get; set; }
+        #endregion
     }
 }
