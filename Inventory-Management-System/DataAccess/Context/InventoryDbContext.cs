@@ -156,7 +156,9 @@ namespace Inventory_Management_System.DataAccess.Context
                 e.HasIndex(u => u.FullName).IsUnique();
             });
             modelBuilder.Entity<CustomerOrder>(e => {
-                e.HasKey(co => new { co.CustomerID, co.OrderID });
+                e.HasKey(co => co.CustomerOrderID);
+
+               e.HasIndex(co => new { co.CustomerID, co.OrderID });
 
                 e.HasOne(co => co.Customer)
                 .WithMany(c => c.CustomerOrders)
