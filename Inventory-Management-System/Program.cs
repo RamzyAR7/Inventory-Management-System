@@ -4,6 +4,8 @@ using Inventory_Management_System.DataAccess.Repositories;
 using AutoMapper; // Add this using directive at the top of the file
 using Microsoft.EntityFrameworkCore;
 using Inventory_Management_System.Models.Mapping;
+using Inventory_Management_System.BusinessLogic.Services.Interface;
+using Inventory_Management_System.BusinessLogic.Services.Implementation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,7 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Register the generic repository is optional
 // builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
