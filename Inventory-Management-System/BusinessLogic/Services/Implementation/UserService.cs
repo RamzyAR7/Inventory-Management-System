@@ -87,9 +87,9 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             return _mapper.Map<UserResDto>(existingUser);
         }
 
-        public async Task<IEnumerable<UserResDto>> GetAllUsers(bool includeManger = false)
+        public async Task<IEnumerable<UserResDto>> GetAllUsers(bool includeManager = false)
         {
-            var users = await _unitOfWork.Users.GetAllAsync(/*includeManger ? u => u.Manager : null*/);
+            var users = await _unitOfWork.Users.GetAllAsync(/*includeManager ? u => u.Manager : null*/);
             if (users == null || !users.Any())
             {
                 throw new KeyNotFoundException("No users found.");
@@ -97,9 +97,9 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             return _mapper.Map<IEnumerable<UserResDto>>(users);
         }
 
-        public async Task<UserResDto> GetUserById(Guid id, bool includeManger = false)
+        public async Task<UserResDto> GetUserById(Guid id, bool includeManager = false)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(id, includeManger ? u => u.Manager : null);
+            var user = await _unitOfWork.Users.GetByIdAsync(id, includeManager ? u => u.Manager : null);
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with ID {id} not found.");
@@ -107,9 +107,9 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             return _mapper.Map<UserResDto>(user);
         }
 
-        public async Task<UserResDto> GetUserByName(string username, bool includeManger = false)
+        public async Task<UserResDto> GetUserByName(string username, bool includeManager = false)
         {
-            var user = await _unitOfWork.Users.GetByUserNameAsync(username, includeManger ? u => u.Manager : null);
+            var user = await _unitOfWork.Users.GetByUserNameAsync(username, includeManager ? u => u.Manager : null);
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with username {username} not found.");

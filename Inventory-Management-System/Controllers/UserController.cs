@@ -18,13 +18,12 @@ namespace Inventory_Management_System.Controllers
             _mapper = mapper;
         }
 
-        // GET: List all users
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             try
             {
-                var users = await _userService.GetAllUsers(includeManger: true);
+                var users = await _userService.GetAllUsers(includeManager: true);
                 return View(users);
             }
             catch (KeyNotFoundException)
@@ -39,13 +38,12 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
-        // GET: Show user details
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
             try
             {
-                var user = await _userService.GetUserById(id, includeManger: true);
+                var user = await _userService.GetUserById(id, includeManager: true);
                 return View(user);
             }
             catch (KeyNotFoundException)
@@ -60,18 +58,16 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
-        // GET: Show create user form
         [HttpGet]
         public async Task<IActionResult> Create()
         {
             ViewBag.Managers = (await _userService.GetAllUsers())
                 .Where(u => u.Role == UserRole.Manager || u.Role == UserRole.Admin)
                 .OrderBy(u => u.Role)
-                .Select(u => new { u.UserID, u.UserName });
+                .Select(u => new { u.UserID, u.UserName, u.Role });
             return View(new UserReqDto());
         }
 
-        // POST: Handle create user form submission
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserReqDto userDto)
@@ -83,7 +79,7 @@ namespace Inventory_Management_System.Controllers
                     ViewBag.Managers = (await _userService.GetAllUsers())
                         .Where(u => u.Role == UserRole.Manager || u.Role == UserRole.Admin)
                         .OrderBy(u => u.Role)
-                        .Select(u => new { u.UserID, u.UserName });
+                        .Select(u => new { u.UserID, u.UserName, u.Role });
                     return View(userDto);
                 }
 
@@ -97,7 +93,7 @@ namespace Inventory_Management_System.Controllers
                 ViewBag.Managers = (await _userService.GetAllUsers())
                     .Where(u => u.Role == UserRole.Manager || u.Role == UserRole.Admin)
                     .OrderBy(u => u.Role)
-                    .Select(u => new { u.UserID, u.UserName });
+                    .Select(u => new { u.UserID, u.UserName, u.Role });
                 return View(userDto);
             }
             catch (ValidationException ex)
@@ -106,7 +102,7 @@ namespace Inventory_Management_System.Controllers
                 ViewBag.Managers = (await _userService.GetAllUsers())
                     .Where(u => u.Role == UserRole.Manager || u.Role == UserRole.Admin)
                     .OrderBy(u => u.Role)
-                    .Select(u => new { u.UserID, u.UserName });
+                    .Select(u => new { u.UserID, u.UserName, u.Role });
                 return View(userDto);
             }
             catch (Exception)
@@ -115,12 +111,11 @@ namespace Inventory_Management_System.Controllers
                 ViewBag.Managers = (await _userService.GetAllUsers())
                     .Where(u => u.Role == UserRole.Manager || u.Role == UserRole.Admin)
                     .OrderBy(u => u.Role)
-                    .Select(u => new { u.UserID, u.UserName });
+                    .Select(u => new { u.UserID, u.UserName, u.Role });
                 return View(userDto);
             }
         }
 
-        // GET: Show edit user form
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -131,7 +126,7 @@ namespace Inventory_Management_System.Controllers
                 ViewBag.Managers = (await _userService.GetAllUsers())
                     .Where(u => (u.Role == UserRole.Manager || u.Role == UserRole.Admin) && u.UserID != id)
                     .OrderBy(u => u.Role)
-                    .Select(u => new { u.UserID, u.UserName });
+                    .Select(u => new { u.UserID, u.UserName, u.Role });
                 return View(userDto);
             }
             catch (KeyNotFoundException)
@@ -146,7 +141,6 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
-        // POST: Handle edit user form submission
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, UserReqDto userDto)
@@ -158,7 +152,7 @@ namespace Inventory_Management_System.Controllers
                     ViewBag.Managers = (await _userService.GetAllUsers())
                         .Where(u => (u.Role == UserRole.Manager || u.Role == UserRole.Admin) && u.UserID != id)
                         .OrderBy(u => u.Role)
-                        .Select(u => new { u.UserID, u.UserName });
+                        .Select(u => new { u.UserID, u.UserName, u.Role });
                     return View(userDto);
                 }
 
@@ -177,7 +171,7 @@ namespace Inventory_Management_System.Controllers
                 ViewBag.Managers = (await _userService.GetAllUsers())
                     .Where(u => (u.Role == UserRole.Manager || u.Role == UserRole.Admin) && u.UserID != id)
                     .OrderBy(u => u.Role)
-                    .Select(u => new { u.UserID, u.UserName });
+                    .Select(u => new { u.UserID, u.UserName, u.Role });
                 return View(userDto);
             }
             catch (ValidationException ex)
@@ -186,7 +180,7 @@ namespace Inventory_Management_System.Controllers
                 ViewBag.Managers = (await _userService.GetAllUsers())
                     .Where(u => (u.Role == UserRole.Manager || u.Role == UserRole.Admin) && u.UserID != id)
                     .OrderBy(u => u.Role)
-                    .Select(u => new { u.UserID, u.UserName });
+                    .Select(u => new { u.UserID, u.UserName, u.Role });
                 return View(userDto);
             }
             catch (Exception)
@@ -195,12 +189,11 @@ namespace Inventory_Management_System.Controllers
                 ViewBag.Managers = (await _userService.GetAllUsers())
                     .Where(u => (u.Role == UserRole.Manager || u.Role == UserRole.Admin) && u.UserID != id)
                     .OrderBy(u => u.Role)
-                    .Select(u => new { u.UserID, u.UserName });
+                    .Select(u => new { u.UserID, u.UserName, u.Role });
                 return View(userDto);
             }
         }
 
-        // GET: Show delete confirmation
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -221,7 +214,6 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
-        // POST: Handle delete user
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
