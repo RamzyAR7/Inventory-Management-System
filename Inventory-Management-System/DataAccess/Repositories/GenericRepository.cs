@@ -1,5 +1,6 @@
 ﻿using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.DataAccess.Context;
+using Inventory_Management_System.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq.Expressions;
@@ -8,7 +9,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly InventoryDbContext _context;
+        public InventoryDbContext _context;
         private readonly DbSet<T> _dbSet;
 
         public GenericRepository(InventoryDbContext context)
@@ -16,8 +17,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _dbSet = _context.Set<T>();
         }
-
-
         public async Task<T> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includeProperties)
         {
             // Get key name dynamically
@@ -47,8 +46,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
 
             return entity;
         }
-
-
         public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate = null,
             params Expression<Func<T, object>>[] includeProperties)
         {
@@ -66,7 +63,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
 
             return await query.ToListAsync();
         }
-
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate,
             params Expression<Func<T, object>>[] includeProperties)
         {
@@ -82,7 +78,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
 
             return await query.Where(predicate).ToListAsync();
         }
-
         public async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize,
             Expression<Func<T, bool>> predicate = null, params Expression<Func<T, object>>[] includeProperties)
         {
@@ -166,6 +161,21 @@ namespace Inventory_Management_System.DataAccess.Repositories
             return entity != null;
         }
 
+        //find
+        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await FirstOrDefaultAsync(predicate, Array.Empty<Expression<Func<T, object>>>());
+        }
+
+        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            return await query.FirstOrDefaultAsync(predicate);
+        }
     }
 }
 

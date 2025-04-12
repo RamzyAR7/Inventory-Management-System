@@ -9,7 +9,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
     {
         private readonly InventoryDbContext _context;
 
-        private IGenericRepository<User> _users;
         private IGenericRepository<Customer> _customers;
         private IGenericRepository<Category> _categories;
         private IGenericRepository<Supplier> _suppliers;
@@ -22,13 +21,15 @@ namespace Inventory_Management_System.DataAccess.Repositories
         private IGenericRepository<OrderDetail> _orderDetails;
         private IGenericRepository<InventoryTransaction> _inventoryTransactions;
         private IGenericRepository<Shipment> _shipments;
+        // edited
+        private IUserRepository _users;
 
         public UnitOfWork(InventoryDbContext context)
         {
             _context = context;
         }
 
-        public IGenericRepository<User> Users => _users ??= new GenericRepository<User>(_context);
+        public IUserRepository Users => _users ??= new UserRepository(_context);
         public IGenericRepository<Customer> Customers => _customers ??= new GenericRepository<Customer>(_context);
         public IGenericRepository<Category> Categories => _categories ??= new GenericRepository<Category>(_context);
         public IGenericRepository<Supplier> Suppliers => _suppliers ??= new GenericRepository<Supplier>(_context);

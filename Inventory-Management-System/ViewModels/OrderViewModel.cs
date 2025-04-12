@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace Inventory_Management_System.ViewModels
 {
-    public class OrderViewModel
+    public class OrderViewModel: IValidatableObject
     {
         public int OrderID { get; set; }
         public DateTime OrderDate { get; set; }
@@ -14,6 +15,11 @@ namespace Inventory_Management_System.ViewModels
         public IEnumerable<SelectListItem> Warehouses { get; set; }
 
         public string Notes { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

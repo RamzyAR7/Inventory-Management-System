@@ -16,6 +16,8 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
             int pageSize,
             Expression<Func<T, bool>> predicate = null,
             params Expression<Func<T, object>>[] includeProperties);
+        Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
+        Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(Guid id);

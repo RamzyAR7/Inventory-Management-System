@@ -5,7 +5,7 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
     public interface IUnitOfWork
     {
         // Repositories
-        IGenericRepository<User> Users { get; }
+        IUserRepository Users { get; }        
         IGenericRepository<Customer> Customers { get; }
         IGenericRepository<Category> Categories { get; }
         IGenericRepository<Supplier> Suppliers { get; }

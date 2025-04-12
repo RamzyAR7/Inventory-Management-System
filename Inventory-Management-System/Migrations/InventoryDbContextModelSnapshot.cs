@@ -306,30 +306,32 @@ namespace Inventory_Management_System.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("EncryptedPassword")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                    b.Property<Guid?>("ManagerID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("UserID");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("FullName")
+                    b.HasIndex("ManagerID");
+
+                    b.HasIndex("UserName")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -337,12 +339,12 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("556fa4bd-2343-485c-8644-0bb9fe61e424"),
-                            CreatedAt = new DateTime(2025, 4, 12, 2, 0, 10, 831, DateTimeKind.Utc).AddTicks(2187),
+                            UserID = new Guid("2b8af87b-c765-410e-bd14-2ebbc030053a"),
+                            CreatedAt = new DateTime(2025, 4, 12, 13, 21, 25, 739, DateTimeKind.Utc).AddTicks(6784),
                             Email = "admin@gmail.com",
-                            FullName = "Admin",
-                            PasswordHash = "$2a$11$TsoAxEL1JVGf42YbyYU3tOTdB1VvzKwsof7THTXTMtU1BCrsEVeya",
-                            Role = "Admin"
+                            EncryptedPassword = "OHQCCSALwuReYqVzEhwlBw==",
+                            Role = "Admin",
+                            UserName = "Admin"
                         });
                 });
 
@@ -508,6 +510,16 @@ namespace Inventory_Management_System.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
+                {
+                    b.HasOne("Inventory_Management_System.Entities.User", "Manager")
+                        .WithMany()
+                        .HasForeignKey("ManagerID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Manager");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
