@@ -4,7 +4,7 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {
-        Task<T> GetByIdAsync(int id, params Expression<Func<T, object>>[] includeProperties);
+        Task<T> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includeProperties);
         Task<IEnumerable<T>> GetAllAsync(
             Expression<Func<T, bool>> predicate = null,
             params Expression<Func<T, object>>[] includeProperties);
@@ -18,8 +18,8 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
             params Expression<Func<T, object>>[] includeProperties);
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);
-        Task DeleteAsync(int id);
-        Task<bool> ExistsAsync(int id);
+        Task DeleteAsync(Guid id);
+        Task<bool> ExistsAsync(Guid id);
 
     }
 }

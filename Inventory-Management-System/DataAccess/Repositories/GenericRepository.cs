@@ -18,7 +18,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
         }
 
 
-        public async Task<T> GetByIdAsync(int id, params Expression<Func<T, object>>[] includeProperties)
+        public async Task<T> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includeProperties)
         {
             // Get key name dynamically
             var keyName = _context.Model.FindEntityType(typeof(T))?
@@ -129,7 +129,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
             if (entry.State == EntityState.Detached)
             {
                 var key = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
-                var id = (int)entry.Property(key).CurrentValue;
+                var id = (Guid)entry.Property(key).CurrentValue;
                 var existingEntity = await GetByIdAsync(id);
                 if (existingEntity == null)
                     throw new KeyNotFoundException($"Entity with ID {id} not found.");
@@ -142,7 +142,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
             }
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var entity = await GetByIdAsync(id);
             if (entity == null)
@@ -151,7 +151,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
             _dbSet.Remove(entity);
         }
 
-        public async Task<bool> ExistsAsync(int id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
             var keyName = _context.Model.FindEntityType(typeof(T))
                             ?.FindPrimaryKey()
