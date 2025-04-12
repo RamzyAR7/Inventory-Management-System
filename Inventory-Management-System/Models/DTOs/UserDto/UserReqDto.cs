@@ -5,6 +5,9 @@ namespace Inventory_Management_System.Models.DTOs.User
 {
     public class UserReqDto : IValidatableObject
     {
+        [Required(ErrorMessage = "Full Name is required.")]
+        [StringLength(100, ErrorMessage = "Full Name cannot be longer than 100 characters.")]
+        public string FullName { get; set; }
         [Required(ErrorMessage = "UserName is required.")]
         [StringLength(50, ErrorMessage = "UserName cannot be longer than 50 characters.")]
         public string UserName { get; set; }
