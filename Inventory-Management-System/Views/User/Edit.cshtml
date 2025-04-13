@@ -1,0 +1,114 @@
+﻿@model Inventory_Management_System.ViewModels.UserWithManagers
+@using Inventory_Management_System.Entities
+
+
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<h1>Edit User</h1>
+
+@if (ViewData.ModelState.Any(x => x.Value.Errors.Any()))
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="User.UserID" />
+    <div class="form-group">
+        <label asp-for="User.UserName" class="control-label"></label>
+        <input asp-for="User.UserName" class="form-control" />
+        <span asp-validation-for="User.UserName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="User.Email" class="control-label"></label>
+        <input asp-for="User.Email" class="form-control" />
+        <span asp-validation-for="User.Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="User.Password" class="control-label"></label>
+        <input asp-for="User.Password" class="form-control" type="password" />
+        <span asp-validation-for="User.Password" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="User.Role" class="control-label"></label>
+        <select asp-for="User.Role" id="Role" class="form-control" asp-items="Html.GetEnumSelectList<UserRole>()">
+            <option value="">Select Role</option>
+        </select>
+        <span asp-validation-for="User.Role" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="User.ManagerID" class="control-label"></label>
+        <select asp-for="User.ManagerID" id="ManagerID" class="form-control">
+            <option value="">Select Manager</option>
+            @foreach (var manager in Model.Managers)
+            {
+                <option value="@manager.UserID">@manager.UserName (@manager.Role)</option>
+            }
+        </select>
+        <span asp-validation-for="User.ManagerID" class="text-danger"></span>
+    </div>
+    <div class="form-group mt-3">
+        <input type="submit" value="Save" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(function() {
+            $('#Role').change(function() {
+                var role = $(this).val();
+                var $managerSelect = $('#ManagerID');
+                $managerSelect.find('option:gt(0)').remove();
+                var managers = @Json.Serialize(Model.Managers);
+                console.log("Managers:", managers);
+                console.log("Selected Role:", role);
+
+                if (!managers || managers.length === 0) {
+                    $managerSelect.append($('<option>', {
+                        value: "",
+                        text: "No managers available",
+                        disabled: true,
+                        selected: true
+                    }));
+                    return;
+                }
+
+                var hasValidManagers = false;
+                $.each(managers, function(i, manager) {
+                    if (role === '1' && manager.Role !== 0) return;
+                    if (role === '2' && manager.Role !== 1 && manager.Role !== 0) return;
+                    hasValidManagers = true;
+                    $managerSelect.append($('<option>', {
+                        value: manager.UserID,
+                        text: (manager.UserName || 'Unknown') + ' (' + (manager.Role === 0 ? 'Admin' : manager.Role === 1 ? 'Manager' : 'Employee') + ')'
+                    }));
+                });
+
+                if (!hasValidManagers) {
+                    $managerSelect.append($('<option>', {
+                        value: "",
+                        text: "No suitable managers available",
+                        disabled: true,
+                        selected: true
+                    }));
+                }
+
+                // Restore the selected ManagerID after repopulating
+                var selectedManagerId = '@Model.User.ManagerID';
+                if (selectedManagerId) {
+                    $managerSelect.val(selectedManagerId);
+                }
+            }).trigger('change');
+        });
+    </script>
+}

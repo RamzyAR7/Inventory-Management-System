@@ -2,7 +2,9 @@
 using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs;
 using Inventory_Management_System.Models.DTOs.User;
+using System.Linq.Expressions;
 
 namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 {
@@ -17,6 +19,31 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             _mapper = mapper;
         }
 
+        private async Task CheckForManagerCycle(Guid userId, Guid? managerId)
+        {
+            if (!managerId.HasValue)
+                return;
+
+            var visited = new HashSet<Guid>();
+            var currentManagerId = managerId.Value;
+
+            while (currentManagerId != default)
+            {
+                if (visited.Contains(currentManagerId))
+                    throw new InvalidOperationException("Manager hierarchy contains a cycle.");
+
+                if (currentManagerId == userId)
+                    throw new InvalidOperationException("Manager hierarchy cannot include the user being updated.");
+
+                visited.Add(currentManagerId);
+                var manager = await _unitOfWork.Users.GetByIdAsync(currentManagerId);
+                if (manager == null)
+                    throw new InvalidOperationException("Selected manager does not exist.");
+
+                currentManagerId = manager.ManagerID ?? default;
+            }
+        }
+
         public async Task<UserResDto> CreateUser(UserReqDto userDto)
         {
             var existingUser = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserName == userDto.UserName || u.Email == userDto.Email);
@@ -29,7 +56,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             user.UserID = Guid.NewGuid();
             user.CreatedAt = DateTime.UtcNow;
 
-            // Validate ManagerID
             if (user.ManagerID.HasValue)
             {
                 var manager = await _unitOfWork.Users.GetByIdAsync(user.ManagerID.Value);
@@ -45,6 +71,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 {
                     throw new InvalidOperationException("Employee role requires a Manager or Admin as the manager.");
                 }
+
+                await CheckForManagerCycle(user.UserID, user.ManagerID);
             }
 
             await _unitOfWork.Users.AddAsync(user);
@@ -63,7 +91,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
             _mapper.Map(userDto, existingUser);
 
-            // Validate ManagerID
             if (existingUser.ManagerID.HasValue)
             {
                 var manager = await _unitOfWork.Users.GetByIdAsync(existingUser.ManagerID.Value);
@@ -79,6 +106,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 {
                     throw new InvalidOperationException("Employee role requires a Manager or Admin as the manager.");
                 }
+
+                await CheckForManagerCycle(id, existingUser.ManagerID);
             }
 
             await _unitOfWork.Users.UpdateAsync(existingUser);
@@ -89,17 +118,26 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task<IEnumerable<UserResDto>> GetAllUsers(bool includeManager = false)
         {
-            var users = await _unitOfWork.Users.GetAllAsync(/*includeManager ? u => u.Manager : null*/);
+            var users = await _unitOfWork.Users.GetAllAsync(includeManager ? new Expression<Func<User, object>>[] { u => u.Manager } : Array.Empty<Expression<Func<User, object>>>());
             if (users == null || !users.Any())
             {
                 throw new KeyNotFoundException("No users found.");
             }
             return _mapper.Map<IEnumerable<UserResDto>>(users);
         }
+        public async Task<List<ManagerDto>> GetManagers()
+        {
+            var managers = await _unitOfWork.Users.FindAsync(u => u.Role == UserRole.Manager || u.Role == UserRole.Admin);
+            if (managers == null || !managers.Any())
+            {
+                return new List<ManagerDto>(); // Return empty list instead of throwing
+            }
+            return _mapper.Map<List<ManagerDto>>(managers);
+        }
 
         public async Task<UserResDto> GetUserById(Guid id, bool includeManager = false)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(id, includeManager ? u => u.Manager : null);
+            var user = await _unitOfWork.Users.GetByIdAsync(id, includeManager ? new Expression<Func<User, object>>[] { u => u.Manager } : Array.Empty<Expression<Func<User, object>>>());
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with ID {id} not found.");
@@ -109,7 +147,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task<UserResDto> GetUserByName(string username, bool includeManager = false)
         {
-            var user = await _unitOfWork.Users.GetByUserNameAsync(username, includeManager ? u => u.Manager : null);
+            var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserName == username, includeManager ? new Expression<Func<User, object>>[] { u => u.Manager } : Array.Empty<Expression<Func<User, object>>>());
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with username {username} not found.");
@@ -130,7 +168,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task DeleteUserbyName(string username)
         {
-            var user = await _unitOfWork.Users.GetByUserNameAsync(username);
+            var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserName == username);
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with username {username} not found.");

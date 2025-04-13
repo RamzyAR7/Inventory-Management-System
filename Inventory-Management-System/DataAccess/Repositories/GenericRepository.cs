@@ -17,67 +17,64 @@ namespace Inventory_Management_System.DataAccess.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _dbSet = _context.Set<T>();
         }
-        public async Task<T> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includeProperties)
+
+        public async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
         {
-            // Get key name dynamically
-            var keyName = _context.Model.FindEntityType(typeof(T))?
-                                       .FindPrimaryKey()?
-                                       .Properties.FirstOrDefault()?.Name;
-
-            if (keyName == null)
-                throw new InvalidOperationException($"Cannot find primary key for {typeof(T).Name}");
-
-            // Try converting ID to actual key type
-            var propertyType = typeof(T).GetProperty(keyName)?.PropertyType;
-            var convertedId = Convert.ChangeType(id, propertyType!);
-
-            // Use FindAsync
-            var entity = await _dbSet.FindAsync(convertedId);
-
-            if (entity == null)
-                throw new KeyNotFoundException($"Entity of type {typeof(T).Name} with ID {id} not found.");
-
-            // Include navigation properties manually
-            var entry = _context.Entry(entity);
-            foreach (var includeProperty in includeProperties)
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
             {
-                await entry.Reference(includeProperty).LoadAsync();
+                if (include != null) // Skip null includes
+                {
+                    query = query.Include(include);
+                }
             }
-
-            return entity;
-        }
-        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate = null,
-            params Expression<Func<T, object>>[] includeProperties)
-        {
-            IQueryable<T> query = _dbSet.AsNoTracking();
-
-            if (predicate != null)
-            {
-                query = query.Where(predicate);
-            }
-
-            foreach (var includeProperty in includeProperties)
-            {
-                query = query.Include(includeProperty);
-            }
-
             return await query.ToListAsync();
         }
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate,
-            params Expression<Func<T, object>>[] includeProperties)
+
+        public async Task<T> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
         {
-            if (predicate == null)
-                throw new ArgumentNullException(nameof(predicate));
-
-            IQueryable<T> query = _dbSet.AsNoTracking();
-
-            foreach (var includeProperty in includeProperties)
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
             {
-                query = query.Include(includeProperty);
+                if (include != null)
+                {
+                    query = query.Include(include);
+                }
             }
+            return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "UserID") == id); // Fixed for User entity
+        }
 
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
+            {
+                if (include != null)
+                {
+                    query = query.Include(include);
+                }
+            }
             return await query.Where(predicate).ToListAsync();
         }
+
+        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await FirstOrDefaultAsync(predicate, Array.Empty<Expression<Func<T, object>>>());
+        }
+
+        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
+            {
+                if (include != null)
+                {
+                    query = query.Include(include);
+                }
+            }
+            return await query.FirstOrDefaultAsync(predicate);
+        }
+
         public async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize,
             Expression<Func<T, bool>> predicate = null, params Expression<Func<T, object>>[] includeProperties)
         {
@@ -95,7 +92,10 @@ namespace Inventory_Management_System.DataAccess.Repositories
 
             foreach (var includeProperty in includeProperties)
             {
-                query = query.Include(includeProperty);
+                if (includeProperty != null)
+                {
+                    query = query.Include(includeProperty);
+                }
             }
 
             var totalCount = await query.CountAsync();
@@ -160,22 +160,5 @@ namespace Inventory_Management_System.DataAccess.Repositories
             var entity = await _dbSet.FindAsync(convertedId);
             return entity != null;
         }
-
-        //find
-        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
-        {
-            return await FirstOrDefaultAsync(predicate, Array.Empty<Expression<Func<T, object>>>());
-        }
-
-        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
-        {
-            IQueryable<T> query = _dbSet;
-            foreach (var include in includes)
-            {
-                query = query.Include(include);
-            }
-            return await query.FirstOrDefaultAsync(predicate);
-        }
     }
 }
-

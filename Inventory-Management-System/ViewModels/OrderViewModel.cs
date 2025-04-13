@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Inventory_Management_System.ViewModels
 {
-    public class OrderViewModel: IValidatableObject
+    public class OrderViewModel
     {
         public int OrderID { get; set; }
         public DateTime OrderDate { get; set; }
@@ -16,10 +16,6 @@ namespace Inventory_Management_System.ViewModels
 
         public string Notes { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {
-            throw new NotImplementedException();
-        }
     }
 
 }
