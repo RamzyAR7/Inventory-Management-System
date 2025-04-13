@@ -6,5 +6,6 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
     public interface IUserRepository:IGenericRepository<User>
     {
         Task<User> GetByUserNameAsync(string userName, params Expression<Func<User, object>>[] includes);
+        Task<IEnumerable<User>> FindManagerAsync(Expression<Func<User, bool>> predicate);
     }
 }

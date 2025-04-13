@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
+using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs;
 using Inventory_Management_System.Models.DTOs.User;
 using Inventory_Management_System.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
 namespace Inventory_Management_System.Controllers
@@ -13,7 +16,7 @@ namespace Inventory_Management_System.Controllers
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public UserController(IUserService userService, IMapper mapper)
+        public UserController(IUserService userService,IMapper mapper)
         {
             _userService = userService;
             _mapper = mapper;
@@ -65,57 +68,64 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 var managers = await _userService.GetManagers();
-                var user = new UserWithManagers
-                {
-                    User = new UserReqDto(),
-                    Managers = managers
-                };
                 if (!managers.Any())
                 {
                     TempData["WarningMessage"] = "No managers or admins available. Please create an Admin or Manager first.";
                 }
-                return View(user);
+
+                // Include Role in the SelectList for JavaScript filtering
+                ViewData["Managers"] = new SelectList(
+                    managers.Select(m => new { m.UserID, Display = $"{m.UserName} ({m.Role})", m.Role }),
+                    "UserID",
+                    "Display",
+                    null,
+                    "Role"
+                );
+                return View(new UserReqDto());
             }
             catch (Exception)
             {
                 TempData["ErrorMessage"] = "An unexpected error occurred.";
-                return View(new UserWithManagers { User = new UserReqDto(), Managers = new List<ManagerDto>() });
+                return RedirectToAction(nameof(Index));
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(UserWithManagers model)
+        public async Task<IActionResult> Create(UserReqDto model)
         {
-            var userDto = model.User;
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    model.Managers = await _userService.GetManagers();
+                    var managers = await _userService.GetManagers();
+                    ViewData["Managers"] = new SelectList(managers, "UserID", "UserName");
                     return View(model);
                 }
 
-                var result = await _userService.CreateUser(userDto);
+                var result = await _userService.CreateUser(model);
                 TempData["SuccessMessage"] = "User created successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                model.Managers = await _userService.GetManagers();
+                var managers = await _userService.GetManagers();
+                ViewData["Managers"] = new SelectList(managers, "UserID", "UserName");
                 return View(model);
             }
             catch (ValidationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                model.Managers = await _userService.GetManagers();
+                var managers = await _userService.GetManagers();
+                ViewData["Managers"] = new SelectList(managers, "UserID", "UserName");
                 return View(model);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
-                model.Managers = await _userService.GetManagers();
+                ModelState.AddModelError(string.Empty, "An unexpected error occurred: " + ex.Message);
+                var managers = await _userService.GetManagers();
+                ViewData["Managers"] = new SelectList(managers, "UserID", "UserName");
                 return View(model);
             }
         }
@@ -128,12 +138,14 @@ namespace Inventory_Management_System.Controllers
                 var user = await _userService.GetUserById(id, includeManager: false);
                 var userDto = _mapper.Map<UserReqDto>(user);
                 var managers = await _userService.GetManagers();
-                var model = new UserWithManagers
-                {
-                    User = userDto,
-                    Managers = managers.Where(m => m.UserID != id).ToList()
-                };
-                return View(model);
+                ViewData["Managers"] = new SelectList(
+                    managers.Where(m => m.UserID != id).Select(m => new { m.UserID, Display = $"{m.UserName} ({m.Role})", m.Role }),
+                    "UserID",
+                    "Display",
+                    null,
+                    "Role"
+                );
+                return View(userDto);
             }
             catch (KeyNotFoundException)
             {
@@ -149,19 +161,18 @@ namespace Inventory_Management_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, UserWithManagers model)
+        public async Task<IActionResult> Edit(Guid id, UserReqDto model)
         {
-            var userDto = model.User;
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    model.Managers = await _userService.GetManagers();
-                    model.Managers = model.Managers.Where(m => m.UserID != id).ToList();
+                    var managers = await _userService.GetManagers();
+                    ViewData["Managers"] = new SelectList(managers.Where(m => m.UserID != id), "UserID", "UserName");
                     return View(model);
                 }
 
-                var result = await _userService.UpdateUser(id, userDto);
+                var result = await _userService.UpdateUser(id, model);
                 TempData["SuccessMessage"] = "User updated successfully!";
                 return RedirectToAction(nameof(Details), new { id });
             }
@@ -173,22 +184,22 @@ namespace Inventory_Management_System.Controllers
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                model.Managers = await _userService.GetManagers();
-                model.Managers = model.Managers.Where(m => m.UserID != id).ToList();
+                var managers = await _userService.GetManagers();
+                ViewData["Managers"] = new SelectList(managers.Where(m => m.UserID != id), "UserID", "UserName");
                 return View(model);
             }
             catch (ValidationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                model.Managers = await _userService.GetManagers();
-                model.Managers = model.Managers.Where(m => m.UserID != id).ToList();
+                var managers = await _userService.GetManagers();
+                ViewData["Managers"] = new SelectList(managers.Where(m => m.UserID != id), "UserID", "UserName");
                 return View(model);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
-                model.Managers = await _userService.GetManagers();
-                model.Managers = model.Managers.Where(m => m.UserID != id).ToList();
+                ModelState.AddModelError(string.Empty, "An unexpected error occurred: " + ex.Message);
+                var managers = await _userService.GetManagers();
+                ViewData["Managers"] = new SelectList(managers.Where(m => m.UserID != id), "UserID", "UserName");
                 return View(model);
             }
         }
@@ -234,5 +245,51 @@ namespace Inventory_Management_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        //[HttpGet]
+        //[AllowAnonymous]
+        //public IActionResult Login()
+        //{
+        //    return View();
+        //}
+
+        //[HttpPost]
+        //[AllowAnonymous]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Login(string email, string password)
+        //{
+        //    try
+        //    {
+        //        var token = await _loginService.AuthenticateAndGenerateToken(email, password);
+        //        Response.Cookies.Append("jwt", token, new CookieOptions
+        //        {
+        //            HttpOnly = true,
+        //            Secure = true,
+        //            SameSite = SameSiteMode.Strict,
+        //            Expires = DateTimeOffset.UtcNow.AddHours(1)
+        //        });
+        //        TempData["SuccessMessage"] = "Login successful!";
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    catch (UnauthorizedAccessException ex)
+        //    {
+        //        ModelState.AddModelError(string.Empty, ex.Message);
+        //        return View();
+        //    }
+        //    catch (Exception)
+        //    {
+        //        ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
+        //        return View();
+        //    }
+        //}
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public IActionResult Logout()
+        //{
+        //    Response.Cookies.Delete("jwt");
+        //    TempData["SuccessMessage"] = "Logged out successfully!";
+        //    return RedirectToAction(nameof(Login));
+        //}
     }
 }

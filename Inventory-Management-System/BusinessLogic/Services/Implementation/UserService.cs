@@ -27,20 +27,26 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             var visited = new HashSet<Guid>();
             var currentManagerId = managerId.Value;
 
-            while (currentManagerId != default)
+            while (currentManagerId != Guid.Empty)
             {
                 if (visited.Contains(currentManagerId))
+                {
                     throw new InvalidOperationException("Manager hierarchy contains a cycle.");
+                }
 
                 if (currentManagerId == userId)
+                {
                     throw new InvalidOperationException("Manager hierarchy cannot include the user being updated.");
+                }
 
                 visited.Add(currentManagerId);
                 var manager = await _unitOfWork.Users.GetByIdAsync(currentManagerId);
                 if (manager == null)
+                {
                     throw new InvalidOperationException("Selected manager does not exist.");
+                }
 
-                currentManagerId = manager.ManagerID ?? default;
+                currentManagerId = manager.ManagerID ?? Guid.Empty;
             }
         }
 
@@ -127,12 +133,24 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
         }
         public async Task<List<ManagerDto>> GetManagers()
         {
-            var managers = await _unitOfWork.Users.FindAsync(u => u.Role == UserRole.Manager || u.Role == UserRole.Admin);
-            if (managers == null || !managers.Any())
+            try
             {
-                return new List<ManagerDto>(); // Return empty list instead of throwing
+                var managers = await _unitOfWork.Users.FindManagerAsync(u => u.Role == UserRole.Manager || u.Role == UserRole.Admin);
+
+                // Assuming FindAsync never returns null (common in EF Core), simplify the check
+                if (!managers.Any())
+                {
+                    return new List<ManagerDto>(); // Return empty list if no managers are found
+                }
+
+                return _mapper.Map<List<ManagerDto>>(managers);
             }
-            return _mapper.Map<List<ManagerDto>>(managers);
+            catch (Exception ex)
+            {
+                // Log the error (you can use a logging framework like Serilog or ILogger)
+                // For now, we'll just rethrow a more specific exception
+                throw new InvalidOperationException("Failed to retrieve managers from the database.", ex);
+            }
         }
 
         public async Task<UserResDto> GetUserById(Guid id, bool includeManager = false)

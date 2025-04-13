@@ -17,7 +17,6 @@ namespace Inventory_Management_System.Models.DTOs.User
 
         [Required(ErrorMessage = "Password is required.")]
         [StringLength(100, ErrorMessage = "Password cannot be longer than 100 characters.")]
-        [DataType(DataType.Password)]
         public string Password { get; set; }
 
         [Required(ErrorMessage = "Role is required.")]

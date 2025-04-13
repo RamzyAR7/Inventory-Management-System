@@ -20,5 +20,12 @@ namespace Inventory_Management_System.DataAccess.Repositories
             }
             return await query.FirstOrDefaultAsync(u => u.UserName == userName);
         }
+        public async Task<IEnumerable<User>> FindManagerAsync(Expression<Func<User, bool>> predicate)
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .Where(predicate)
+                .ToListAsync();
+        }
     }
 }
