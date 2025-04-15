@@ -16,6 +16,7 @@ namespace Inventory_Management_System.Controllers
         public async Task<IActionResult> Index()
         {
             var customers = await _customerService.GetAllAsync();
+
             return View(customers);
         }
 
