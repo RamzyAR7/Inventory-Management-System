@@ -6,16 +6,15 @@ namespace Inventory_Management_System.Entities
     {
         #region Properties
         public Guid UserID { get; set; }
-        [Required , MaxLength(100)]
-        public string FullName { get; set; }
-        [Required, MaxLength(100)]
+        public string UserName { get; set; }
         public string Email { get; set; }
-        [Required, MaxLength(255)]
-        public string PasswordHash { get; set; }
-        [Required]
+        public string EncryptedPassword { get; set; }
         public UserRole Role { get; set; }
-        [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // self relationship for manager
+        public Guid? ManagerID { get; set; }
+        public User Manager { get; set; }
 
         // Navigation properties
         public ICollection<Warehouse> ManagedWarehouses { get; set; }

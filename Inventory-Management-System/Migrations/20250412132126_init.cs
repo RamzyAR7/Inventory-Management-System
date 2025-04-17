@@ -59,15 +59,21 @@ namespace Inventory_Management_System.Migrations
                 columns: table => new
                 {
                     UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    EncryptedPassword = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ManagerID = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.UserID);
+                    table.ForeignKey(
+                        name: "FK_Users_Users_ManagerID",
+                        column: x => x.ManagerID,
+                        principalTable: "Users",
+                        principalColumn: "UserID");
                 });
 
             migrationBuilder.CreateTable(
@@ -160,12 +166,13 @@ namespace Inventory_Management_System.Migrations
                 name: "CustomerOrders",
                 columns: table => new
                 {
+                    CustomerOrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CustomerID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CustomerOrders", x => new { x.CustomerID, x.OrderID });
+                    table.PrimaryKey("PK_CustomerOrders", x => x.CustomerOrderID);
                     table.ForeignKey(
                         name: "FK_CustomerOrders_Customers_CustomerID",
                         column: x => x.CustomerID,
@@ -290,8 +297,13 @@ namespace Inventory_Management_System.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "UserID", "CreatedAt", "Email", "FullName", "PasswordHash", "Role" },
-                values: new object[] { new Guid("d22766c8-63cf-4727-9f6a-2ffbe7d3fd5b"), new DateTime(2025, 4, 5, 2, 4, 48, 110, DateTimeKind.Utc).AddTicks(8892), "admin@example.com", "Admin", "$2a$11$1ZxuzuX0/PgVv4D6DMq6Qe/PohrgbHF5orrxZ34YuCc42x8Rs/Eiq", "Admin" });
+                columns: new[] { "UserID", "CreatedAt", "Email", "EncryptedPassword", "ManagerID", "Role", "UserName" },
+                values: new object[] { new Guid("2b8af87b-c765-410e-bd14-2ebbc030053a"), new DateTime(2025, 4, 12, 13, 21, 25, 739, DateTimeKind.Utc).AddTicks(6784), "admin@gmail.com", "OHQCCSALwuReYqVzEhwlBw==", null, "Admin", "Admin" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CustomerOrders_CustomerID_OrderID",
+                table: "CustomerOrders",
+                columns: new[] { "CustomerID", "OrderID" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_CustomerOrders_OrderID",
@@ -364,9 +376,14 @@ namespace Inventory_Management_System.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_FullName",
+                name: "IX_Users_ManagerID",
                 table: "Users",
-                column: "FullName",
+                column: "ManagerID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_UserName",
+                table: "Users",
+                column: "UserName",
                 unique: true);
 
             migrationBuilder.CreateIndex(

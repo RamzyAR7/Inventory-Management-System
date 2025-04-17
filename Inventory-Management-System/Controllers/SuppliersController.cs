@@ -4,28 +4,28 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory_Management_System.Controllers
 {
-    public class WarehousesController : Controller
+    public class SuppliersController : Controller
     {
-        private readonly IWarehouseService _warehouseService;
+        private readonly ISupplierService _supplierService;
 
-        public WarehousesController(IWarehouseService warehouseService)
+        public SuppliersController(ISupplierService supplierService)
         {
-            _warehouseService = warehouseService;
+            _supplierService = supplierService;
         }
 
         public async Task<IActionResult> Index()
         {
-            IEnumerable<Warehouse> warehouses = await _warehouseService.GetAllAsync();
-            return View(warehouses);
+            var suppliers = await _supplierService.GetAllAsync();
+            return View(suppliers);
         }
 
         public async Task<IActionResult> Details(Guid id)
         {
-            Warehouse? warehouse = await _warehouseService.GetByIdAsync(id);
-            if (warehouse == null)
+            var supplier = await _supplierService.GetByIdAsync(id);
+            if (supplier == null)
                 return NotFound();
 
-            return View(warehouse);
+            return View(supplier);
         }
 
         public IActionResult Create()
@@ -35,54 +35,54 @@ namespace Inventory_Management_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Warehouse warehouse)
+        public async Task<IActionResult> Create(Supplier supplier)
         {
             if (ModelState.IsValid)
             {
-                await _warehouseService.CreateAsync(warehouse);
+                await _supplierService.CreateAsync(supplier);
                 return RedirectToAction(nameof(Index));
             }
-            return View(warehouse);
+            return View(supplier);
         }
 
         public async Task<IActionResult> Edit(Guid id)
         {
-            Warehouse? warehouse = await _warehouseService.GetByIdAsync(id);
-            if (warehouse == null)
+            var supplier = await _supplierService.GetByIdAsync(id);
+            if (supplier == null)
                 return NotFound();
 
-            return View(warehouse);
+            return View(supplier);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, Warehouse warehouse)
+        public async Task<IActionResult> Edit(Guid id, Supplier supplier)
         {
-            if (id != warehouse.WarehouseID)
+            if (id != supplier.SupplierID)
                 return BadRequest();
 
             if (ModelState.IsValid)
             {
-                await _warehouseService.UpdateAsync(warehouse);
+                await _supplierService.UpdateAsync(supplier);
                 return RedirectToAction(nameof(Index));
             }
-            return View(warehouse);
+            return View(supplier);
         }
 
         public async Task<IActionResult> Delete(Guid id)
         {
-            Warehouse? warehouse = await _warehouseService.GetByIdAsync(id);
-            if (warehouse == null)
+            var supplier = await _supplierService.GetByIdAsync(id);
+            if (supplier == null)
                 return NotFound();
 
-            return View(warehouse);
+            return View(supplier);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            await _warehouseService.DeleteAsync(id);
+            await _supplierService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }

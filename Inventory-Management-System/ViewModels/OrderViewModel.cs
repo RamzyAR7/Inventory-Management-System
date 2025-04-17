@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace Inventory_Management_System.ViewModels
 {
@@ -14,6 +15,7 @@ namespace Inventory_Management_System.ViewModels
         public IEnumerable<SelectListItem> Warehouses { get; set; }
 
         public string Notes { get; set; }
+
     }
 
 }

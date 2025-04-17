@@ -3,6 +3,9 @@
     public class CustomerOrder
     {
         #region Properties
+        // PK
+        public Guid CustomerOrderID { get; set; }
+
         // Foreign key to Customer
         public Guid CustomerID { get; set; }
         // Foreign key to Order

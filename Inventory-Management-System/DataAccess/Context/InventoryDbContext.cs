@@ -1,6 +1,6 @@
 ﻿using Inventory_Management_System.Entities;
 using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
+using Inventory_Management_System.BusinessLogic.Encrypt;
 namespace Inventory_Management_System.DataAccess.Context
 {
     public class InventoryDbContext:DbContext
@@ -33,7 +33,12 @@ namespace Inventory_Management_System.DataAccess.Context
                 .HasConversion<string>()
                 .HasMaxLength(50);
                 e.HasIndex(u => u.Email).IsUnique();
-                e.HasIndex(u => u.FullName).IsUnique();
+                e.HasIndex(u => u.UserName).IsUnique();
+
+                e.HasOne(u => u.Manager)
+                .WithMany()
+                .HasForeignKey(u => u.ManagerID)
+                .OnDelete(DeleteBehavior.NoAction);
             });
             modelBuilder.Entity<Order>(e => {
                 e.HasKey(o => o.OrderID);
@@ -156,7 +161,9 @@ namespace Inventory_Management_System.DataAccess.Context
                 e.HasIndex(u => u.FullName).IsUnique();
             });
             modelBuilder.Entity<CustomerOrder>(e => {
-                e.HasKey(co => new { co.CustomerID, co.OrderID });
+                e.HasKey(co => co.CustomerOrderID);
+
+               e.HasIndex(co => new { co.CustomerID, co.OrderID });
 
                 e.HasOne(co => co.Customer)
                 .WithMany(c => c.CustomerOrders)
@@ -175,9 +182,9 @@ namespace Inventory_Management_System.DataAccess.Context
             var admin = new User
             {
                 UserID = Guid.NewGuid(),
-                FullName = "Admin",
+                UserName = "Admin",
                 Email = "admin@gmail.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+                EncryptedPassword = EncryptionHelper.Encrypt("Admin@123"),
                 Role = UserRole.Admin,
                 CreatedAt = DateTime.UtcNow
             };

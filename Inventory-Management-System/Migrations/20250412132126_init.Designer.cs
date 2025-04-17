@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250405020448_init")]
+    [Migration("20250412132126_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -88,15 +88,21 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.CustomerOrder", b =>
                 {
+                    b.Property<Guid>("CustomerOrderID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("CustomerID")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("OrderID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("CustomerID", "OrderID");
+                    b.HasKey("CustomerOrderID");
 
                     b.HasIndex("OrderID");
+
+                    b.HasIndex("CustomerID", "OrderID");
 
                     b.ToTable("CustomerOrders");
                 });
@@ -303,30 +309,32 @@ namespace Inventory_Management_System.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("EncryptedPassword")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                    b.Property<Guid?>("ManagerID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("UserID");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("FullName")
+                    b.HasIndex("ManagerID");
+
+                    b.HasIndex("UserName")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -334,12 +342,12 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("d22766c8-63cf-4727-9f6a-2ffbe7d3fd5b"),
-                            CreatedAt = new DateTime(2025, 4, 5, 2, 4, 48, 110, DateTimeKind.Utc).AddTicks(8892),
-                            Email = "admin@example.com",
-                            FullName = "Admin",
-                            PasswordHash = "$2a$11$1ZxuzuX0/PgVv4D6DMq6Qe/PohrgbHF5orrxZ34YuCc42x8Rs/Eiq",
-                            Role = "Admin"
+                            UserID = new Guid("2b8af87b-c765-410e-bd14-2ebbc030053a"),
+                            CreatedAt = new DateTime(2025, 4, 12, 13, 21, 25, 739, DateTimeKind.Utc).AddTicks(6784),
+                            Email = "admin@gmail.com",
+                            EncryptedPassword = "OHQCCSALwuReYqVzEhwlBw==",
+                            Role = "Admin",
+                            UserName = "Admin"
                         });
                 });
 
@@ -505,6 +513,16 @@ namespace Inventory_Management_System.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
+                {
+                    b.HasOne("Inventory_Management_System.Entities.User", "Manager")
+                        .WithMany()
+                        .HasForeignKey("ManagerID")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Manager");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
