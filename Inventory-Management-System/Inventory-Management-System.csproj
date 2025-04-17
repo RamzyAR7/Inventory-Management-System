@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -15,12 +15,43 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\assets\charts-chartjs.html" />
+    <None Include="wwwroot\assets\css\app.css" />
+    <None Include="wwwroot\assets\css\app.css.map" />
+    <None Include="wwwroot\assets\fonts\.gitkeep" />
+    <None Include="wwwroot\assets\icons-feather.html" />
+    <None Include="wwwroot\assets\img\avatars\avatar-2.jpg" />
+    <None Include="wwwroot\assets\img\avatars\avatar-3.jpg" />
+    <None Include="wwwroot\assets\img\avatars\avatar-4.jpg" />
+    <None Include="wwwroot\assets\img\avatars\avatar-5.jpg" />
+    <None Include="wwwroot\assets\img\avatars\avatar.jpg" />
+    <None Include="wwwroot\assets\img\icons\icon-48x48.png" />
+    <None Include="wwwroot\assets\img\photos\unsplash-1.jpg" />
+    <None Include="wwwroot\assets\img\photos\unsplash-2.jpg" />
+    <None Include="wwwroot\assets\img\photos\unsplash-3.jpg" />
+    <None Include="wwwroot\assets\index.html" />
+    <None Include="wwwroot\assets\js\app.js" />
+    <None Include="wwwroot\assets\js\app.js.LICENSE.txt" />
+    <None Include="wwwroot\assets\js\app.js.map" />
+    <None Include="wwwroot\assets\maps-google.html" />
+    <None Include="wwwroot\assets\pages-blank.html" />
+    <None Include="wwwroot\assets\pages-profile.html" />
+    <None Include="wwwroot\assets\pages-sign-in.html" />
+    <None Include="wwwroot\assets\pages-sign-up.html" />
+    <None Include="wwwroot\assets\ui-buttons.html" />
+    <None Include="wwwroot\assets\ui-cards.html" />
+    <None Include="wwwroot\assets\ui-forms.html" />
+    <None Include="wwwroot\assets\ui-typography.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
   </ItemGroup>
 
 </Project>
