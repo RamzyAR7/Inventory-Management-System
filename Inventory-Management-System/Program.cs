@@ -17,6 +17,8 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 
 // Register the generic repository is optional
 // builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
