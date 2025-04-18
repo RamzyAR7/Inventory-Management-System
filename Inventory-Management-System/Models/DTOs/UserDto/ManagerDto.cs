@@ -1,7 +1,6 @@
-﻿
-using Inventory_Management_System.Entities;
+﻿using Inventory_Management_System.Entities;
 
-namespace Inventory_Management_System.Models.DTOs
+namespace Inventory_Management_System.Models.DTOs.UserDto
 {
     public class ManagerDto
     {

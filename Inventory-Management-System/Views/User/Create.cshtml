@@ -1,6 +1,4 @@
 ﻿@model Inventory_Management_System.Models.DTOs.User.UserReqDto
-@using Inventory_Management_System.Entities
-
 @{
     ViewData["Title"] = "Create User";
 }
@@ -52,14 +50,17 @@
     </div>
     <div class="form-group">
         <label asp-for="Role" class="control-label"></label>
-        <select asp-for="Role" id="Role" class="form-control" asp-items="Html.GetEnumSelectList<UserRole>()">
+        <select asp-for="Role" id="Role" class="form-control">
             <option value="">Select Role</option>
+            <option value="Admin">Admin</option>
+            <option value="Manager">Manager</option>
+            <option value="Employee">Employee</option>
         </select>
         <span asp-validation-for="Role" class="text-danger"></span>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="manager-id-group">
         <label asp-for="ManagerID" class="control-label"></label>
-        <select asp-for="ManagerID" id="ManagerID" class="form-control">
+        <select asp-for="ManagerID" id="ManagerID" class="form-control" asp-items="ViewBag.Managers">
             <option value="">Select Manager</option>
         </select>
         <span asp-validation-for="ManagerID" class="text-danger"></span>
@@ -74,66 +75,14 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(function () {
-            // Get the managers data from ViewData
-            var managers = @Html.Raw(Json.Serialize(ViewData["Managers"] as SelectList));
-            var managerItems = managers ? managers.items : [];
-
             $('#Role').change(function () {
                 var role = $(this).val();
-                var $managerSelect = $('#ManagerID');
+                var $managerGroup = $('#manager-id-group');
 
-                // Always clear all options except the "Select Manager" placeholder
-                $managerSelect.find('option:gt(0)').remove();
-
-                // If role is Admin, disable the dropdown and show message
                 if (role === '0') { // Admin role
-                    $managerSelect.append($('<option>', {
-                        value: "",
-                        text: "Admins do not have managers",
-                        disabled: true,
-                        selected: true
-                    }));
-                    $managerSelect.prop('disabled', true);
-                    return;
-                }
-
-                // Enable the dropdown for Manager or Employee roles
-                $managerSelect.prop('disabled', false);
-
-                // If no managers are available, show "No managers available"
-                if (!managerItems || managerItems.length === 0) {
-                    $managerSelect.empty(); // Remove all options, including "Select Manager"
-                    $managerSelect.append($('<option>', {
-                        value: "",
-                        text: "No managers available",
-                        disabled: true,
-                        selected: true
-                    }));
-                    return;
-                }
-
-                // Repopulate the dropdown with valid managers
-                var hasValidManagers = false;
-                $.each(managerItems, function (i, manager) {
-                    // Role values: 0=Admin, 1=Manager, 2=Employee
-                    if (role === '1' && manager.role !== 0) return; // Manager role, only Admin
-                    if (role === '2' && manager.role !== 1 && manager.role !== 0) return; // Employee role, Manager or Admin
-                    hasValidManagers = true;
-                    $managerSelect.append($('<option>', {
-                        value: manager.value,
-                        text: manager.text
-                    }));
-                });
-
-                // If no valid managers are available after filtering, show message
-                if (!hasValidManagers) {
-                    $managerSelect.empty(); // Remove all options, including "Select Manager"
-                    $managerSelect.append($('<option>', {
-                        value: "",
-                        text: "No suitable managers available",
-                        disabled: true,
-                        selected: true
-                    }));
+                    $managerGroup.hide();
+                } else {
+                    $managerGroup.show();
                 }
             }).trigger('change');
         });

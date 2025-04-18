@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Inventory_Management_System.Models.Mapping;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.BusinessLogic.Services.Implementation;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Options;
+using Inventory_Management_System.BusinessLogic.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,12 +19,27 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 
 // Register the generic repository is optional
 // builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddHttpContextAccessor();
+// register Authentication and Authorization
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+    });
 
 var app = builder.Build();
 
@@ -38,6 +56,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
