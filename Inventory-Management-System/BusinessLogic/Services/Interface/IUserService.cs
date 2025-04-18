@@ -1,5 +1,5 @@
-﻿using Inventory_Management_System.Models.DTOs;
-using Inventory_Management_System.Models.DTOs.User;
+﻿using Inventory_Management_System.Models.DTOs.User;
+using Inventory_Management_System.Models.DTOs.UserDto;
 using Microsoft.EntityFrameworkCore.Query;
 
 namespace Inventory_Management_System.BusinessLogic.Services.Interface
@@ -11,7 +11,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Interface
         Task<IEnumerable<UserResDto>> GetAllUsers(bool includeManager = false);
 
         Task<UserResDto> CreateUser(UserReqDto userDto);
-        Task<UserResDto> UpdateUser(Guid id, UserReqDto userDto);
+        Task<UserEditDto> UpdateUser(Guid id, UserEditDto userDto);
         Task<List<ManagerDto>> GetManagers(); // Updated
         Task DeleteUserbyId(Guid id);
         Task DeleteUserbyName(string username);

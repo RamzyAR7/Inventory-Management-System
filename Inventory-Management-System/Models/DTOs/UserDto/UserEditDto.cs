@@ -1,9 +1,9 @@
 ﻿using Inventory_Management_System.Entities;
 using System.ComponentModel.DataAnnotations;
 
-namespace Inventory_Management_System.Models.DTOs.User
+namespace Inventory_Management_System.Models.DTOs.UserDto
 {
-    public class UserReqDto : IValidatableObject
+    public class UserEditDto
     {
         public Guid? UserID { get; set; }
         [Required(ErrorMessage = "UserName is required.")]
@@ -16,8 +16,7 @@ namespace Inventory_Management_System.Models.DTOs.User
         public string Email { get; set; }
 
         [StringLength(100, ErrorMessage = "Password cannot be longer than 100 characters.")]
-        [Required(ErrorMessage = "Password is required.")]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [Required(ErrorMessage = "Role is required.")]
         [RegularExpression("^(Admin|Manager|Employee)$", ErrorMessage = "Role must be Admin, Manager, or Employee.")]

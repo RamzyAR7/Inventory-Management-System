@@ -1,5 +1,4 @@
-﻿@model Inventory_Management_System.Models.DTOs.User.UserReqDto
-@using Inventory_Management_System.Entities
+﻿@model Inventory_Management_System.Models.DTOs.UserDto.UserEditDto
 
 @{
     ViewData["Title"] = "Edit User";
@@ -42,20 +41,23 @@
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
     <div class="form-group">
-        <label asp-for="Password" class="control-label"></label>
-        <input asp-for="Password" class="form-control" type="password" placeholder="Leave blank to keep current password" />
+        <label asp-for="Password" class="form-label"></label>
+        <input asp-for="Password" class="form-control" type="password" placeholder="Leave It Empty if You don't Need to Change Passsword" />
         <span asp-validation-for="Password" class="text-danger"></span>
     </div>
     <div class="form-group">
         <label asp-for="Role" class="control-label"></label>
-        <select asp-for="Role" id="Role" class="form-control" asp-items="Html.GetEnumSelectList<UserRole>()">
+        <select asp-for="Role" id="Role" class="form-control">
             <option value="">Select Role</option>
+            <option value="Admin">Admin</option>
+            <option value="Manager">Manager</option>
+            <option value="Employee">Employee</option>
         </select>
         <span asp-validation-for="Role" class="text-danger"></span>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="manager-id-group">
         <label asp-for="ManagerID" class="control-label"></label>
-        <select asp-for="ManagerID" id="ManagerID" class="form-control">
+        <select asp-for="ManagerID" id="ManagerID" class="form-control" asp-items="ViewBag.Managers">
             <option value="">Select Manager</option>
         </select>
         <span asp-validation-for="ManagerID" class="text-danger"></span>
@@ -65,73 +67,29 @@
         <a asp-action="Index" class="btn btn-secondary">Cancel</a>
     </div>
 </form>
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         $(function () {
-            // Get the managers data from ViewData
-            var managers = @Html.Raw(Json.Serialize(ViewData["Managers"] as SelectList));
-            var managerItems = managers ? managers.items : [];
-
-            $('#Role').change(function () {
-                var role = $(this).val();
+            function toggleManagerField() {
+                var role = $('#Role').val();
+                var $managerGroup = $('#manager-id-group');
                 var $managerSelect = $('#ManagerID');
 
-                // Always clear all options except the "Select Manager" placeholder
-                $managerSelect.find('option:gt(0)').remove();
-
-                if (role === '0') { // Admin role
-                    $managerSelect.append($('<option>', {
-                        value: "",
-                        text: "Admins do not have managers",
-                        disabled: true,
-                        selected: true
-                    }));
+                if (role === '0') { // Admin
+                    $managerGroup.hide();
                     $managerSelect.prop('disabled', true);
-                    return;
+                } else {
+                    $managerGroup.show();
+                    $managerSelect.prop('disabled', false);
                 }
+            }
 
-                $managerSelect.prop('disabled', false);
+            $('#Role').change(toggleManagerField);
 
-                if (!managerItems || managerItems.length === 0) {
-                    $managerSelect.empty(); // Remove all options, including "Select Manager"
-                    $managerSelect.append($('<option>', {
-                        value: "",
-                        text: "No managers available",
-                        disabled: true,
-                        selected: true
-                    }));
-                    return;
-                }
-
-                var hasValidManagers = false;
-                $.each(managerItems, function (i, manager) {
-                    if (role === '1' && manager.role !== 0) return;
-                    if (role === '2' && manager.role !== 1 && manager.role !== 0) return;
-                    hasValidManagers = true;
-                    $managerSelect.append($('<option>', {
-                        value: manager.value,
-                        text: manager.text
-                    }));
-                });
-
-                if (!hasValidManagers) {
-                    $managerSelect.empty(); // Remove all options, including "Select Manager"
-                    $managerSelect.append($('<option>', {
-                        value: "",
-                        text: "No suitable managers available",
-                        disabled: true,
-                        selected: true
-                    }));
-                }
-
-                // Restore the selected ManagerID after repopulating
-                var selectedManagerId = '@Model.ManagerID';
-                if (selectedManagerId && hasValidManagers) {
-                    $managerSelect.val(selectedManagerId);
-                }
-            }).trigger('change');
+            // Call once on page load
+            toggleManagerField();
         });
     </script>
 }
+

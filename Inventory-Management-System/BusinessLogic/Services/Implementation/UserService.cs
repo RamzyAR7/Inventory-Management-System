@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
+using Inventory_Management_System.BusinessLogic.Encrypt;
 using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
-using Inventory_Management_System.Models.DTOs;
 using Inventory_Management_System.Models.DTOs.User;
+using Inventory_Management_System.Models.DTOs.UserDto;
 using System.Linq.Expressions;
 
 namespace Inventory_Management_System.BusinessLogic.Services.Implementation
@@ -61,6 +62,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             var user = _mapper.Map<User>(userDto);
             user.UserID = Guid.NewGuid();
             user.CreatedAt = DateTime.UtcNow;
+            user.HashedPassword = PasswordHelper.HashPassword(userDto.Password);
 
             if (user.ManagerID.HasValue)
             {
@@ -87,12 +89,23 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             return _mapper.Map<UserResDto>(user);
         }
 
-        public async Task<UserResDto> UpdateUser(Guid id, UserReqDto userDto)
+        public async Task<UserEditDto> UpdateUser(Guid id, UserEditDto userDto)
         {
             var existingUser = await _unitOfWork.Users.GetByIdAsync(id);
             if (existingUser == null)
             {
                 throw new KeyNotFoundException($"User with ID '{id}' not found.");
+            }
+
+            // Handle password separately
+            if (!string.IsNullOrWhiteSpace(userDto.Password))
+            {
+                // Hash the new password (assuming you have a PasswordHelper for hashing)
+                existingUser.HashedPassword = PasswordHelper.HashPassword(userDto.Password);
+            }
+            else
+            {
+                userDto.Password = existingUser.HashedPassword;
             }
 
             _mapper.Map(userDto, existingUser);
@@ -116,11 +129,13 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 await CheckForManagerCycle(id, existingUser.ManagerID);
             }
 
+            // Update the user in the database
             await _unitOfWork.Users.UpdateAsync(existingUser);
             await _unitOfWork.Save();
 
-            return _mapper.Map<UserResDto>(existingUser);
+            return _mapper.Map<UserEditDto>(existingUser);
         }
+
 
         public async Task<IEnumerable<UserResDto>> GetAllUsers(bool includeManager = false)
         {
