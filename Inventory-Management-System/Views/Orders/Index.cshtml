@@ -1,4 +1,4 @@
-﻿@{
+﻿@* @{
     ViewData["Title"] = "Orders";
 }
 
@@ -38,6 +38,62 @@
                     <td>$145.00</td>
                     <td><span class="badge bg-danger">Cancelled</span></td>
                 </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+ *@
+
+@model IEnumerable<Inventory_Management_System.Entities.Order>
+
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<h1 class="h3 mb-3">Orders</h1>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer(s)</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td>@order.OrderID.ToString().Substring(0, 8)</td>
+                        <td>
+                            @string.Join(", ", order.CustomerOrders?.Select(co => co.Customer.FullName) ?? Enumerable.Empty<string>())
+                        </td>
+                        <td>@order.OrderDate.ToString("MMMM dd, yyyy")</td>
+                        <td>$@order.TotalAmount</td>
+                        <td>
+                            @{
+                                var statusClass = order.Status switch
+                                {
+                                    Inventory_Management_System.Entities.OrderStatus.Delivered => "bg-success",
+                                    Inventory_Management_System.Entities.OrderStatus.Pending => "bg-warning",
+                                    Inventory_Management_System.Entities.OrderStatus.Cancelled => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @statusClass">@order.Status</span>
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@order.OrderID" class="btn btn-sm btn-info">View</a>
+                            <a asp-action="Edit" asp-route-id="@order.OrderID" class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@order.OrderID" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>

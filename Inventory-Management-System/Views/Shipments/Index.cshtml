@@ -1,4 +1,7 @@
-﻿@{
+﻿@using Inventory_Management_System.Entities
+@model IEnumerable<Inventory_Management_System.Entities.Shipment>
+
+@{
     ViewData["Title"] = "Shipments";
 }
 
@@ -16,18 +19,32 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>#SHP-1001</td>
-                    <td>April 10, 2025</td>
-                    <td>DHL</td>
-                    <td><span class="badge bg-success">Delivered</span></td>
-                </tr>
-                <tr>
-                    <td>#SHP-1002</td>
-                    <td>April 12, 2025</td>
-                    <td>FedEx</td>
-                    <td><span class="badge bg-info">In Transit</span></td>
-                </tr>
+                @foreach (var shipment in Model)
+                {
+                    <tr>
+                        <td>@shipment.ShipmentID</td>
+                        <td>@shipment.ShipmentDate.ToString("MMMM dd, yyyy")</td>
+                        <td>@shipment.Carrier</td>
+                        <td>
+                            @if (shipment.Status == ShipmentStatus.Delivered)
+                            {
+                                <span class="badge bg-success">Delivered</span>
+                            }
+                            else if (shipment.Status == ShipmentStatus.InTransit)
+                            {
+                                <span class="badge bg-info">In Transit</span>
+                            }
+                            else if (shipment.Status == ShipmentStatus.Pending)
+                            {
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@shipment.Status</span>
+                            }
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
