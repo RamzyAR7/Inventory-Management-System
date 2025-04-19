@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250412132126_init")]
+    [Migration("20250419144401_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -311,7 +311,7 @@ namespace Inventory_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("EncryptedPassword")
+                    b.Property<string>("HashedPassword")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -342,10 +342,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("2b8af87b-c765-410e-bd14-2ebbc030053a"),
-                            CreatedAt = new DateTime(2025, 4, 12, 13, 21, 25, 739, DateTimeKind.Utc).AddTicks(6784),
+                            UserID = new Guid("05a935e4-b3e3-47eb-97bd-8d57a82e98a8"),
+                            CreatedAt = new DateTime(2025, 4, 19, 14, 44, 0, 175, DateTimeKind.Utc).AddTicks(7597),
                             Email = "admin@gmail.com",
-                            EncryptedPassword = "OHQCCSALwuReYqVzEhwlBw==",
+                            HashedPassword = "$2a$11$hfw/HV5k20wJv3l1LguCnOmBYkILy5Krq.01auPyHIljGGtL308z6",
                             Role = "Admin",
                             UserName = "Admin"
                         });

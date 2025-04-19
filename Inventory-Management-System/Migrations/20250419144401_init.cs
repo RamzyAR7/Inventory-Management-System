@@ -61,7 +61,7 @@ namespace Inventory_Management_System.Migrations
                     UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    EncryptedPassword = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HashedPassword = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ManagerID = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
@@ -297,8 +297,8 @@ namespace Inventory_Management_System.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "UserID", "CreatedAt", "Email", "EncryptedPassword", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("2b8af87b-c765-410e-bd14-2ebbc030053a"), new DateTime(2025, 4, 12, 13, 21, 25, 739, DateTimeKind.Utc).AddTicks(6784), "admin@gmail.com", "OHQCCSALwuReYqVzEhwlBw==", null, "Admin", "Admin" });
+                columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "ManagerID", "Role", "UserName" },
+                values: new object[] { new Guid("05a935e4-b3e3-47eb-97bd-8d57a82e98a8"), new DateTime(2025, 4, 19, 14, 44, 0, 175, DateTimeKind.Utc).AddTicks(7597), "admin@gmail.com", "$2a$11$hfw/HV5k20wJv3l1LguCnOmBYkILy5Krq.01auPyHIljGGtL308z6", null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_CustomerOrders_CustomerID_OrderID",

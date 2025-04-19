@@ -339,10 +339,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("1fd389ff-7287-4969-bbf7-27ef27fb8320"),
-                            CreatedAt = new DateTime(2025, 4, 18, 12, 21, 0, 777, DateTimeKind.Utc).AddTicks(9716),
+                            UserID = new Guid("05a935e4-b3e3-47eb-97bd-8d57a82e98a8"),
+                            CreatedAt = new DateTime(2025, 4, 19, 14, 44, 0, 175, DateTimeKind.Utc).AddTicks(7597),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$qFhkJKqm1Yfca5t4mDEVfe75.4OUHgjkcz3rLnfuoX03OK/wx5ziW",
+                            HashedPassword = "$2a$11$hfw/HV5k20wJv3l1LguCnOmBYkILy5Krq.01auPyHIljGGtL308z6",
                             Role = "Admin",
                             UserName = "Admin"
                         });

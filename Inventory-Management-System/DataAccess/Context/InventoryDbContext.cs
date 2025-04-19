@@ -184,7 +184,7 @@ namespace Inventory_Management_System.DataAccess.Context
                 UserID = Guid.NewGuid(),
                 UserName = "Admin",
                 Email = "admin@gmail.com",
-                HashedPassword =  PasswordHelper.HashPassword("AB@aou25"),
+                HashedPassword =  PasswordHelper.HashPassword("admin@123"),
                 Role = UserRole.Admin,
                 CreatedAt = DateTime.UtcNow
             };
