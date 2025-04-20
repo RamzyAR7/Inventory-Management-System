@@ -12,7 +12,7 @@ namespace Inventory_Management_System.Entities
         public string PhoneNumber { get; set; }
         [Required, MaxLength(255)]
         public string Email { get; set; }
-        [Required, MaxLength(15)]
+        [Required, MaxLength(100)]
         public string Address { get; set; }
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

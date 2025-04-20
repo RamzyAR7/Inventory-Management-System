@@ -158,7 +158,7 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.Entity<Customer>(e => {
                 e.HasKey(c => c.CustomerID);
                 e.HasIndex(u => u.Email).IsUnique();
-                e.HasIndex(u => u.FullName).IsUnique();
+                //e.HasIndex(u => u.FullName).IsUnique();
             });
             modelBuilder.Entity<CustomerOrder>(e => {
                 e.HasKey(co => co.CustomerOrderID);

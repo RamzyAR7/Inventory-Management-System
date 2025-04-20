@@ -25,9 +25,13 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task CreateAsync(Customer customer)
         {
+            if (customer.CustomerID == Guid.Empty)
+                customer.CustomerID = Guid.NewGuid();
+
             await _unitOfWork.Customers.AddAsync(customer);
             await _unitOfWork.Save();
         }
+
 
         public async Task UpdateAsync(Customer customer)
         {
