@@ -6,28 +6,35 @@
 
 <div class="card">
     <div class="card-body">
+        <a asp-action="Create" class="btn btn-primary mb-3">+ Add New Customer</a>
+
         <table class="table table-hover">
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Email</th>
-                    <th>Type</th>
+                    <th>Phone</th>
+                    <th>Address</th>
                     <th>Joined</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Bob Smith</td>
-                    <td>aya@example.com</td>
-                    <td>Retail</td>
-                    <td>Jan 10, 2024</td>
-                </tr>
-                <tr>
-                    <td>Charlie Davis</td>
-                    <td>m.sami@example.com</td>
-                    <td>Wholesale</td>
-                    <td>Feb 3, 2024</td>
-                </tr>
+                @foreach (var customer in Model)
+                {
+                    <tr>
+                        <td>@customer.FullName</td>
+                        <td>@customer.Email</td>
+                        <td>@customer.PhoneNumber</td>
+                        <td>@customer.Address</td>
+                        <td>@customer.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@customer.CustomerID" class="btn btn-sm btn-info">Details</a>
+                            <a asp-action="Edit" asp-route-id="@customer.CustomerID" class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@customer.CustomerID" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
