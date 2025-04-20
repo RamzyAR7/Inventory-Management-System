@@ -1,4 +1,5 @@
-﻿using Inventory_Management_System.DataAccess.Context;
+﻿using Inventory_Management_System.BusinessLogic.Services.Interface;
+using Inventory_Management_System.DataAccess.Context;
 using Inventory_Management_System.Entities;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             return await _context.Shipments
                 .Include(s => s.Order).ThenInclude(o => o.Customer)
                 .Include(s => s.Warehouse)
+                .Include(s => s.Order)
                 .ToListAsync();
         }
 
@@ -27,6 +29,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             return await _context.Shipments
                 .Include(s => s.Order).ThenInclude(o => o.Customer)
                 .Include(s => s.Warehouse)
+                .Include(s => s.Order)
                 .FirstOrDefaultAsync(s => s.ShipmentID == id);
         }
 

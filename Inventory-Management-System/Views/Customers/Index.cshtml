@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "Customers";
+}
+
+<h1 class="h3 mb-3">Customers</h1>
+
+<div class="card">
+    <div class="card-body">
+        <a asp-action="Create" class="btn btn-primary mb-3">+ Add New Customer</a>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var customer in Model)
+                {
+                    <tr>
+                        <td>@customer.FullName</td>
+                        <td>@customer.Email</td>
+                        <td>@customer.PhoneNumber</td>
+                        <td>@customer.Address</td>
+                        <td>@customer.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@customer.CustomerID" class="btn btn-sm btn-info">Details</a>
+                            <a asp-action="Edit" asp-route-id="@customer.CustomerID" class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@customer.CustomerID" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

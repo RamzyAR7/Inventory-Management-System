@@ -12,7 +12,7 @@
         Confirmed,
         Shipped,
         Delivered,
-        Canceled
+        Cancelled
     }
     public enum TransactionType
     {
@@ -23,6 +23,7 @@
     {
         InTransit,
         Delivered,
-        Canceled
+        Cancelled,
+        Pending
     }
 }

@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Inventory_Management_System.Entities.Shipment>
+﻿@using Inventory_Management_System.Entities
+@model IEnumerable<Inventory_Management_System.Entities.Shipment>
 
 @{
     ViewData["Title"] = "Shipments";
@@ -30,12 +31,10 @@
                 {
                     <tr>
                         <td><strong>@shipment.TrackingNumber</strong></td>
-                        
                         <td>@shipment.Order?.Customer?.FullName</td>
-
                         <td>@shipment.Destination</td>
                         <td>
-                            @switch (shipment.Status.ToLower())
+                            @switch (shipment.Status?.ToLower())
                             {
                                 case "delivered":
                                     <span class="badge bg-success">Delivered</span>

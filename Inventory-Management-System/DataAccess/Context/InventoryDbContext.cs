@@ -158,7 +158,7 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.Entity<Customer>(e => {
                 e.HasKey(c => c.CustomerID);
                 e.HasIndex(u => u.Email).IsUnique();
-                e.HasIndex(u => u.FullName).IsUnique();
+                //e.HasIndex(u => u.FullName).IsUnique();
             });
             modelBuilder.Entity<CustomerOrder>(e => {
                 e.HasKey(co => co.CustomerOrderID);
@@ -186,7 +186,7 @@ namespace Inventory_Management_System.DataAccess.Context
                 UserID = Guid.NewGuid(),
                 UserName = "Admin",
                 Email = "admin@gmail.com",
-                HashedPassword =  PasswordHelper.HashPassword("AB@aou25"),
+                HashedPassword =  PasswordHelper.HashPassword("admin@123"),
                 Role = UserRole.Admin,
                 CreatedAt = DateTime.UtcNow
             };

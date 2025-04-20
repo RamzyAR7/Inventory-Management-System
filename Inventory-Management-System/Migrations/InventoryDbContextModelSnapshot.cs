@@ -360,10 +360,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("d473c74f-c281-492b-950f-1be962ed064f"),
-                            CreatedAt = new DateTime(2025, 4, 20, 18, 7, 40, 963, DateTimeKind.Utc).AddTicks(5655),
+                            UserID = new Guid("1fd389ff-7287-4969-bbf7-27ef27fb8320"),
+                            CreatedAt = new DateTime(2025, 4, 18, 12, 21, 0, 777, DateTimeKind.Utc).AddTicks(9716),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$a.Xm6sDahJyFXApcNwRxzOW0ukxD5UNjc07Osi1tLr/9cyVBv.pva",
+                            HashedPassword = "$2a$11$qFhkJKqm1Yfca5t4mDEVfe75.4OUHgjkcz3rLnfuoX03OK/wx5ziW",
                             Role = "Admin",
                             UserName = "Admin"
                         });

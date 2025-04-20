@@ -1,9 +1,11 @@
 ﻿@model IEnumerable<Inventory_Management_System.Entities.Order>
 @using System.Linq
+
+@{
+    ViewData["Title"] = "Orders";
+}
+
 @if (Model != null && Model.Any())
-
-
-
 {
     <table class="table table-bordered">
         <thead>
