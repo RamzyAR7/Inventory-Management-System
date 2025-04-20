@@ -1,23 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Inventory_Management_System.Entities
+﻿namespace Inventory_Management_System.Entities
 {
+
     public class Customer
     {
-        #region Properties
         public Guid CustomerID { get; set; }
-        [Required, MaxLength(100)]
-        public string FullName { get; set; }
-        [Required, MaxLength(100)]
-        public string PhoneNumber { get; set; }
-        [Required, MaxLength(255)]
-        public string Email { get; set; }
-        [Required, MaxLength(15)]
-        public string Address { get; set; }
-        [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        // Navigation properties
-        public ICollection<CustomerOrder> CustomerOrders { get; set; }
-        #endregion
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
+
+        public ICollection<CustomerOrder> CustomerOrders { get; set; } = new List<CustomerOrder>();
     }
 }

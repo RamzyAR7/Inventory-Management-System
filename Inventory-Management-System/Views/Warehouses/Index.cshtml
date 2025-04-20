@@ -1,26 +1,38 @@
-﻿@{
+﻿@model IEnumerable<Inventory_Management_System.Entities.Warehouse>
+
+@{
     ViewData["Title"] = "Warehouses";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1 class="h3 mb-3">Warehouses</h1>
+<h2 class="mb-3">Warehouses</h2>
 
-<div class="row">
-    <div class="col-md-6 col-lg-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Cairo Warehouse</h5>
-                <p class="card-text text-muted">Capacity: 5,000 units</p>
-                <p class="text-success">Status: Operational</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 col-lg-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Alexandria Storage</h5>
-                <p class="card-text text-muted">Capacity: 3,000 units</p>
-                <p class="text-warning">Status: Near Full</p>
-            </div>
-        </div>
-    </div>
-</div>
+<a class="btn btn-primary mb-3" href="@Url.Action("Create")">Add New Warehouse</a>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Capacity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var warehouse in Model)
+        {
+            <tr>
+                <td>@warehouse.WarehouseID</td>
+                <td>@warehouse.Name</td>
+                <td>@warehouse.Location</td>
+                <td>@warehouse.Capacity</td>
+                <td>
+                    <a class="btn btn-info btn-sm" href="@Url.Action("Details", new { id = warehouse.WarehouseID })">Details</a>
+                    <a class="btn btn-warning btn-sm" href="@Url.Action("Edit", new { id = warehouse.WarehouseID })">Edit</a>
+                    <a class="btn btn-danger btn-sm" href="@Url.Action("Delete", new { id = warehouse.WarehouseID })">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

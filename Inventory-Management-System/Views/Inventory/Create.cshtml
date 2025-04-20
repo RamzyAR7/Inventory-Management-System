@@ -1,0 +1,29 @@
+﻿@model Inventory_Management_System.Models.DTOs.InventoryDto
+
+@{
+    ViewData["Title"] = "Create Item";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<h2 class="mb-3">Add New Inventory Item</h2>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label">Name</label>
+        <input asp-for="Name" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Quantity" class="form-label">Quantity</label>
+        <input asp-for="Quantity" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Category" class="form-label">Category</label>
+        <input asp-for="Category" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="WarehouseName" class="form-label">Warehouse</label>
+        <input asp-for="WarehouseName" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-success">Create</button>
+</form>

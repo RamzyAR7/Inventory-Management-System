@@ -1,0 +1,14 @@
+﻿@model Inventory_Management_System.Entities.CustomerOrder
+
+@{
+    ViewData["Title"] = "Customer Order Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Order Details</h2>
+
+<p><strong>Customer:</strong> @Model.CustomerName</p>
+<p><strong>Date:</strong> @Model.OrderDate.ToShortDateString()</p>
+<p><strong>Total:</strong> @Model.TotalAmount</p>
+
+<a href="@Url.Action("Index")" class="btn btn-secondary">Back to List</a>

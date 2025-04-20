@@ -1,18 +1,30 @@
-﻿namespace Inventory_Management_System.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Inventory_Management_System.Entities
 {
     public class CustomerOrder
     {
-        #region Properties
-        // PK
+        [Key]
         public Guid CustomerOrderID { get; set; }
 
-        // Foreign key to Customer
+        [Required]
+        public string CustomerName { get; set; } = string.Empty;
+
+        [Required]
+        public DateTime OrderDate { get; set; }
+
+        [Required]
+        public decimal TotalAmount { get; set; }
+
+        // Foreign Keys
+        [Required]
         public Guid CustomerID { get; set; }
-        // Foreign key to Order
+
+        [Required]
         public Guid OrderID { get; set; }
-        // NAVIGATION PROPERTIES
-        public Customer Customer { get; set; }
-        public Order Order { get; set; }
-        #endregion
+
+        // Navigation Properties
+        public Customer Customer { get; set; } = null!;
+        public Order Order { get; set; } = null!;
     }
 }
