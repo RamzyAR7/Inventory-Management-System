@@ -20,7 +20,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task<Order?> GetByIdAsync(Guid id)
         {
-            return await _unitOfWork.Orders.GetByIdAsync(id);
+            return await _unitOfWork.Orders.GetByIdAsync(e => e.OrderID ==  id);
         }
 
         public async Task CreateAsync(Order order)
