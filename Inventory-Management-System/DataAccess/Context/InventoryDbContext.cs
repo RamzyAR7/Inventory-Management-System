@@ -185,7 +185,7 @@ namespace Inventory_Management_System.DataAccess.Context
                 UserName = "Admin",
                 Email = "admin@gmail.com",
                 HashedPassword =  PasswordHelper.HashPassword("admin@123"),
-                Role = UserRole.Admin,
+                Role = "Admin",
                 CreatedAt = DateTime.UtcNow
             };
 

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250419144401_init")]
+    [Migration("20250421162154_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -342,10 +342,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("05a935e4-b3e3-47eb-97bd-8d57a82e98a8"),
-                            CreatedAt = new DateTime(2025, 4, 19, 14, 44, 0, 175, DateTimeKind.Utc).AddTicks(7597),
+                            UserID = new Guid("856b0513-24bd-416b-a7ae-1bdedf393796"),
+                            CreatedAt = new DateTime(2025, 4, 21, 16, 21, 53, 143, DateTimeKind.Utc).AddTicks(2013),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$hfw/HV5k20wJv3l1LguCnOmBYkILy5Krq.01auPyHIljGGtL308z6",
+                            HashedPassword = "$2a$11$dVpOf33DKlrAr7NJbzkFbOSFOY2.Tft13MJlbEzElvnlffUwLLAe6",
                             Role = "Admin",
                             UserName = "Admin"
                         });

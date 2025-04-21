@@ -38,6 +38,7 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        @* important *@
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
@@ -47,6 +48,7 @@
                     </ul>
 
                     <!-- Right-aligned links -->
+                    @* important *@
                     <ul class="navbar-nav">
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
@@ -85,7 +87,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.13/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    @RenderSection("Scripts", required: false)
 </body>
 
 </html>

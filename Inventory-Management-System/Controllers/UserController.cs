@@ -12,7 +12,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Inventory_Management_System.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Manager")]
     public class UserController : Controller
     {
         private readonly IUserService _userService;
@@ -29,7 +29,20 @@ namespace Inventory_Management_System.Controllers
         {
             try
             {
-                var users = await _userService.GetAllUsers(includeManager: true);
+
+                IEnumerable<UserResDto> users;
+                if(User.IsInRole("Admin"))
+                {
+                    users = await _userService.GetAllUsers(includeManager: true);
+                }
+                else if(User.IsInRole("Manager"))
+                {
+                    users = await _userService.GetAllEmployee(includeManager: true);
+                }
+                else
+                {
+                    return Forbid();
+                }
                 return View(users);
             }
             catch (KeyNotFoundException)
@@ -97,10 +110,41 @@ namespace Inventory_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserReqDto model)
         {
+            if (!ModelState.IsValid)
+            {
+                var managers = await _userService.GetManagers();
+                ViewData["Managers"] = new SelectList(
+                    managers.Select(m => new
+                    {
+                        m.UserID,
+                        DisplayName = $"{m.UserName} ({m.Role})"
+                    }),
+                    "UserID",
+                    "DisplayName"
+                );
+                return View(model);
+            }
+            if (User.IsInRole("Manager") && model.Role != UserRole.Employee.ToString())
+            {
+                ModelState.AddModelError(string.Empty, "Managers can only create users with the Employee role.");
+                var managers = await _userService.GetManagers();
+                ViewData["Managers"] = new SelectList(
+                    managers.Select(m => new
+                    {
+                        m.UserID,
+                        DisplayName = $"{m.UserName} ({m.Role})"
+                    }),
+                    "UserID",
+                    "DisplayName"
+                );
+                return View(model);
+            }
             try
             {
-                if (!ModelState.IsValid)
+                var result = await _userService.CreateUser(model);
+                if (result.ManagerID != Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
                 {
+                    ModelState.AddModelError(string.Empty, "Managers can not set Admin to Employee.");
                     var managers = await _userService.GetManagers();
                     ViewData["Managers"] = new SelectList(
                         managers.Select(m => new
@@ -113,8 +157,6 @@ namespace Inventory_Management_System.Controllers
                     );
                     return View(model);
                 }
-
-                var result = await _userService.CreateUser(model);
                 TempData["SuccessMessage"] = "User created successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -147,6 +189,10 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 var user = await _userService.GetUserById(id, includeManager: false);
+                if (User.IsInRole("Manager") && user.Role != UserRole.Employee.ToString())
+                {
+                    return Forbid();
+                }
                 var userDto = _mapper.Map<UserEditDto>(user);
                 var managers = await _userService.GetManagers();
                 ViewData["Managers"] = new SelectList(
@@ -182,10 +228,26 @@ namespace Inventory_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, UserEditDto model)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
+                var managers = await _userService.GetManagers();
+                ViewData["Managers"] = new SelectList(
+                    managers.Select(m => new
+                    {
+                        m.UserID,
+                        DisplayName = $"{m.UserName} ({m.Role})"
+                    }),
+                    "UserID",
+                    "DisplayName"
+                );
+                return View(model);
+            }
+            try
+            { 
+                var result = await _userService.UpdateUser(id, model); // Pass UserEditDto to service
+                if (User.IsInRole("Manager") && result.Role != UserRole.Employee.ToString())
                 {
+                    ModelState.AddModelError(string.Empty, "Managers can only create users with the Employee role.");
                     var managers = await _userService.GetManagers();
                     ViewData["Managers"] = new SelectList(
                         managers.Select(m => new
@@ -198,8 +260,21 @@ namespace Inventory_Management_System.Controllers
                     );
                     return View(model);
                 }
-
-                var result = await _userService.UpdateUser(id, model); // Pass UserEditDto to service
+                if (result.ManagerID != Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+                {
+                    ModelState.AddModelError(string.Empty, "Managers can not set Admin to Employee.");
+                    var managers = await _userService.GetManagers();
+                    ViewData["Managers"] = new SelectList(
+                        managers.Select(m => new
+                        {
+                            m.UserID,
+                            DisplayName = $"{m.UserName} ({m.Role})"
+                        }),
+                        "UserID",
+                        "DisplayName"
+                    );
+                    return View(model);
+                }
                 TempData["SuccessMessage"] = "User updated successfully!";
                 return RedirectToAction("Index");
             }
@@ -257,7 +332,13 @@ namespace Inventory_Management_System.Controllers
         {
             try
             {
+                var user = await _userService.GetUserById(id);
+                if (User.IsInRole("Manager") && user.Role != UserRole.Employee.ToString())
+                {
+                    return Forbid();
+                }
                 await _userService.DeleteUserbyId(id);
+
                 TempData["SuccessMessage"] = "User deleted successfully!";
                 return RedirectToAction(nameof(Index));
             }

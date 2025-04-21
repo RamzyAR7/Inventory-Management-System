@@ -71,11 +71,11 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 {
                     throw new InvalidOperationException("Selected manager does not exist.");
                 }
-                if (user.Role == UserRole.Manager && manager.Role != UserRole.Admin)
+                if (user.Role == "Manager" && manager.Role != "Admin")
                 {
                     throw new InvalidOperationException("Manager role requires an Admin as the manager.");
                 }
-                if (user.Role == UserRole.Employee && manager.Role != UserRole.Manager && manager.Role != UserRole.Admin)
+                if (user.Role == "Employee" && manager.Role != "Manager" && manager.Role != "Admin")
                 {
                     throw new InvalidOperationException("Employee role requires a Manager or Admin as the manager.");
                 }
@@ -117,11 +117,11 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 {
                     throw new InvalidOperationException("Selected manager does not exist.");
                 }
-                if (existingUser.Role == UserRole.Manager && manager.Role != UserRole.Admin)
+                if (existingUser.Role == "Manager" && manager.Role != "Admin")
                 {
                     throw new InvalidOperationException("Manager role requires an Admin as the manager.");
                 }
-                if (existingUser.Role == UserRole.Employee && manager.Role != UserRole.Manager && manager.Role != UserRole.Admin)
+                if (manager.Role == "Employee" && manager.Role != "Manager" && manager.Role != "Admin")
                 {
                     throw new InvalidOperationException("Employee role requires a Manager or Admin as the manager.");
                 }
@@ -150,7 +150,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
         {
             try
             {
-                var managers = await _unitOfWork.Users.FindManagerAsync(u => u.Role == UserRole.Manager || u.Role == UserRole.Admin);
+                var managers = await _unitOfWork.Users.FindManagerAsync(u => u.Role == "Manager" || u.Role == "Admin");
 
                 // Assuming FindAsync never returns null (common in EF Core), simplify the check
                 if (!managers.Any())
@@ -166,6 +166,22 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 // For now, we'll just rethrow a more specific exception
                 throw new InvalidOperationException("Failed to retrieve managers from the database.", ex);
             }
+        }
+
+        public async Task<IEnumerable<UserResDto>> GetAllEmployee(bool includeManager = false)
+        {
+            // Use FindAsync to filter users by role
+            var users = await _unitOfWork.Users.FindAsync(
+                u => u.Role == "Employee", // Filter for Employee role
+                includeManager ? new Expression<Func<User, object>>[] { u => u.Manager } : Array.Empty<Expression<Func<User, object>>>()
+            );
+
+            if (users == null || !users.Any())
+            {
+                throw new KeyNotFoundException("No employees found.");
+            }
+
+            return _mapper.Map<IEnumerable<UserResDto>>(users);
         }
 
         public async Task<UserResDto> GetUserById(Guid id, bool includeManager = false)

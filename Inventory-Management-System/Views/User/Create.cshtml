@@ -59,7 +59,7 @@
         <span asp-validation-for="Role" class="text-danger"></span>
     </div>
     <div class="form-group" id="manager-id-group">
-        <label asp-for="ManagerID" class="control-label"></label>
+        <label asp-for="ManagerID" class="control-label">Manager</label>
         <select asp-for="ManagerID" id="ManagerID" class="form-control" asp-items="ViewBag.Managers">
             <option value="">Select Manager</option>
         </select>
@@ -79,7 +79,7 @@
                 var role = $(this).val();
                 var $managerGroup = $('#manager-id-group');
 
-                if (role === '0') { // Admin role
+                if (role === "Admin") { // Admin role
                     $managerGroup.hide();
                 } else {
                     $managerGroup.show();

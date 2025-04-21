@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 
-namespace Inventory_Management_System.BusinessLogic.Services
+namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 {
     public class AccountService : IAccountService
     {

@@ -298,7 +298,7 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("05a935e4-b3e3-47eb-97bd-8d57a82e98a8"), new DateTime(2025, 4, 19, 14, 44, 0, 175, DateTimeKind.Utc).AddTicks(7597), "admin@gmail.com", "$2a$11$hfw/HV5k20wJv3l1LguCnOmBYkILy5Krq.01auPyHIljGGtL308z6", null, "Admin", "Admin" });
+                values: new object[] { new Guid("856b0513-24bd-416b-a7ae-1bdedf393796"), new DateTime(2025, 4, 21, 16, 21, 53, 143, DateTimeKind.Utc).AddTicks(2013), "admin@gmail.com", "$2a$11$dVpOf33DKlrAr7NJbzkFbOSFOY2.Tft13MJlbEzElvnlffUwLLAe6", null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_CustomerOrders_CustomerID_OrderID",
