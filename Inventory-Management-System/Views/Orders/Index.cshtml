@@ -1,100 +1,41 @@
-﻿@* @{
-    ViewData["Title"] = "Orders";
-}
-
-<h1 class="h3 mb-3">Orders</h1>
-
-<div class="card">
-    <div class="card-body">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Order #</th>
-                    <th>Customer</th>
-                    <th>Date</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>#1001</td>
-                    <td>John Doe</td>
-                    <td>April 10, 2025</td>
-                    <td>$250.00</td>
-                    <td><span class="badge bg-success">Delivered</span></td>
-                </tr>
-                <tr>
-                    <td>#1002</td>
-                    <td>Sarah Lee</td>
-                    <td>April 11, 2025</td>
-                    <td>$80.00</td>
-                    <td><span class="badge bg-warning">Pending</span></td>
-                </tr>
-                <tr>
-                    <td>#1003</td>
-                    <td>Alice Johnsonl</td>
-                    <td>April 12, 2025</td>
-                    <td>$145.00</td>
-                    <td><span class="badge bg-danger">Cancelled</span></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
- *@
-
-@model IEnumerable<Inventory_Management_System.Entities.Order>
+﻿@model IEnumerable<Inventory_Management_System.Entities.Order>
+@using System.Linq
 
 @{
     ViewData["Title"] = "Orders";
 }
 
-<h1 class="h3 mb-3">Orders</h1>
-
-<div class="card">
-    <div class="card-body">
-        <table class="table table-hover">
-            <thead>
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
                 <tr>
-                    <th>Order #</th>
-                    <th>Customer(s)</th>
-                    <th>Date</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th></th>
+                    <td>@order.OrderID</td>
+                    <td>@order.Status</td>
+                    <td>@order.OrderDate.ToShortDateString()</td>
+                    <td>@order.TotalAmount.ToString("C")</td> <!-- Optional: format as currency -->
+                    <td>
+                        <a class="btn btn-info btn-sm" href="@Url.Action("Details", new { id = order.OrderID })">Details</a>
+                        <a class="btn btn-warning btn-sm" href="@Url.Action("Edit", new { id = order.OrderID })">Edit</a>
+                        <a class="btn btn-danger btn-sm" href="@Url.Action("Delete", new { id = order.OrderID })">Delete</a>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                @foreach (var order in Model)
-                {
-                    <tr>
-                        <td>@order.OrderID.ToString().Substring(0, 8)</td>
-                        <td>
-                            @string.Join(", ", order.CustomerOrders?.Select(co => co.Customer.FullName) ?? Enumerable.Empty<string>())
-                        </td>
-                        <td>@order.OrderDate.ToString("MMMM dd, yyyy")</td>
-                        <td>$@order.TotalAmount</td>
-                        <td>
-                            @{
-                                var statusClass = order.Status switch
-                                {
-                                    Inventory_Management_System.Entities.OrderStatus.Delivered => "bg-success",
-                                    Inventory_Management_System.Entities.OrderStatus.Pending => "bg-warning",
-                                    Inventory_Management_System.Entities.OrderStatus.Cancelled => "bg-danger",
-                                    _ => "bg-secondary"
-                                };
-                            }
-                            <span class="badge @statusClass">@order.Status</span>
-                        </td>
-                        <td>
-                            <a asp-action="Details" asp-route-id="@order.OrderID" class="btn btn-sm btn-info">View</a>
-                            <a asp-action="Edit" asp-route-id="@order.OrderID" class="btn btn-sm btn-warning">Edit</a>
-                            <a asp-action="Delete" asp-route-id="@order.OrderID" class="btn btn-sm btn-danger">Delete</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No orders found.</div>
+}

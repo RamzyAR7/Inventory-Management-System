@@ -4,16 +4,18 @@ using Inventory_Management_System.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
-
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    partial class InventoryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250420180743_AddShipmentDisplayFields")]
+    partial class AddShipmentDisplayFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -356,20 +358,19 @@ namespace Inventory_Management_System.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-
                     b.HasData(
-                        new
-                        {
-                            UserID = new Guid("1fd389ff-7287-4969-bbf7-27ef27fb8320"),
-                            CreatedAt = new DateTime(2025, 4, 18, 12, 21, 0, 777, DateTimeKind.Utc).AddTicks(9716),
-                            Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$qFhkJKqm1Yfca5t4mDEVfe75.4OUHgjkcz3rLnfuoX03OK/wx5ziW",
-                            Role = "Admin",
-                            UserName = "Admin"
-                        });
-                });
+        new
+        {
+            UserID = new Guid("d473c74f-c281-492b-950f-1be962ed064f"),
+            CreatedAt = new DateTime(2025, 4, 20, 18, 7, 40, 963, DateTimeKind.Utc).AddTicks(5655),
+            Email = "admin@gmail.com",
+            HashedPassword = "$2a$11$a.Xm6sDahJyFXApcNwRxzOW0ukxD5UNjc07Osi1tLr/9cyVBv.pva",
+            Role = "Admin",
+            UserName = "Admin"
+        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
+
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
                 {
                     b.Property<Guid>("WarehouseID")
                         .ValueGeneratedOnAdd()
@@ -408,241 +409,241 @@ namespace Inventory_Management_System.Migrations
                     b.ToTable("Warehouses");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseStock", b =>
-                {
-                    b.Property<Guid>("WarehouseID")
-                        .HasColumnType("uniqueidentifier");
+                    modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseStock", b =>
+                        {
+                            b.Property<Guid>("WarehouseID")
+                                .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ProductID")
-                        .HasColumnType("uniqueidentifier");
+                            b.Property<Guid>("ProductID")
+                                .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("StockQuantity")
-                        .HasColumnType("int");
+                            b.Property<int>("StockQuantity")
+                                .HasColumnType("int");
 
-                    b.HasKey("WarehouseID", "ProductID");
+                            b.HasKey("WarehouseID", "ProductID");
 
-                    b.HasIndex("ProductID");
+                            b.HasIndex("ProductID");
 
-                    b.ToTable("WarehouseStocks");
-                });
+                            b.ToTable("WarehouseStocks");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.CustomerOrder", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.Customer", "Customer")
-                        .WithMany("CustomerOrders")
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    modelBuilder.Entity("Inventory_Management_System.Entities.CustomerOrder", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.Customer", "Customer")
+                                .WithMany("CustomerOrders")
+                                .HasForeignKey("CustomerID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Order", "Order")
-                        .WithMany("CustomerOrders")
-                        .HasForeignKey("OrderID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                            b.HasOne("Inventory_Management_System.Entities.Order", "Order")
+                                .WithMany("CustomerOrders")
+                                .HasForeignKey("OrderID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.Navigation("Customer");
+                            b.Navigation("Customer");
 
-                    b.Navigation("Order");
-                });
+                            b.Navigation("Order");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
-                        .WithMany("InventoryTransactions")
-                        .HasForeignKey("ProductID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.Product", "Product")
+                                .WithMany("InventoryTransactions")
+                                .HasForeignKey("ProductID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
-                        .WithMany("InventoryTransactions")
-                        .HasForeignKey("WarehouseID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                            b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
+                                .WithMany("InventoryTransactions")
+                                .HasForeignKey("WarehouseID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.Navigation("Product");
+                            b.Navigation("Product");
 
-                    b.Navigation("Warehouse");
-                });
+                            b.Navigation("Warehouse");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.User", "CreatedByUser")
-                        .WithMany("Orders")
-                        .HasForeignKey("CreatedByUserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.User", "CreatedByUser")
+                                .WithMany("Orders")
+                                .HasForeignKey("CreatedByUserID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                            b.HasOne("Inventory_Management_System.Entities.Customer", "Customer")
+                                .WithMany()
+                                .HasForeignKey("CustomerID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.Navigation("CreatedByUser");
+                            b.Navigation("CreatedByUser");
 
-                    b.Navigation("Customer");
-                });
+                            b.Navigation("Customer");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.OrderDetail", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.Order", "Order")
-                        .WithMany("OrderDetails")
-                        .HasForeignKey("OrderID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    modelBuilder.Entity("Inventory_Management_System.Entities.OrderDetail", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.Order", "Order")
+                                .WithMany("OrderDetails")
+                                .HasForeignKey("OrderID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
-                        .WithMany("OrderDetails")
-                        .HasForeignKey("ProductID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                            b.HasOne("Inventory_Management_System.Entities.Product", "Product")
+                                .WithMany("OrderDetails")
+                                .HasForeignKey("ProductID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.Navigation("Order");
+                            b.Navigation("Order");
 
-                    b.Navigation("Product");
-                });
+                            b.Navigation("Product");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Product", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.Category", "Category")
-                        .WithMany("Products")
-                        .HasForeignKey("CategoryID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Product", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.Category", "Category")
+                                .WithMany("Products")
+                                .HasForeignKey("CategoryID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.Navigation("Category");
-                });
+                            b.Navigation("Category");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Shipment", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.Order", "Order")
-                        .WithOne("Shipment")
-                        .HasForeignKey("Inventory_Management_System.Entities.Shipment", "OrderID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Shipment", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.Order", "Order")
+                                .WithOne("Shipment")
+                                .HasForeignKey("Inventory_Management_System.Entities.Shipment", "OrderID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
-                        .WithMany("Shipments")
-                        .HasForeignKey("WarehouseID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                            b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
+                                .WithMany("Shipments")
+                                .HasForeignKey("WarehouseID")
+                                .OnDelete(DeleteBehavior.Restrict)
+                                .IsRequired();
 
-                    b.Navigation("Order");
+                            b.Navigation("Order");
 
-                    b.Navigation("Warehouse");
-                });
+                            b.Navigation("Warehouse");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.SupplierProduct", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
-                        .WithMany("SupplierProducts")
-                        .HasForeignKey("ProductID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    modelBuilder.Entity("Inventory_Management_System.Entities.SupplierProduct", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.Product", "Product")
+                                .WithMany("SupplierProducts")
+                                .HasForeignKey("ProductID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Supplier", "Supplier")
-                        .WithMany("SupplierProducts")
-                        .HasForeignKey("SupplierID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                            b.HasOne("Inventory_Management_System.Entities.Supplier", "Supplier")
+                                .WithMany("SupplierProducts")
+                                .HasForeignKey("SupplierID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.Navigation("Product");
+                            b.Navigation("Product");
 
-                    b.Navigation("Supplier");
-                });
+                            b.Navigation("Supplier");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.User", "Manager")
-                        .WithMany()
-                        .HasForeignKey("ManagerID")
-                        .OnDelete(DeleteBehavior.NoAction);
+                    modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.User", "Manager")
+                                .WithMany()
+                                .HasForeignKey("ManagerID")
+                                .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("Manager");
-                });
+                            b.Navigation("Manager");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.User", "Manager")
-                        .WithMany("ManagedWarehouses")
-                        .HasForeignKey("ManagerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.User", "Manager")
+                                .WithMany("ManagedWarehouses")
+                                .HasForeignKey("ManagerID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.Navigation("Manager");
-                });
+                            b.Navigation("Manager");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseStock", b =>
-                {
-                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
-                        .WithMany("WarehouseStocks")
-                        .HasForeignKey("ProductID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseStock", b =>
+                        {
+                            b.HasOne("Inventory_Management_System.Entities.Product", "Product")
+                                .WithMany("WarehouseStocks")
+                                .HasForeignKey("ProductID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
-                        .WithMany("WarehouseStocks")
-                        .HasForeignKey("WarehouseID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                            b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
+                                .WithMany("WarehouseStocks")
+                                .HasForeignKey("WarehouseID")
+                                .OnDelete(DeleteBehavior.Cascade)
+                                .IsRequired();
 
-                    b.Navigation("Product");
+                            b.Navigation("Product");
 
-                    b.Navigation("Warehouse");
-                });
+                            b.Navigation("Warehouse");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Category", b =>
-                {
-                    b.Navigation("Products");
-                });
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Category", b =>
+                        {
+                            b.Navigation("Products");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Customer", b =>
-                {
-                    b.Navigation("CustomerOrders");
-                });
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Customer", b =>
+                        {
+                            b.Navigation("CustomerOrders");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
-                {
-                    b.Navigation("CustomerOrders");
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
+                        {
+                            b.Navigation("CustomerOrders");
 
-                    b.Navigation("OrderDetails");
+                            b.Navigation("OrderDetails");
 
-                    b.Navigation("Shipment")
-                        .IsRequired();
-                });
+                            b.Navigation("Shipment")
+                                .IsRequired();
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Product", b =>
-                {
-                    b.Navigation("InventoryTransactions");
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Product", b =>
+                        {
+                            b.Navigation("InventoryTransactions");
 
-                    b.Navigation("OrderDetails");
+                            b.Navigation("OrderDetails");
 
-                    b.Navigation("SupplierProducts");
+                            b.Navigation("SupplierProducts");
 
-                    b.Navigation("WarehouseStocks");
-                });
+                            b.Navigation("WarehouseStocks");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Supplier", b =>
-                {
-                    b.Navigation("SupplierProducts");
-                });
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Supplier", b =>
+                        {
+                            b.Navigation("SupplierProducts");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
-                {
-                    b.Navigation("ManagedWarehouses");
+                    modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
+                        {
+                            b.Navigation("ManagedWarehouses");
 
-                    b.Navigation("Orders");
-                });
+                            b.Navigation("Orders");
+                        });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
-                {
-                    b.Navigation("InventoryTransactions");
+                    modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
+                        {
+                            b.Navigation("InventoryTransactions");
 
-                    b.Navigation("Shipments");
+                            b.Navigation("Shipments");
 
-                    b.Navigation("WarehouseStocks");
-                });
+                            b.Navigation("WarehouseStocks");
+                        });
 #pragma warning restore 612, 618
-        }
+                });
     }
-}
+    }}

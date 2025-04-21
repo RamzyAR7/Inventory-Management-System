@@ -1,0 +1,14 @@
+﻿@model Inventory_Management_System.Entities.Warehouse
+
+@{
+    ViewData["Title"] = "Warehouse Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Warehouse Details</h2>
+
+<p><strong>Name:</strong> @Model.Name</p>
+<p><strong>Location:</strong> @Model.Location</p>
+<p><strong>Capacity:</strong> @Model.Capacity</p>
+
+<a href="@Url.Action("Index")" class="btn btn-secondary">Back to List</a>
