@@ -1,28 +1,52 @@
 ﻿@model Inventory_Management_System.Models.DTOs.UserDto.LoginReqDto
 
 @{
+    Layout = "_LoginLayout";
     ViewData["Title"] = "Login";
 }
 
-<h2>Login</h2>
-<form asp-action="Login" method="post">
-    <div asp-validation-summary="All" class="text-danger"></div>
-
-    <div class="form-group">
-        <label asp-for="UserName"></label>
-        <input asp-for="UserName" class="form-control" />
-        <span asp-validation-for="UserName" class="text-danger"></span>
+<div class="auth-card">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Inventory System</h2>
+        <p class="text-muted">Please sign in to continue</p>
     </div>
 
-    <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
+    <form asp-action="Login" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <button type="submit" class="btn btn-primary">Login</button>
-</form>
+        <div class="mb-3">
+            <label asp-for="UserName" class="form-label">Username</label>
+            <input asp-for="UserName" class="form-control" placeholder="Enter username" />
+            <span asp-validation-for="UserName" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label">Password</label>
+            <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
+            <span asp-validation-for="Password" class="text-danger small"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+        </button>
+    </form>
+</div>
+
+@section Styles {
+    <style>
+        .auth-body {
+            background-color: #f8f9fa;
+        }
+
+        .auth-card {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+    </style>
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
-

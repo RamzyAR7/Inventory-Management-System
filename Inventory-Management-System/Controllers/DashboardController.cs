@@ -1,8 +1,10 @@
 ﻿using Inventory_Management_System.BusinessLogic.Services.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory_Management_System.Controllers
 {
+    [Authorize]
     public class DashboardController : Controller
     {
         private readonly IDashboardService _dashboardService;

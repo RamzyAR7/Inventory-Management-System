@@ -1,9 +1,11 @@
 ﻿using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory_Management_System.Controllers
 {
+    [Authorize]
     public class CustomersController : Controller
     {
         private readonly ICustomerService _customerService;

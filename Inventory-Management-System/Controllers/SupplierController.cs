@@ -1,24 +1,30 @@
-﻿using Inventory_Management_System.BusinessLogic.Services.Interface;
+﻿using AutoMapper;
+using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs.Supplier;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory_Management_System.Controllers
 {
-    public class SuppliersController : Controller
+    [Authorize]
+    public class SupplierController : Controller
     {
         private readonly ISupplierService _supplierService;
+        private readonly IMapper _mapper;
 
-        public SuppliersController(ISupplierService supplierService)
+        public SupplierController(ISupplierService supplierService, IMapper mapper)
         {
             _supplierService = supplierService;
+            _mapper = mapper;
         }
-
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var suppliers = await _supplierService.GetAllAsync();
             return View(suppliers);
         }
-
+        [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
             var supplier = await _supplierService.GetByIdAsync(id);
@@ -27,7 +33,7 @@ namespace Inventory_Management_System.Controllers
 
             return View(supplier);
         }
-
+        [HttpGet]
         public IActionResult Create()
         {
             return View();
@@ -35,7 +41,7 @@ namespace Inventory_Management_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Supplier supplier)
+        public async Task<IActionResult> Create(SupplierReqDto supplier)
         {
             if (ModelState.IsValid)
             {
@@ -45,30 +51,28 @@ namespace Inventory_Management_System.Controllers
             return View(supplier);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
             var supplier = await _supplierService.GetByIdAsync(id);
             if (supplier == null)
                 return NotFound();
-
-            return View(supplier);
+            var supplierReq = _mapper.Map<SupplierReqDto>(supplier);
+            return View(supplierReq);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, Supplier supplier)
+        public async Task<IActionResult> Edit(Guid id, SupplierReqDto supplier)
         {
-            if (id != supplier.SupplierID)
-                return BadRequest();
-
             if (ModelState.IsValid)
             {
-                await _supplierService.UpdateAsync(supplier);
+                await _supplierService.UpdateAsync(id, supplier);
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);
         }
-
+        [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
             var supplier = await _supplierService.GetByIdAsync(id);

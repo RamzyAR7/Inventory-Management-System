@@ -12,13 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-<<<<<<<< HEAD:Inventory-Management-System/Migrations/20250421162154_init.Designer.cs
-    [Migration("20250421162154_init")]
+    [Migration("20250421190927_init")]
     partial class init
-========
-    [Migration("20250420131123_EditeAddress")]
-    partial class EditeAddress
->>>>>>>> 01737cbb83fa284d4ed4454ab7328f8f3dcc0f59:Inventory-Management-System/Migrations/20250420131123_EditeAddress.Designer.cs
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -59,8 +54,8 @@ namespace Inventory_Management_System.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -97,8 +92,18 @@ namespace Inventory_Management_System.Migrations
                     b.Property<Guid>("CustomerID")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("OrderID")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("CustomerOrderID");
 
@@ -118,8 +123,12 @@ namespace Inventory_Management_System.Migrations
                     b.Property<Guid>("ProductID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<long>("Quantity")
-                        .HasColumnType("bigint");
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
@@ -150,6 +159,9 @@ namespace Inventory_Management_System.Migrations
                     b.Property<Guid>("CreatedByUserID")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("CustomerID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
@@ -161,6 +173,8 @@ namespace Inventory_Management_System.Migrations
                     b.HasKey("OrderID");
 
                     b.HasIndex("CreatedByUserID");
+
+                    b.HasIndex("CustomerID");
 
                     b.ToTable("Orders");
                 });
@@ -227,21 +241,30 @@ namespace Inventory_Management_System.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Carrier")
+                    b.Property<DateTime?>("DeliveryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Destination")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ItemCount")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("OrderID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("ShipmentDate")
+                    b.Property<DateTime?>("ShippedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TrackingNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("WarehouseID")
                         .HasColumnType("uniqueidentifier");
@@ -344,17 +367,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-<<<<<<<< HEAD:Inventory-Management-System/Migrations/20250421162154_init.Designer.cs
-                            UserID = new Guid("856b0513-24bd-416b-a7ae-1bdedf393796"),
-                            CreatedAt = new DateTime(2025, 4, 21, 16, 21, 53, 143, DateTimeKind.Utc).AddTicks(2013),
+                            UserID = new Guid("da19009a-fe37-43c6-9d4d-f751ab1d03a0"),
+                            CreatedAt = new DateTime(2025, 4, 21, 19, 9, 25, 929, DateTimeKind.Utc).AddTicks(9375),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$dVpOf33DKlrAr7NJbzkFbOSFOY2.Tft13MJlbEzElvnlffUwLLAe6",
-========
-                            UserID = new Guid("b24a9a56-546c-47b7-aefd-1f58faa5df6b"),
-                            CreatedAt = new DateTime(2025, 4, 20, 13, 11, 21, 949, DateTimeKind.Utc).AddTicks(6037),
-                            Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$gOIliDBTgbCm2BpP3oIeOOmw5vG8gVoKi8h6vYpPEqzfHE2skEU9O",
->>>>>>>> 01737cbb83fa284d4ed4454ab7328f8f3dcc0f59:Inventory-Management-System/Migrations/20250420131123_EditeAddress.Designer.cs
+                            HashedPassword = "$2a$11$VsY1/UGxOb6tz4RgcsgNkOIYWqVJvgw9WJ1INQE6iAb3OHMpBd8pu",
                             Role = "Admin",
                             UserName = "Admin"
                         });
@@ -371,13 +387,23 @@ namespace Inventory_Management_System.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("ManagerID")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("WarehouseName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("WarehouseID");
 
@@ -418,7 +444,7 @@ namespace Inventory_Management_System.Migrations
                     b.HasOne("Inventory_Management_System.Entities.Order", "Order")
                         .WithMany("CustomerOrders")
                         .HasForeignKey("OrderID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Customer");
@@ -453,7 +479,15 @@ namespace Inventory_Management_System.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Inventory_Management_System.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.OrderDetail", b =>

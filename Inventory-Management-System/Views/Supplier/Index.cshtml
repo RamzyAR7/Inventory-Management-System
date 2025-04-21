@@ -1,0 +1,89 @@
+﻿@model IEnumerable<Inventory_Management_System.Models.DTOs.Supplier.SupplierResDto>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Suppliers";
+}
+
+<div class="supplier-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Supplier Management</h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create New
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.SupplierName)</th>
+                    <th>@Html.DisplayNameFor(model => model.PhoneNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.Email)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.SupplierName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.PhoneNumber)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a asp-action="Details" asp-route-id="@item.SupplierID" class="btn btn-info btn-sm" title="Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@item.SupplierID" class="btn btn-warning btn-sm" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.SupplierID" class="btn btn-danger btn-sm" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Styles {
+<style>
+    .supplier-container {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 20px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .table th {
+        white-space: nowrap;
+    }
+</style>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize tooltips
+            $('[title]').tooltip();
+        });
+    </script>
+}

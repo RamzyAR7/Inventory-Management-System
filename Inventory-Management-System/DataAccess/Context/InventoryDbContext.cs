@@ -167,12 +167,13 @@ namespace Inventory_Management_System.DataAccess.Context
 
                 e.HasOne(co => co.Customer)
                 .WithMany(c => c.CustomerOrders)
-                .HasForeignKey(co => co.CustomerID);
-
+                .HasForeignKey(co => co.CustomerID)
+                .OnDelete(DeleteBehavior.Cascade);
 
                 e.HasOne(co => co.Order)
                 .WithMany(order => order.CustomerOrders)
-                .HasForeignKey(co => co.OrderID);
+                .HasForeignKey(co => co.OrderID)
+                .OnDelete(DeleteBehavior.NoAction);
 
             });
 

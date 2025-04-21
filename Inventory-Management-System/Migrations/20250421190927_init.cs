@@ -105,11 +105,18 @@ namespace Inventory_Management_System.Migrations
                     OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CreatedByUserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    CreatedByUserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CustomerID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Orders", x => x.OrderID);
+                    table.ForeignKey(
+                        name: "FK_Orders_Customers_CustomerID",
+                        column: x => x.CustomerID,
+                        principalTable: "Customers",
+                        principalColumn: "CustomerID",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Orders_Users_CreatedByUserID",
                         column: x => x.CreatedByUserID,
@@ -123,8 +130,11 @@ namespace Inventory_Management_System.Migrations
                 columns: table => new
                 {
                     WarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    WarehouseName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Capacity = table.Column<int>(type: "int", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    WarehouseName = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ManagerID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -167,6 +177,9 @@ namespace Inventory_Management_System.Migrations
                 columns: table => new
                 {
                     CustomerOrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CustomerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     CustomerID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
@@ -183,8 +196,7 @@ namespace Inventory_Management_System.Migrations
                         name: "FK_CustomerOrders_Orders_OrderID",
                         column: x => x.OrderID,
                         principalTable: "Orders",
-                        principalColumn: "OrderID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "OrderID");
                 });
 
             migrationBuilder.CreateTable(
@@ -220,10 +232,11 @@ namespace Inventory_Management_System.Migrations
                 {
                     TransactionID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Quantity = table.Column<long>(type: "bigint", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
                     TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    WarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Reference = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -247,9 +260,12 @@ namespace Inventory_Management_System.Migrations
                 columns: table => new
                 {
                     ShipmentID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TrackingNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Destination = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    ShipmentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Carrier = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ItemCount = table.Column<int>(type: "int", nullable: false),
+                    ShippedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeliveryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     WarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
@@ -298,7 +314,7 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("856b0513-24bd-416b-a7ae-1bdedf393796"), new DateTime(2025, 4, 21, 16, 21, 53, 143, DateTimeKind.Utc).AddTicks(2013), "admin@gmail.com", "$2a$11$dVpOf33DKlrAr7NJbzkFbOSFOY2.Tft13MJlbEzElvnlffUwLLAe6", null, "Admin", "Admin" });
+                values: new object[] { new Guid("da19009a-fe37-43c6-9d4d-f751ab1d03a0"), new DateTime(2025, 4, 21, 19, 9, 25, 929, DateTimeKind.Utc).AddTicks(9375), "admin@gmail.com", "$2a$11$VsY1/UGxOb6tz4RgcsgNkOIYWqVJvgw9WJ1INQE6iAb3OHMpBd8pu", null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_CustomerOrders_CustomerID_OrderID",
@@ -314,12 +330,6 @@ namespace Inventory_Management_System.Migrations
                 name: "IX_Customers_Email",
                 table: "Customers",
                 column: "Email",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Customers_FullName",
-                table: "Customers",
-                column: "FullName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -341,6 +351,11 @@ namespace Inventory_Management_System.Migrations
                 name: "IX_Orders_CreatedByUserID",
                 table: "Orders",
                 column: "CreatedByUserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_CustomerID",
+                table: "Orders",
+                column: "CustomerID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_CategoryID",
@@ -425,9 +440,6 @@ namespace Inventory_Management_System.Migrations
                 name: "WarehouseStocks");
 
             migrationBuilder.DropTable(
-                name: "Customers");
-
-            migrationBuilder.DropTable(
                 name: "Orders");
 
             migrationBuilder.DropTable(
@@ -438,6 +450,9 @@ namespace Inventory_Management_System.Migrations
 
             migrationBuilder.DropTable(
                 name: "Warehouses");
+
+            migrationBuilder.DropTable(
+                name: "Customers");
 
             migrationBuilder.DropTable(
                 name: "Categories");

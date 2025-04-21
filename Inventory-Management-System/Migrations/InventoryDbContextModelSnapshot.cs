@@ -49,25 +49,28 @@ namespace Inventory_Management_System.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CustomerName")
+                    b.Property<string>("Address")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Phone")
+                    b.Property<string>("PhoneNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("CustomerID");
 
@@ -361,17 +364,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-<<<<<<< HEAD
-                            UserID = new Guid("856b0513-24bd-416b-a7ae-1bdedf393796"),
-                            CreatedAt = new DateTime(2025, 4, 21, 16, 21, 53, 143, DateTimeKind.Utc).AddTicks(2013),
+                            UserID = new Guid("da19009a-fe37-43c6-9d4d-f751ab1d03a0"),
+                            CreatedAt = new DateTime(2025, 4, 21, 19, 9, 25, 929, DateTimeKind.Utc).AddTicks(9375),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$dVpOf33DKlrAr7NJbzkFbOSFOY2.Tft13MJlbEzElvnlffUwLLAe6",
-=======
-                            UserID = new Guid("1fd389ff-7287-4969-bbf7-27ef27fb8320"),
-                            CreatedAt = new DateTime(2025, 4, 18, 12, 21, 0, 777, DateTimeKind.Utc).AddTicks(9716),
-                            Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$qFhkJKqm1Yfca5t4mDEVfe75.4OUHgjkcz3rLnfuoX03OK/wx5ziW",
->>>>>>> 01737cbb83fa284d4ed4454ab7328f8f3dcc0f59
+                            HashedPassword = "$2a$11$VsY1/UGxOb6tz4RgcsgNkOIYWqVJvgw9WJ1INQE6iAb3OHMpBd8pu",
                             Role = "Admin",
                             UserName = "Admin"
                         });
@@ -445,7 +441,7 @@ namespace Inventory_Management_System.Migrations
                     b.HasOne("Inventory_Management_System.Entities.Order", "Order")
                         .WithMany("CustomerOrders")
                         .HasForeignKey("OrderID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Customer");

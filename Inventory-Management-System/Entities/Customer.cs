@@ -26,6 +26,5 @@ namespace Inventory_Management_System.Entities
         {
             CustomerOrders = new List<CustomerOrder>();
         }
-        #endregion
     }
 }

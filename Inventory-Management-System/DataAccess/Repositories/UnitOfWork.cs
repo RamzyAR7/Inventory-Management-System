@@ -2,6 +2,7 @@
 using Inventory_Management_System.DataAccess.Context;
 using Inventory_Management_System.Entities;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Drawing.Printing;
 
 namespace Inventory_Management_System.DataAccess.Repositories
 {
@@ -42,7 +43,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
         public IGenericRepository<OrderDetail> OrderDetails => _orderDetails ??= new GenericRepository<OrderDetail>(_context);
         public IGenericRepository<InventoryTransaction> InventoryTransactions => _inventoryTransactions ??= new GenericRepository<InventoryTransaction>(_context);
         public IGenericRepository<Shipment> Shipments => _shipments ??= new GenericRepository<Shipment>(_context);
-
         public async Task<int> Save()
         {
             return await _context.SaveChangesAsync();

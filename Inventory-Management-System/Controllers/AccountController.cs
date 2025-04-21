@@ -1,9 +1,11 @@
 ﻿using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.Models.DTOs.UserDto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory_Management_System.Controllers
 {
+    [AllowAnonymous]
     public class AccountController : Controller
     {
         private readonly IAccountService _accountService;

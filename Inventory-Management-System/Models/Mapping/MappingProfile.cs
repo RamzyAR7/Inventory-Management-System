@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Inventory_Management_System.BusinessLogic.Encrypt;
 using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs.Category;
+using Inventory_Management_System.Models.DTOs.Supplier;
 using Inventory_Management_System.Models.DTOs.User;
 using Inventory_Management_System.Models.DTOs.UserDto;
 
@@ -10,6 +12,7 @@ namespace Inventory_Management_System.Models.Mapping
     {
         public MappingProfile()
         {
+            #region User
             CreateMap<UserReqDto, User>()
                 .ForMember(dest => dest.UserID, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
@@ -31,6 +34,30 @@ namespace Inventory_Management_System.Models.Mapping
                 .ReverseMap();
 
             CreateMap<User, ManagerDto>();
+            #endregion
+
+            #region Supplier
+
+            CreateMap<SupplierReqDto, Supplier>()
+                .ForMember(dest => dest.SupplierID, opt => opt.Ignore());
+
+            CreateMap<Supplier, SupplierResDto>()
+                .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.SupplierProducts.ToList()));
+
+            CreateMap<SupplierResDto, SupplierReqDto>();
+
+            CreateMap<SupplierProduct, SupplierProductResDto>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName));
+            #endregion
+
+            #region Category
+            CreateMap<Product, SupplierProductResDto>();
+            CreateMap<Category, CategoryResDto>()
+                .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products.ToList()));
+            CreateMap<CategoryResDto, CategoryReqDto>();
+            CreateMap<CategoryReqDto, Category>()
+                .ForMember(dest => dest.CategoryID, opt => opt.Ignore());
+            #endregion
         }
     }
 }
