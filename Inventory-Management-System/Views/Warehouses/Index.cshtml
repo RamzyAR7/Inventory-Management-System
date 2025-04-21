@@ -2,15 +2,30 @@
 
 @{
     ViewData["Title"] = "Warehouses";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1 class="h3 mb-3">Warehouses</h1>
+<h2 class="mb-3">Warehouses</h2> 
 
-<div class="row">
+@{
+    ViewData["Title"] = "Warehouses";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-3">Warehouses</h2>
+
+<!-- Toggle Buttons -->
+<div class="mb-3">
+    <button class="btn btn-outline-primary" onclick="showGrid()">Card View</button>
+    <button class="btn btn-outline-secondary" onclick="showTable()">Table View</button>
+</div>
+
+<!-- Card/Grid View -->
+<div id="cardView" class="row">
     @foreach (var warehouse in Model)
     {
         <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card">
+            <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">@warehouse.WarehouseName</h5>
                     <p class="card-text text-muted">Address: @warehouse.Address</p>
@@ -23,3 +38,48 @@
         </div>
     }
 </div>
+
+<div id="tableView" style="display:none;">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Capacity</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var warehouse in Model)
+            {
+                <tr>
+                    <td>@warehouse.WarehouseID</td>
+                    <td>@warehouse.Name</td>
+                    <td>@warehouse.Location</td>
+                    <td>@warehouse.Capacity</td>
+                    <td>
+                        <a class="btn btn-info btn-sm" href="@Url.Action("Details", new { id = warehouse.WarehouseID })">Details</a>
+                        <a class="btn btn-warning btn-sm" href="@Url.Action("Edit", new { id = warehouse.WarehouseID })">Edit</a>
+                        <a class="btn btn-danger btn-sm" href="@Url.Action("Delete", new { id = warehouse.WarehouseID })">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@section Scripts {
+    <script>
+        function showGrid() {
+            document.getElementById('cardView').style.display = 'flex';
+            document.getElementById('tableView').style.display = 'none';
+        }
+
+        function showTable() {
+            document.getElementById('cardView').style.display = 'none';
+            document.getElementById('tableView').style.display = 'block';
+        }
+    </script>
+}

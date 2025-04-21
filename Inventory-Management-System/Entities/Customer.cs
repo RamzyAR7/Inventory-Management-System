@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace Inventory_Management_System.Entities
 {
+
     public class Customer
     {
-        #region Properties
         public Guid CustomerID { get; set; }
         [Required, MaxLength(100)]
         public string FullName { get; set; }
@@ -17,7 +18,14 @@ namespace Inventory_Management_System.Entities
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         // Navigation properties
+        [ValidateNever]
         public ICollection<CustomerOrder> CustomerOrders { get; set; }
+
+        // Test
+        public Customer()
+        {
+            CustomerOrders = new List<CustomerOrder>();
+        }
         #endregion
     }
 }

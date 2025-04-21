@@ -8,40 +8,58 @@
 <h1 class="h3 mb-3">Shipments</h1>
 
 <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="card-title mb-0">Shipment List</span>
+        <a class="btn btn-primary" asp-action="Create">New Shipment</a>
+    </div>
     <div class="card-body">
-        <table class="table table-striped">
+        <table class="table table-striped table-hover">
             <thead>
                 <tr>
-                    <th>Shipment ID</th>
-                    <th>Date</th>
-                    <th>Carrier</th>
+                    <th>Tracking #</th>
+                    <th>Customer</th>
+                    <th>Destination</th>
                     <th>Status</th>
+                    <th>Items</th>
+                    <th>Shipped Date</th>
+                    <th>Delivery Date</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var shipment in Model)
                 {
                     <tr>
-                        <td>@shipment.ShipmentID</td>
-                        <td>@shipment.ShipmentDate.ToString("MMMM dd, yyyy")</td>
-                        <td>@shipment.Carrier</td>
+                        <td><strong>@shipment.TrackingNumber</strong></td>
+                        <td>@shipment.Order?.Customer?.FullName</td>
+                        <td>@shipment.Destination</td>
                         <td>
-                            @if (shipment.Status == ShipmentStatus.Delivered)
+                            @switch (shipment.Status?.ToLower())
                             {
-                                <span class="badge bg-success">Delivered</span>
+                                case "delivered":
+                                    <span class="badge bg-success">Delivered</span>
+                                    break;
+                                case "in transit":
+                                    <span class="badge bg-primary">In Transit</span>
+                                    break;
+                                case "pending":
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    break;
+                                case "returned":
+                                    <span class="badge bg-danger">Returned</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary">@shipment.Status</span>
+                                    break;
                             }
-                            else if (shipment.Status == ShipmentStatus.InTransit)
-                            {
-                                <span class="badge bg-info">In Transit</span>
-                            }
-                            else if (shipment.Status == ShipmentStatus.Pending)
-                            {
-                                <span class="badge bg-warning text-dark">Pending</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">@shipment.Status</span>
-                            }
+                        </td>
+                        <td>@shipment.ItemCount</td>
+                        <td>@(shipment.ShippedDate?.ToString("yyyy-MM-dd") ?? "Not shipped")</td>
+                        <td>@(shipment.DeliveryDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+                        <td>
+                            <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@shipment.ShipmentID"><i class="align-middle" data-feather="eye"></i></a>
+                            <a class="btn btn-sm btn-outline-warning" asp-action="Edit" asp-route-id="@shipment.ShipmentID"><i class="align-middle" data-feather="edit"></i></a>
+                            <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@shipment.ShipmentID"><i class="align-middle" data-feather="trash-2"></i></a>
                         </td>
                     </tr>
                 }

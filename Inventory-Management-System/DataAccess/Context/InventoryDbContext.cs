@@ -71,7 +71,7 @@ namespace Inventory_Management_System.DataAccess.Context
                 e.Property(w => w.Address)
                 .HasMaxLength(255);
                 e.HasOne(w => w.Manager)
-                .WithMany(u => u.ManagedWarehouses)
+                .WithMany( u => u.ManagedWarehouses)
                 .HasForeignKey(w => w.ManagerID);
 
                 e.HasIndex(w => w.WarehouseName).IsUnique();
@@ -158,7 +158,7 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.Entity<Customer>(e => {
                 e.HasKey(c => c.CustomerID);
                 e.HasIndex(u => u.Email).IsUnique();
-                e.HasIndex(u => u.FullName).IsUnique();
+                //e.HasIndex(u => u.FullName).IsUnique();
             });
             modelBuilder.Entity<CustomerOrder>(e => {
                 e.HasKey(co => co.CustomerOrderID);
@@ -169,9 +169,11 @@ namespace Inventory_Management_System.DataAccess.Context
                 .WithMany(c => c.CustomerOrders)
                 .HasForeignKey(co => co.CustomerID);
 
+
                 e.HasOne(co => co.Order)
-                .WithMany(o => o.CustomerOrders)
+                .WithMany(order => order.CustomerOrders)
                 .HasForeignKey(co => co.OrderID);
+
             });
 
             SeedAdmin(modelBuilder);

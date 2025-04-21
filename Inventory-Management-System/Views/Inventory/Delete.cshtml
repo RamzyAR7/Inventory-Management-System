@@ -1,0 +1,27 @@
+﻿@model Inventory_Management_System.Models.DTOs.InventoryDto
+
+@{
+    ViewData["Title"] = "Delete Item";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-3 text-danger">Are you sure you want to delete this item?</h2>
+
+<div class="mb-3">
+    <strong>Name:</strong> @Model.Name
+</div>
+<div class="mb-3">
+    <strong>Quantity:</strong> @Model.Quantity
+</div>
+<div class="mb-3">
+    <strong>Category:</strong> @Model.Category
+</div>
+<div class="mb-3">
+    <strong>Warehouse:</strong> @Model.WarehouseName
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a href="@Url.Action("Index")" class="btn btn-secondary">Cancel</a>
+</form>

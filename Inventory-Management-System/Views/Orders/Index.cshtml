@@ -1,1 +1,45 @@
+<<<<<<< HEAD
 ﻿
+=======
+﻿@model IEnumerable<Inventory_Management_System.Entities.Order>
+@using System.Linq
+
+@{
+    ViewData["Title"] = "Orders";
+}
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.OrderID</td>
+                    <td>@order.Status</td>
+                    <td>@order.OrderDate.ToShortDateString()</td>
+                    <td>@order.TotalAmount.ToString("C")</td> <!-- Optional: format as currency -->
+                    <td>
+                        <a class="btn btn-info btn-sm" href="@Url.Action("Details", new { id = order.OrderID })">Details</a>
+                        <a class="btn btn-warning btn-sm" href="@Url.Action("Edit", new { id = order.OrderID })">Edit</a>
+                        <a class="btn btn-danger btn-sm" href="@Url.Action("Delete", new { id = order.OrderID })">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-warning">No orders found.</div>
+}
+>>>>>>> 01737cbb83fa284d4ed4454ab7328f8f3dcc0f59

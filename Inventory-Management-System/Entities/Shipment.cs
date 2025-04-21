@@ -1,26 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Inventory_Management_System.Entities
+﻿namespace Inventory_Management_System.Entities
 {
+
     public class Shipment
     {
-        #region Properties
-        public Guid ShipmentID { get; set; }
-        [Required, MaxLength(50)]
-        public ShipmentStatus Status { get; set; }
-        public DateTime ShipmentDate { get; set; } = DateTime.UtcNow;
-        [MaxLength(100)]
-        public string Carrier { get; set; } = "Unknown";
+        public Guid ShipmentID { get; set; }   // Primary Key
+        public string TrackingNumber { get; set; } = string.Empty;
+        public string Destination { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public int ItemCount { get; set; }
+        public DateTime? ShippedDate { get; set; }
+        public DateTime? DeliveryDate { get; set; }
 
-        // Forign key to Order
+        // Relationships
         public Guid OrderID { get; set; }
-        // Forign key to Warehouse
+        public Order? Order { get; set; }
+
         public Guid WarehouseID { get; set; }
-
-        // Navigation properties
-
-        public Order Order { get; set; }
-        public Warehouse Warehouse { get; set; }
-        #endregion
+        public Warehouse? Warehouse { get; set; }
     }
 }
