@@ -1,0 +1,23 @@
+﻿@model Inventory_Management_System.Models.DTOs.InventoryDto
+
+@{
+    ViewData["Title"] = "Item Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4">Inventory Item Details</h2>
+
+<div class="mb-3">
+    <strong>Name:</strong> @Model.Name
+</div>
+<div class="mb-3">
+    <strong>Quantity:</strong> @Model.Quantity
+</div>
+<div class="mb-3">
+    <strong>Category:</strong> @Model.Category
+</div>
+<div class="mb-3">
+    <strong>Warehouse:</strong> @Model.WarehouseName
+</div>
+
+<a href="@Url.Action("Index")" class="btn btn-secondary">Back to List</a>

@@ -5,24 +5,34 @@ namespace Inventory_Management_System.Entities
 {
     public class Order
     {
-        #region Properties
+        [Key]
         public Guid OrderID { get; set; }
+
+        [Required]
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
-        [Column(TypeName = "decimal(10,2)")]
         [NotMapped]
+        [Column(TypeName = "decimal(10,2)")]
         public decimal TotalAmount => OrderDetails?.Sum(od => od.TotalPrice) ?? 0;
+
         [Required]
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
-        
+
         // Foreign key to User
+        [Required]
         public Guid CreatedByUserID { get; set; }
 
+        // Navigation property to User
+        public User CreatedByUser { get; set; } = null!;
+
         // Navigation properties
-        public User CreatedByUser { get; set; }
-        public ICollection<CustomerOrder> CustomerOrders { get; set; }
-        public ICollection<OrderDetail> OrderDetails { get; set; }
-        public Shipment Shipment { get; set; }
-        #endregion
+        public ICollection<CustomerOrder> CustomerOrders { get; set; } = new List<CustomerOrder>();
+        public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+
+        [Required]
+        public Guid CustomerID { get; set; }
+        public Customer Customer { get; set; } = null!;
+
+        public Shipment Shipment { get; set; } = null!;
     }
 }

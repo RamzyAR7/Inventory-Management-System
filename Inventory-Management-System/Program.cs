@@ -22,13 +22,6 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IWarehouseService, WarehouseService>();
-builder.Services.AddScoped<IShipmentService, ShipmentService>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
-
-
-
 
 
 // Register the generic repository is optional

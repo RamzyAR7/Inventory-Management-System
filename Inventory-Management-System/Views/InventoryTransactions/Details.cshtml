@@ -1,0 +1,15 @@
+﻿@model Inventory_Management_System.Entities.InventoryTransaction
+
+@{
+    ViewData["Title"] = "Transaction Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Transaction Details</h2>
+
+<p><strong>Type:</strong> @Model.Type</p>
+<p><strong>Quantity:</strong> @Model.Quantity</p>
+<p><strong>Date:</strong> @Model.TransactionDate.ToShortDateString()</p>
+<p><strong>Reference:</strong> @Model.Reference</p>
+
+<a href="@Url.Action("Index")" class="btn btn-secondary">Back to List</a>
