@@ -41,7 +41,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 }
 
                 visited.Add(currentManagerId);
-                var manager = await _unitOfWork.Users.GetByIdAsync(currentManagerId);
+                var manager = await _unitOfWork.Users.GetByIdAsync(e => e.ManagerID == currentManagerId);
                 if (manager == null)
                 {
                     throw new InvalidOperationException("Selected manager does not exist.");
@@ -66,7 +66,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
             if (user.ManagerID.HasValue)
             {
-                var manager = await _unitOfWork.Users.GetByIdAsync(user.ManagerID.Value);
+                var manager = await _unitOfWork.Users.GetByIdAsync(e => e.UserID == user.ManagerID.Value);
                 if (manager == null)
                 {
                     throw new InvalidOperationException("Selected manager does not exist.");
@@ -91,7 +91,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task<UserEditDto> UpdateUser(Guid id, UserEditDto userDto)
         {
-            var existingUser = await _unitOfWork.Users.GetByIdAsync(id);
+            var existingUser = await _unitOfWork.Users.GetByIdAsync(e => e.UserID == id);
             if (existingUser == null)
             {
                 throw new KeyNotFoundException($"User with ID '{id}' not found.");
@@ -112,7 +112,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
             if (existingUser.ManagerID.HasValue)
             {
-                var manager = await _unitOfWork.Users.GetByIdAsync(existingUser.ManagerID.Value);
+                var manager = await _unitOfWork.Users.GetByIdAsync(e => e.UserID == existingUser.ManagerID.Value);
                 if (manager == null)
                 {
                     throw new InvalidOperationException("Selected manager does not exist.");
@@ -170,7 +170,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task<UserResDto> GetUserById(Guid id, bool includeManager = false)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(id, includeManager ? new Expression<Func<User, object>>[] { u => u.Manager } : Array.Empty<Expression<Func<User, object>>>());
+            var user = await _unitOfWork.Users.GetByIdAsync(e => e.UserID == id, includeManager ? new Expression<Func<User, object>>[] { u => u.Manager } : Array.Empty<Expression<Func<User, object>>>());
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with ID {id} not found.");
@@ -190,7 +190,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task DeleteUserbyId(Guid id)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(id);
+            var user = await _unitOfWork.Users.GetByIdAsync(e => e.UserID == id);
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with ID {id} not found.");

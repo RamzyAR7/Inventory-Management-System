@@ -36,6 +36,7 @@ namespace Inventory_Management_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Create([Bind("FullName,Email,PhoneNumber,Address")] Customer customer)
         public async Task<IActionResult> Create(Customer customer)
         {
             if (ModelState.IsValid)

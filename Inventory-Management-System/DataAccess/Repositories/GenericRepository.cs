@@ -31,9 +31,11 @@ namespace Inventory_Management_System.DataAccess.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<T> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
+
+        public async Task<T?> GetByIdAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
+
             foreach (var include in includes)
             {
                 if (include != null)
@@ -41,8 +43,26 @@ namespace Inventory_Management_System.DataAccess.Repositories
                     query = query.Include(include);
                 }
             }
-            return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "UserID") == id); // Fixed for User entity
+
+            return await query.FirstOrDefaultAsync(predicate);
         }
+
+        // overload on GetByIdAsync
+        public async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
+        {
+            var keyName = _context.Model.FindEntityType(typeof(T))!
+                                       .FindPrimaryKey()!
+                                       .Properties[0].Name;
+
+            var parameter = Expression.Parameter(typeof(T), "e");
+            var property = Expression.Property(parameter, keyName);
+            var idValue = Expression.Constant(id);
+            var equals = Expression.Equal(property, idValue);
+            var lambda = Expression.Lambda<Func<T, bool>>(equals, parameter);
+
+            return await GetByIdAsync(lambda, includes);
+        }
+
 
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
@@ -115,25 +135,51 @@ namespace Inventory_Management_System.DataAccess.Repositories
             await _dbSet.AddAsync(entity);
         }
 
+        //public async Task UpdateAsync(T entity)
+        //{
+        //    if (entity == null)
+        //        throw new ArgumentNullException(nameof(entity));
+
+        //    var entry = _context.Entry(entity);
+        //    if (entry.State == EntityState.Detached)
+        //    {
+        //        var key = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
+        //        var id = (Guid)entry.Property(key).CurrentValue;
+        //        var existingEntity = await GetByIdAsync(id);
+        //        if (existingEntity == null)
+        //            throw new KeyNotFoundException($"Entity with ID {id} not found.");
+
+        //        _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+        //    }
+        //    else
+        //    {
+        //        _dbSet.Update(entity);
+        //    }
+        //}
+
+
         public async Task UpdateAsync(T entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-            var entry = _context.Entry(entity);
-            if (entry.State == EntityState.Detached)
-            {
-                var key = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
-                var id = (Guid)entry.Property(key).CurrentValue;
-                var existingEntity = await GetByIdAsync(id);
-                if (existingEntity == null)
-                    throw new KeyNotFoundException($"Entity with ID {id} not found.");
+            var key = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
+            var id = (Guid)typeof(T).GetProperty(key).GetValue(entity);
+            var existing = await GetByIdAsync(id);
 
-                _context.Entry(existingEntity).CurrentValues.SetValues(entity);
-            }
-            else
+            if (existing == null)
+                throw new KeyNotFoundException($"Entity with ID {id} not found.");
+
+            var entry = _context.Entry(existing);
+            var values = _context.Entry(entity).CurrentValues;
+
+            foreach (var prop in values.Properties)
             {
-                _dbSet.Update(entity);
+                // ignore Navigation Properties like CustomerOrders
+                if (entry.Metadata.FindNavigation(prop.Name) == null)
+                {
+                    entry.CurrentValues[prop.Name] = values[prop.Name];
+                }
             }
         }
 
@@ -160,5 +206,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
             var entity = await _dbSet.FindAsync(convertedId);
             return entity != null;
         }
+
+       
     }
 }

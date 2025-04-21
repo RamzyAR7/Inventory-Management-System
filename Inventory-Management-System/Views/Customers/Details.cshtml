@@ -1,31 +1,48 @@
 ﻿@model Inventory_Management_System.Entities.Customer
 
 @{
-    ViewData["Title"] = "Customer Details";
+    ViewData["Title"] = "Details";
 }
 
-<h1 class="h3 mb-3">Customer Details</h1>
+<h1>Details</h1>
 
-<div class="card">
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">Full Name</dt>
-            <dd class="col-sm-9">@Model.FullName</dd>
-
-            <dt class="col-sm-3">Email</dt>
-            <dd class="col-sm-9">@Model.Email</dd>
-
-            <dt class="col-sm-3">Phone Number</dt>
-            <dd class="col-sm-9">@Model.PhoneNumber</dd>
-
-            <dt class="col-sm-3">Address</dt>
-            <dd class="col-sm-9">@Model.Address</dd>
-
-            <dt class="col-sm-3">Created At</dt>
-            <dd class="col-sm-9">@Model.CreatedAt.ToString("MMMM dd, yyyy")</dd>
-        </dl>
-
-        <a asp-action="Edit" asp-route-id="@Model.CustomerID" class="btn btn-primary">Edit</a>
-        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-    </div>
+<div>
+    <h4>Customer</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.FullName)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.FullName)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.PhoneNumber)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.PhoneNumber)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Email)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Email)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Address)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Address)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CreatedAt)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CreatedAt)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.CustomerID" class="btn btn-info">Edit</a> |
+    <a asp-action="Index">Back to List</a>
 </div>
