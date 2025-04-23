@@ -8,8 +8,7 @@ namespace Inventory_Management_System.Entities
         public Guid CustomerOrderID { get; set; }
 
         [Required]
-        public string CustomerName { get; set; } = string.Empty;
-
+        public string CustomerName { get; set; }
         [Required]
         public DateTime OrderDate { get; set; }
 
@@ -24,7 +23,7 @@ namespace Inventory_Management_System.Entities
         public Guid OrderID { get; set; }
 
         // Navigation Properties
-        public Customer Customer { get; set; } = null!;
-        public Order Order { get; set; } = null!;
+        public Customer Customer { get; set; }
+        public Order Order { get; set; }
     }
 }

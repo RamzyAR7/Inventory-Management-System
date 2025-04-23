@@ -26,7 +26,7 @@ namespace Inventory_Management_System.Entities
         public Guid ProductID { get; set; }
 
         // Navigation Properties
-        public Order Order { get; set; } = null!;
-        public Product Product { get; set; } = null!;
+        public Order Order { get; set; }
+        public Product Product { get; set; }
     }
 }

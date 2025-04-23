@@ -18,7 +18,7 @@ namespace Inventory_Management_System.Entities
         public User? Manager { get; set; }
 
         // Navigation properties
-        public ICollection<Warehouse> ManagedWarehouses { get; set; } = new List<Warehouse>();
-        public ICollection<Order> Orders { get; set; } = new List<Order>();
+        public ICollection<Warehouse> ManagedWarehouses { get; set; }
+        public ICollection<Order> Orders { get; set; }
     }
 }
