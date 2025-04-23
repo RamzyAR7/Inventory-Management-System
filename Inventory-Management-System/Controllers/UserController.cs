@@ -124,7 +124,7 @@ namespace Inventory_Management_System.Controllers
                 );
                 return View(model);
             }
-            if (User.IsInRole("Manager") && model.Role != UserRole.Employee.ToString())
+            if (User.IsInRole("Manager") && model.Role != "Employee")
             {
                 ModelState.AddModelError(string.Empty, "Managers can only create users with the Employee role.");
                 var managers = await _userService.GetManagers();
@@ -189,7 +189,7 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 var user = await _userService.GetUserById(id, includeManager: false);
-                if (User.IsInRole("Manager") && user.Role != UserRole.Employee.ToString())
+                if (User.IsInRole("Manager") && user.Role != "Employee")
                 {
                     return Forbid();
                 }
@@ -245,7 +245,7 @@ namespace Inventory_Management_System.Controllers
             try
             { 
                 var result = await _userService.UpdateUser(id, model); // Pass UserEditDto to service
-                if (User.IsInRole("Manager") && result.Role != UserRole.Employee.ToString())
+                if (User.IsInRole("Manager") && result.Role != "Employee")
                 {
                     ModelState.AddModelError(string.Empty, "Managers can only create users with the Employee role.");
                     var managers = await _userService.GetManagers();
@@ -333,7 +333,7 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 var user = await _userService.GetUserById(id);
-                if (User.IsInRole("Manager") && user.Role != UserRole.Employee.ToString())
+                if (User.IsInRole("Manager") && user.Role != "Employee")
                 {
                     return Forbid();
                 }
