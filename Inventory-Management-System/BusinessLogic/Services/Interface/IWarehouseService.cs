@@ -1,13 +1,14 @@
 ﻿using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs.Warehouse;
 
 namespace Inventory_Management_System.BusinessLogic.Services.Interface
 {
     public interface IWarehouseService
     {
-        Task<IEnumerable<Warehouse>> GetAllAsync();
-        Task<Warehouse?> GetByIdAsync(Guid id);
-        Task CreateAsync(Warehouse warehouse);
-        Task UpdateAsync(Warehouse warehouse);
+        Task<IEnumerable<WarehouseResDto>> GetAllAsync();
+        Task<WarehouseResDto?> GetByIdAsync(Guid id);
+        Task CreateAsync(WarehouseReqDto warehouseDto);
+        Task UpdateAsync(Guid id, WarehouseReqDto warehouseDto);
         Task DeleteAsync(Guid id);
     }
 }

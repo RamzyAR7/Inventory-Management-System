@@ -5,6 +5,7 @@ using Inventory_Management_System.Models.DTOs.Category;
 using Inventory_Management_System.Models.DTOs.Supplier;
 using Inventory_Management_System.Models.DTOs.User;
 using Inventory_Management_System.Models.DTOs.UserDto;
+using Inventory_Management_System.Models.DTOs.Warehouse;
 
 namespace Inventory_Management_System.Models.Mapping
 {
@@ -57,6 +58,18 @@ namespace Inventory_Management_System.Models.Mapping
             CreateMap<CategoryResDto, CategoryReqDto>();
             CreateMap<CategoryReqDto, Category>()
                 .ForMember(dest => dest.CategoryID, opt => opt.Ignore());
+            #endregion
+
+            #region Warehouse
+
+            CreateMap<Warehouse, WarehouseResDto>()
+                .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Manager.UserName));
+
+
+            CreateMap<WarehouseResDto, WarehouseReqDto>();
+
+            CreateMap<WarehouseReqDto, Warehouse>()
+                .ForMember(dest => dest.WarehouseID, opt => opt.Ignore());
             #endregion
         }
     }

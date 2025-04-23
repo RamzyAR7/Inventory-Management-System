@@ -1,4 +1,5 @@
 ﻿using Inventory_Management_System.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace Inventory_Management_System.Models.DTOs.UserDto
 {
@@ -6,6 +7,7 @@ namespace Inventory_Management_System.Models.DTOs.UserDto
     {
         public Guid UserID { get; set; }
         public string UserName { get; set; }
-        public UserRole Role { get; set; }
+
+        public string Role { get; set; }
     }
 }

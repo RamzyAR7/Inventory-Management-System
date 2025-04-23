@@ -200,6 +200,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
                             ?.FirstOrDefault()
                             ?.Name;
 
+
             var propertyType = typeof(T).GetProperty(keyName!)?.PropertyType;
             var convertedId = Convert.ChangeType(id, propertyType!);
 

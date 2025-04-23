@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250421190927_init")]
+    [Migration("20250423133320_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -367,10 +367,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("da19009a-fe37-43c6-9d4d-f751ab1d03a0"),
-                            CreatedAt = new DateTime(2025, 4, 21, 19, 9, 25, 929, DateTimeKind.Utc).AddTicks(9375),
+                            UserID = new Guid("fea239dc-d86c-4f5f-9c9d-d3ecedcf4dad"),
+                            CreatedAt = new DateTime(2025, 4, 23, 13, 33, 19, 667, DateTimeKind.Utc).AddTicks(8327),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$VsY1/UGxOb6tz4RgcsgNkOIYWqVJvgw9WJ1INQE6iAb3OHMpBd8pu",
+                            HashedPassword = "$2a$11$AV4eU0kxDMoAiUtk7HupyuioLJv2pkJdToHxRol8BnQJOkPFf1JkK",
                             Role = "Admin",
                             UserName = "Admin"
                         });
@@ -387,19 +387,8 @@ namespace Inventory_Management_System.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("Capacity")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid>("ManagerID")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("WarehouseName")
                         .IsRequired()

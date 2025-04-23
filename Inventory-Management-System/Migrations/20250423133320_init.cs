@@ -130,9 +130,6 @@ namespace Inventory_Management_System.Migrations
                 columns: table => new
                 {
                     WarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Capacity = table.Column<int>(type: "int", nullable: false),
                     Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     WarehouseName = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ManagerID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
@@ -314,7 +311,7 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("da19009a-fe37-43c6-9d4d-f751ab1d03a0"), new DateTime(2025, 4, 21, 19, 9, 25, 929, DateTimeKind.Utc).AddTicks(9375), "admin@gmail.com", "$2a$11$VsY1/UGxOb6tz4RgcsgNkOIYWqVJvgw9WJ1INQE6iAb3OHMpBd8pu", null, "Admin", "Admin" });
+                values: new object[] { new Guid("fea239dc-d86c-4f5f-9c9d-d3ecedcf4dad"), new DateTime(2025, 4, 23, 13, 33, 19, 667, DateTimeKind.Utc).AddTicks(8327), "admin@gmail.com", "$2a$11$AV4eU0kxDMoAiUtk7HupyuioLJv2pkJdToHxRol8BnQJOkPFf1JkK", null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_CustomerOrders_CustomerID_OrderID",

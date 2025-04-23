@@ -41,10 +41,11 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 }
 
                 visited.Add(currentManagerId);
-                var manager = await _unitOfWork.Users.GetByIdAsync(e => e.ManagerID == currentManagerId);
+                // Fix the predicate: Find the user whose UserID matches currentManagerId
+                var manager = await _unitOfWork.Users.GetByIdAsync(e => e.UserID == currentManagerId);
                 if (manager == null)
                 {
-                    throw new InvalidOperationException("Selected manager does not exist.");
+                    throw new InvalidOperationException($"Manager with ID {currentManagerId} does not exist.");
                 }
 
                 currentManagerId = manager.ManagerID ?? Guid.Empty;
