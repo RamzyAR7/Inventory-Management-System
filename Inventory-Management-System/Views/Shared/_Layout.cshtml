@@ -41,6 +41,22 @@
                                 <i class="align-middle" data-feather="home"></i> <span class="align-middle">Dashboard</span>
                             </a>
                         </li>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                        {
+                            <li class="sidebar-item @IsActive("User")">
+                                <a class="sidebar-link" href="@Url.Action("Index", "User")">
+                                    <i class="align-middle" data-feather="shield"></i> <span class="align-middle">Users</span>
+                                </a>
+                            </li>
+                        }
+                        @if(User.IsInRole("Admin"))
+                        {
+                            <li class="sidebar-item @IsActive("Warehouses")">
+                                <a class="sidebar-link" href="@Url.Action("Index", "Warehouses")">
+                                    <i class="align-middle" data-feather="home"></i> <span class="align-middle">Warehouses</span>
+                                </a>
+                            </li>
+                        }
                         <li class="sidebar-item @IsActive("Inventory")">
                             <a class="sidebar-link" href="@Url.Action("Index", "Inventory")">
                                 <i class="align-middle" data-feather="box"></i> <span class="align-middle">Inventory</span>
@@ -54,11 +70,6 @@
                         <li class="sidebar-item @IsActive("Orders")">
                             <a class="sidebar-link" href="@Url.Action("Index", "Orders")">
                                 <i class="align-middle" data-feather="shopping-cart"></i> <span class="align-middle">Orders</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item @IsActive("Warehouses")">
-                            <a class="sidebar-link" href="@Url.Action("Index", "Warehouses")">
-                                <i class="align-middle" data-feather="home"></i> <span class="align-middle">Warehouses</span>
                             </a>
                         </li>
                         <li class="sidebar-item @IsActive("Customers")">
@@ -81,14 +92,6 @@
                                 <i class="align-middle" data-feather="settings"></i> <span class="align-middle">Settings</span>
                             </a>
                         </li>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <li class="sidebar-item @IsActive("User")">
-                                <a class="sidebar-link" href="@Url.Action("Index", "User")">
-                                    <i class="align-middle" data-feather="shield"></i> <span class="align-middle">Users</span>
-                                </a>
-                            </li>
-                        }
                     </ul>
                 </div>
             </nav>
