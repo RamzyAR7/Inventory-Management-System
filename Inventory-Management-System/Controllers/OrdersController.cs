@@ -1,93 +1,119 @@
-﻿using Inventory_Management_System.BusinessLogic.Services.Interface;
+﻿using AutoMapper;
+using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs.Order;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory_Management_System.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class OrdersController : Controller
     {
-        #region Inject
         private readonly IOrderService _orderService;
+        private readonly IUserService _userService;
+        private readonly IMapper _mapper;
 
-        public OrdersController(IOrderService orderService)
+        public OrdersController(IOrderService orderService, IUserService userService, IMapper mapper)
         {
             _orderService = orderService;
+            _userService = userService;
+            _mapper = mapper;
         }
-        #endregion
-
 
         #region Get All
-        // GET: Orders
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var orders = await _orderService.GetAllAsync();
-            return View(orders);
+            var orderResDtos = _mapper.Map<List<OrderResDto>>(orders);
+            return View(orderResDtos);
         }
         #endregion
 
         #region Details
-        // GET: Orders/Details/{id}
+        [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
             var order = await _orderService.GetByIdAsync(id);
             if (order == null)
                 return NotFound();
 
-            return View(order);
+            var orderResDto = _mapper.Map<OrderResDto>(order);
+            return View(orderResDto);
         }
         #endregion
 
         #region Create
-        // GET: Orders/Create
+        [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Orders/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Order order)
+        public async Task<IActionResult> Create(OrderReqDto orderDto)
         {
             if (ModelState.IsValid)
             {
-                await _orderService.CreateAsync(order);
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    // Map OrderReqDto to Order entity for saving
+                    var order = _mapper.Map<Order>(orderDto);
+                    await _orderService.CreateAsync(order);
+                    TempData["SuccessMessage"] = "Order created successfully!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
             }
-            return View(order);
+            return View(orderDto);
         }
+        
         #endregion
 
         #region Edit
-        // GET: Orders/Edit/{id}
+        [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
             var order = await _orderService.GetByIdAsync(id);
             if (order == null)
                 return NotFound();
 
-            return View(order);
+            var orderReqDto = _mapper.Map<OrderReqDto>(order);
+            return View(orderReqDto);
         }
 
-        // POST: Orders/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, Order order)
+        public async Task<IActionResult> Edit(Guid id, OrderReqDto orderDto)
         {
-            if (id != order.OrderID)
+            if (id == Guid.Empty)
                 return BadRequest();
 
             if (ModelState.IsValid)
             {
-                await _orderService.UpdateAsync(order);
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    var order = _mapper.Map<Order>(orderDto);
+                    await _orderService.UpdateAsync(id, order);
+                    TempData["SuccessMessage"] = "Order updated successfully!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
             }
-            return View(order);
+            return View(orderDto);
         }
         #endregion
 
         #region Delete
-        // GET: Orders/Delete/{id}
+        [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
             var order = await _orderService.GetByIdAsync(id);
@@ -97,15 +123,22 @@ namespace Inventory_Management_System.Controllers
             return View(order);
         }
 
-        // POST: Orders/Delete/{id}
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            await _orderService.DeleteAsync(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _orderService.DeleteAsync(id);
+                TempData["SuccessMessage"] = "Order deleted successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return RedirectToAction(nameof(Index));
+            }
         }
         #endregion
     }
-
 }

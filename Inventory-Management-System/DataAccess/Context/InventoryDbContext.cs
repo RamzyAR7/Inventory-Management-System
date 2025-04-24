@@ -1,6 +1,7 @@
 ﻿using Inventory_Management_System.Entities;
 using Microsoft.EntityFrameworkCore;
 using Inventory_Management_System.BusinessLogic.Encrypt;
+using Inventory_Management_System.Models.DTOs.Order;
 namespace Inventory_Management_System.DataAccess.Context
 {
     public class InventoryDbContext:DbContext
@@ -26,6 +27,7 @@ namespace Inventory_Management_System.DataAccess.Context
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+          
             modelBuilder.Entity<User>(e =>
             {
                 e.HasKey(u => u.UserID);

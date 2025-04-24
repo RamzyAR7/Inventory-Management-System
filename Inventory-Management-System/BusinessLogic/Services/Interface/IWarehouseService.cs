@@ -1,5 +1,7 @@
 ﻿using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs.Order;
 using Inventory_Management_System.Models.DTOs.Warehouse;
+using System.Threading.Tasks;
 
 namespace Inventory_Management_System.BusinessLogic.Services.Interface
 {
