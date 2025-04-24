@@ -2,10 +2,16 @@
 using Inventory_Management_System.BusinessLogic.Encrypt;
 using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs.Category;
+using Inventory_Management_System.Models.DTOs.Order;
 using Inventory_Management_System.Models.DTOs.Supplier;
 using Inventory_Management_System.Models.DTOs.User;
 using Inventory_Management_System.Models.DTOs.UserDto;
 using Inventory_Management_System.Models.DTOs.Warehouse;
+
+using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs.Order;
+using System.Linq;
+
 
 namespace Inventory_Management_System.Models.Mapping
 {
@@ -26,7 +32,7 @@ namespace Inventory_Management_System.Models.Mapping
 
             CreateMap<UserResDto, UserEditDto>()
                         .ForMember(dest => dest.Password, opt => opt.Ignore());
-                    
+
 
             CreateMap<User, UserResDto>()
                 .ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Manager != null ? src.Manager.UserName : null));
@@ -71,6 +77,36 @@ namespace Inventory_Management_System.Models.Mapping
             CreateMap<WarehouseReqDto, Warehouse>()
                 .ForMember(dest => dest.WarehouseID, opt => opt.Ignore());
             #endregion
+
+            #region Order
+
+            CreateMap<Order, OrderResDto>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName))
+                .ForMember(dest => dest.CreatedByUserName, opt => opt.MapFrom(src => src.CreatedByUser.UserName))
+                .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount));
+
+            CreateMap<OrderReqDto, Order>()
+                .ForMember(dest => dest.OrderID, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderDate, opt => opt.Ignore())
+                .ForMember(dest => dest.TotalAmount, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedByUser, opt => opt.Ignore())
+                .ForMember(dest => dest.Customer, opt => opt.Ignore())
+                .ForMember(dest => dest.CustomerOrders, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore())
+                .ForMember(dest => dest.Shipment, opt => opt.Ignore())
+                .ForMember(dest => dest.CustomerID, opt => opt.Ignore());
+
+
+
+            //CreateMap<Order, OrderReqDto>()
+            //    .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => new List<Guid> { src.CustomerID }));
+
+
+            CreateMap<CustomerOrder, CustomerOrderResDto>()
+                .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.CustomerID))
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName));
+            #endregion
+
         }
     }
 }
