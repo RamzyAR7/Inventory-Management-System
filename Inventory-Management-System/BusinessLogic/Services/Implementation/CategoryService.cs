@@ -20,7 +20,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task<IEnumerable<CategoryResDto>> GetAllCategories()
         {
-            var categories = await _unitOfWork.Categories.GetAllAsync();
+            var categories = await _unitOfWork.Categories.GetAllAsync(c=> c.Products);
             return _mapper.Map<IEnumerable<CategoryResDto>>(categories);
         }
         public async Task<CategoryResDto> GetCategoryById(Guid id)

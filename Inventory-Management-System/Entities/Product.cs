@@ -20,7 +20,7 @@ namespace Inventory_Management_System.Entities
 
         // Navigation properties
         public Category Category { get; set; }
-        public ICollection<SupplierProduct> SupplierProducts { get; set; }
+        public ICollection<SupplierProduct> Suppliers { get; set; }
         public ICollection<WarehouseStock> WarehouseStocks { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
         public ICollection<InventoryTransaction> InventoryTransactions { get; set; }

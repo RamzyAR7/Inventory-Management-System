@@ -10,6 +10,6 @@ namespace Inventory_Management_System.Models.DTOs.Supplier
         public string SupplierName { get; set; }
         public string PhoneNumber { get; set; }
         public string Email { get; set; }
-        public List<SupplierProductResDto> Products { get; set; } = new List<SupplierProductResDto>();
+        public List<SupplierProduct> Products { get; set; }
     }
 }

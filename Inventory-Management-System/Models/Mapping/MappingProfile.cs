@@ -3,15 +3,11 @@ using Inventory_Management_System.BusinessLogic.Encrypt;
 using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs.Category;
 using Inventory_Management_System.Models.DTOs.Order;
+using Inventory_Management_System.Models.DTOs.Products;
 using Inventory_Management_System.Models.DTOs.Supplier;
 using Inventory_Management_System.Models.DTOs.User;
 using Inventory_Management_System.Models.DTOs.UserDto;
 using Inventory_Management_System.Models.DTOs.Warehouse;
-
-using Inventory_Management_System.Entities;
-using Inventory_Management_System.Models.DTOs.Order;
-using System.Linq;
-
 
 namespace Inventory_Management_System.Models.Mapping
 {
@@ -58,7 +54,6 @@ namespace Inventory_Management_System.Models.Mapping
             #endregion
 
             #region Category
-            CreateMap<Product, SupplierProductResDto>();
             CreateMap<Category, CategoryResDto>()
                 .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products.ToList()));
             CreateMap<CategoryResDto, CategoryReqDto>();
@@ -78,6 +73,7 @@ namespace Inventory_Management_System.Models.Mapping
                 .ForMember(dest => dest.WarehouseID, opt => opt.Ignore());
             #endregion
 
+            // need to fix this
             #region Order
 
             CreateMap<Order, OrderResDto>()
@@ -105,6 +101,14 @@ namespace Inventory_Management_System.Models.Mapping
             CreateMap<CustomerOrder, CustomerOrderResDto>()
                 .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.CustomerID))
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName));
+            #endregion
+
+            #region Product
+            CreateMap<ProductReqDto, Product>()
+                .ForMember(dest => dest.ProductID, opt => opt.Ignore());
+
+            CreateMap<Product, ProductReqDto>()
+                .ForMember(dest => dest.SuppliersIDs, opt => opt.MapFrom(src => src.Suppliers.Select(s => s.SupplierID)));
             #endregion
 
         }

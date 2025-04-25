@@ -1,6 +1,7 @@
 ﻿using Inventory_Management_System.Entities;
 using Microsoft.EntityFrameworkCore;
 using Inventory_Management_System.BusinessLogic.Encrypt;
+using Inventory_Management_System.Models.DTOs.Products;
 namespace Inventory_Management_System.DataAccess.Context
 {
     public class InventoryDbContext:DbContext
@@ -134,7 +135,7 @@ namespace Inventory_Management_System.DataAccess.Context
                 .HasForeignKey(sp => sp.SupplierID);
 
                 e.HasOne(sp => sp.Product)
-                .WithMany(p => p.SupplierProducts)
+                .WithMany(p => p.Suppliers)
                 .HasForeignKey(sp => sp.ProductID);
             });
 
@@ -194,5 +195,6 @@ namespace Inventory_Management_System.DataAccess.Context
 
             modelBuilder.Entity<User>().HasData(admin);
         }
+        public DbSet<Inventory_Management_System.Models.DTOs.Products.ProductReqDto> ProductReqDto { get; set; } = default!;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Inventory_Management_System.Entities;
+﻿using Inventory_Management_System.DataAccess.Repositories;
+using Inventory_Management_System.Entities;
 
 namespace Inventory_Management_System.BusinessLogic.Interfaces
 {
@@ -10,7 +11,7 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
         IGenericRepository<Category> Categories { get; }
         IGenericRepository<Supplier> Suppliers { get; }
         IGenericRepository<Warehouse> Warehouses { get; }
-        IGenericRepository<Product> Products { get; }
+        ProductRepository Products { get; }
         IGenericRepository<SupplierProduct> SupplierProducts { get; }
         IGenericRepository<WarehouseStock> WarehouseStocks { get; }
         IGenericRepository<Order> Orders { get; }

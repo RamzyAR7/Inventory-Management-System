@@ -4,7 +4,6 @@ using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs;
 using Inventory_Management_System.Models.DTOs.User;
 using Inventory_Management_System.Models.DTOs.UserDto;
-using Inventory_Management_System.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;

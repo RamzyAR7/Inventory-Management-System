@@ -8,6 +8,6 @@ namespace Inventory_Management_System.Models.DTOs.Category
         public Guid CategoryID { get; set; }
         public string CategoryName { get; set; }
         public string Description { get; set; }
-        public ICollection<ProdictsCategoryDto> Products { get; set; }
+        public ICollection<Product> Products { get; set; }
     }
 }

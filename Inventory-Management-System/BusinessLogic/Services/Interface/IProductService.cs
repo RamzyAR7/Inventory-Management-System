@@ -1,4 +1,5 @@
 ﻿using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs.Products;
 
 namespace Inventory_Management_System.BusinessLogic.Services.Interface
 {
@@ -6,8 +7,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Interface
     {
         Task<IEnumerable<Product>> GetAllAsync();
         Task<Product?> GetByIdAsync(Guid id);
-        Task CreateAsync(Product product);
-        Task UpdateAsync(Product product);
+        Task CreateAsync(ProductReqDto productDto);
+        Task UpdateAsync(Guid id, ProductReqDto productDto);
         Task DeleteAsync(Guid id);
     }
 }

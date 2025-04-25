@@ -59,9 +59,7 @@ namespace Inventory_Management_System.Controllers
             {
                 try
                 {
-                    // Map OrderReqDto to Order entity for saving
-                    var order = _mapper.Map<Order>(orderDto);
-                    await _orderService.CreateAsync(order);
+                    await _orderService.CreateAsync(orderDto);
                     TempData["SuccessMessage"] = "Order created successfully!";
                     return RedirectToAction(nameof(Index));
                 }
@@ -98,8 +96,7 @@ namespace Inventory_Management_System.Controllers
             {
                 try
                 {
-                    var order = _mapper.Map<Order>(orderDto);
-                    await _orderService.UpdateAsync(id, order);
+                    await _orderService.UpdateAsync(id, orderDto);
                     TempData["SuccessMessage"] = "Order updated successfully!";
                     return RedirectToAction(nameof(Index));
                 }

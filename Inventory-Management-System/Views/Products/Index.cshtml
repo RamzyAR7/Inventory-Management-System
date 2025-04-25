@@ -1,0 +1,121 @@
+﻿@model IEnumerable<Inventory_Management_System.Entities.Product>
+
+@{
+    ViewData["Title"] = "Inventory";
+}
+
+<div class="products-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Products Management</h1>
+        <div>
+            <a asp-controller="Category" asp-action="Index" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-list me-2" data-feather="list"></i> Manage Categories
+            </a>
+            <a asp-controller="Transactions" asp-action="Index" class="btn btn-outline-primary">
+                <i class="fas fa-exchange-alt me-2" data-feather="repeat"></i> Manage Transactions
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="align-middle me-1" data-feather="plus"></i> Create New
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.ProductName)</th>
+                    <th>@Html.DisplayNameFor(model => model.Price)</th>
+                    <th>@Html.DisplayNameFor(model => model.RecoderLevel)</th>
+                    <th>Category</th>
+                    <th>Suppliers</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in Model)
+                {
+                    <tr>
+                        <td>@product.ProductName</td>
+                        <td>@product.Price.ToString("C")</td>
+                        <td>@product.RecoderLevel</td>
+                        <td>
+                            <span class="badge bg-primary">@product.Category?.CategoryName</span>
+                        </td>
+                        <td>
+                            @if (product.Suppliers?.Any() == true)
+                            {
+                                @string.Join(", ", product.Suppliers.Select(s => s.Supplier?.SupplierName))
+                            }
+                            else
+                            {
+                                <span class="text-muted">None</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a asp-action="Details" asp-route-id="@product.ProductID" class="btn btn-info btn-sm" title="Details">
+                                    <i class="align-middle" data-feather="eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@product.ProductID" class="btn btn-warning btn-sm" title="Edit">
+                                    <i class="align-middle" data-feather="edit"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@product.ProductID" class="btn btn-danger btn-sm" title="Delete">
+                                    <i class="align-middle" data-feather="trash-2"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .products-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .badge {
+            font-weight: 500;
+            padding: 5px 10px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+        });
+    </script>
+}

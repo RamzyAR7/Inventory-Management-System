@@ -32,12 +32,12 @@
             <!-- Sidebar -->
             <nav id="sidebar" class="sidebar js-sidebar">
                 <div class="sidebar-content js-simplebar">
-                    <a class="sidebar-brand" href="@Url.Action("Dashboard", "Home")">
+                    <a class="sidebar-brand" href="@Url.Action()">
                         <span class="align-middle">Inventory System</span>
                     </a>
                     <ul class="sidebar-nav">
                         <li class="sidebar-item @IsActive("Home")">
-                            <a class="sidebar-link" href="@Url.Action("Dashboard", "Home")">
+                            <a class="sidebar-link" href="@Url.Action()">
                                 <i class="align-middle" data-feather="home"></i> <span class="align-middle">Dashboard</span>
                             </a>
                         </li>
@@ -45,7 +45,7 @@
                         {
                             <li class="sidebar-item @IsActive("User")">
                                 <a class="sidebar-link" href="@Url.Action("Index", "User")">
-                                    <i class="align-middle" data-feather="shield"></i> <span class="align-middle">Users</span>
+                                    <i class="align-middle" data-feather="user"></i> <span class="align-middle">Users</span>
                                 </a>
                             </li>
                         }
@@ -58,7 +58,7 @@
                             </li>
                         }
                         <li class="sidebar-item @IsActive("Inventory")">
-                            <a class="sidebar-link" href="@Url.Action("Index", "Inventory")">
+                            <a class="sidebar-link" href="@Url.Action("Index", "Products")">
                                 <i class="align-middle" data-feather="box"></i> <span class="align-middle">Inventory</span>
                             </a>
                         </li>

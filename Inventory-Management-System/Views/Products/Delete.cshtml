@@ -1,0 +1,75 @@
+﻿@model Inventory_Management_System.Entities.Product
+
+@{
+    ViewData["Title"] = "Delete Product";
+}
+
+<div class="product-container">
+    <h1 class="h3 mb-4">Delete Product</h1>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="alert alert-warning">
+        <h4 class="alert-heading"><i class="align-middle me-1" data-feather="alert-triangle"></i> Warning!</h4>
+        <p>Are you sure you want to delete this product? This action cannot be undone.</p>
+    </div>
+
+    <div class="product-details">
+        <dl class="row">
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductName)</dt>
+            <dd class="col-sm-9">@Model.ProductName</dd>
+
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductDescription)</dt>
+            <dd class="col-sm-9">@Model.ProductDescription</dd>
+
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Price)</dt>
+            <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
+
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Category)</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-primary">@Model.Category?.CategoryName</span>
+            </dd>
+
+            <dt class="col-sm-3">Suppliers</dt>
+            <dd class="col-sm-9">
+                @if (Model.Suppliers?.Any() == true)
+                {
+                    foreach (var supplier in Model.Suppliers)
+                    {
+                        <span class="badge bg-info me-1">@supplier.Supplier?.SupplierName</span>
+                    }
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
+            </dd>
+        </dl>
+    </div>
+
+    <form asp-action="Delete" class="mt-4">
+        <input type="hidden" asp-for="ProductID" />
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-danger">
+                <i class="align-middle me-1" data-feather="trash-2"></i> Confirm Delete
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="align-middle me-1" data-feather="arrow-left"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+        });
+    </script>
+}

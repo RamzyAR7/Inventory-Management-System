@@ -21,7 +21,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task<IEnumerable<SupplierResDto>> GetAllAsync()
         {
-            var suppliers = await _unitOfWork.Suppliers.GetAllAsync();
+            var suppliers = await _unitOfWork.Suppliers.GetAllAsync(s=> s.SupplierProducts);
             return _mapper.Map<IEnumerable<SupplierResDto>>(suppliers);
         }
 
