@@ -10,7 +10,6 @@
 <p><strong>Type:</strong> @Model.Type</p>
 <p><strong>Quantity:</strong> @Model.Quantity</p>
 <p><strong>Date:</strong> @Model.TransactionDate.ToShortDateString()</p>
-<p><strong>Reference:</strong> @Model.Reference</p>
 
 <form asp-action="DeleteConfirmed" method="post">
     <input type="hidden" asp-for="TransactionID" />
