@@ -16,15 +16,8 @@ namespace Inventory_Management_System.Entities
         [Required, MaxLength(15)]
         public string Address { get; set; }
         [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
         // Navigation properties
-        [ValidateNever]
-        public ICollection<CustomerOrder> CustomerOrders { get; set; }
-
-        // Test
-        public Customer()
-        {
-            CustomerOrders = new List<CustomerOrder>();
-        }
+        public ICollection<Order> Orders { get; set; }
     }
 }

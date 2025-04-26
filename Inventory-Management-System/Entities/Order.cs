@@ -26,13 +26,11 @@ namespace Inventory_Management_System.Entities
         public User CreatedByUser { get; set; } = null!;
 
         // Navigation properties
-        public ICollection<CustomerOrder> CustomerOrders { get; set; }
-        public ICollection<OrderDetail> OrderDetails { get; set; }
 
+        public ICollection<OrderDetail> OrderDetails { get; set; }
+        public Customer Customer { get; set; }
         [Required]
         public Guid CustomerID { get; set; }
-        public Customer Customer { get; set; }
-
         public Shipment Shipment { get; set; }
     }
 }

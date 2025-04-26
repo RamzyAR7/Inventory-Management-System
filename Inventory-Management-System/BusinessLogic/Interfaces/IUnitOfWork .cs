@@ -15,7 +15,6 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
         IGenericRepository<SupplierProduct> SupplierProducts { get; }
         IGenericRepository<WarehouseStock> WarehouseStocks { get; }
         IGenericRepository<Order> Orders { get; }
-        IGenericRepository<CustomerOrder> CustomerOrders { get; }
         IGenericRepository<OrderDetail> OrderDetails { get; }
         IGenericRepository<InventoryTransaction> InventoryTransactions { get; }
         IGenericRepository<Shipment> Shipments { get; }
