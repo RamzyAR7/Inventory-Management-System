@@ -98,9 +98,9 @@ namespace Inventory_Management_System.Models.Mapping
             //    .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => new List<Guid> { src.CustomerID }));
 
 
-            CreateMap<CustomerOrder, CustomerOrderResDto>()
+            /*CreateMap<CustomerOrder, CustomerOrderResDto>()
                 .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.CustomerID))
-                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName));
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName));*/
             #endregion
 
             #region Product

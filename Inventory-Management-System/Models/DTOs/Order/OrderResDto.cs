@@ -20,6 +20,6 @@ namespace Inventory_Management_System.Models.DTOs.Order
         public Guid CustomerID { get; set; }
         public string CustomerName { get; set; }
 
-        public List<CustomerOrderResDto> CustomerOrders { get; set; } = new List<CustomerOrderResDto>();
+        //public List<CustomerOrderResDto> CustomerOrders { get; set; } = new List<CustomerOrderResDto>();
     }
 }
