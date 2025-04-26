@@ -80,37 +80,6 @@ namespace Inventory_Management_System.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.CustomerOrder", b =>
-                {
-                    b.Property<Guid>("CustomerOrderID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CustomerID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("OrderDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("OrderID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("CustomerOrderID");
-
-                    b.HasIndex("OrderID");
-
-                    b.HasIndex("CustomerID", "OrderID");
-
-                    b.ToTable("CustomerOrders");
-                });
-
             modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
                 {
                     b.Property<Guid>("TransactionID")
@@ -122,10 +91,6 @@ namespace Inventory_Management_System.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
-
-                    b.Property<string>("Reference")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
@@ -364,10 +329,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("fea239dc-d86c-4f5f-9c9d-d3ecedcf4dad"),
-                            CreatedAt = new DateTime(2025, 4, 23, 13, 33, 19, 667, DateTimeKind.Utc).AddTicks(8327),
+                            UserID = new Guid("3f915ddb-561d-4bb3-a458-8b6b296de732"),
+                            CreatedAt = new DateTime(2025, 4, 26, 16, 0, 40, 128, DateTimeKind.Utc).AddTicks(2155),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$AV4eU0kxDMoAiUtk7HupyuioLJv2pkJdToHxRol8BnQJOkPFf1JkK",
+                            HashedPassword = "$2a$11$pmfK5hLfNOlx8N8cOiHR7eZ774X/QgHQKkeJKAm8tfVLN./JBrEJm",
                             Role = "Admin",
                             UserName = "Admin"
                         });
@@ -419,23 +384,79 @@ namespace Inventory_Management_System.Migrations
                     b.ToTable("WarehouseStocks");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.CustomerOrder", b =>
+            modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseTransfers", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.Customer", "Customer")
-                        .WithMany("CustomerOrders")
-                        .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Property<Guid>("WarehouseTransferID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                    b.HasOne("Inventory_Management_System.Entities.Order", "Order")
-                        .WithMany("CustomerOrders")
-                        .HasForeignKey("OrderID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                    b.Property<Guid>("FromWarehouseID")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Navigation("Customer");
+                    b.Property<Guid>("InTransactionID")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Navigation("Order");
+                    b.Property<Guid>("OutTransactionID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProductID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ToWarehouseID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("TransferDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("WarehouseTransferID");
+
+                    b.HasIndex("FromWarehouseID");
+
+                    b.HasIndex("InTransactionID");
+
+                    b.HasIndex("OutTransactionID");
+
+                    b.HasIndex("ProductID");
+
+                    b.HasIndex("ToWarehouseID");
+
+                    b.ToTable("WarehouseTransfers");
+                });
+
+            modelBuilder.Entity("Inventory_Management_System.Models.DTOs.Products.ProductReqDto", b =>
+                {
+                    b.Property<Guid>("ProductID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CategoryID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("ProductDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("RecoderLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SuppliersIDs")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ProductID");
+
+                    b.ToTable("ProductReqDto");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
@@ -466,7 +487,7 @@ namespace Inventory_Management_System.Migrations
                         .IsRequired();
 
                     b.HasOne("Inventory_Management_System.Entities.Customer", "Customer")
-                        .WithMany()
+                        .WithMany("Orders")
                         .HasForeignKey("CustomerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -528,7 +549,7 @@ namespace Inventory_Management_System.Migrations
             modelBuilder.Entity("Inventory_Management_System.Entities.SupplierProduct", b =>
                 {
                     b.HasOne("Inventory_Management_System.Entities.Product", "Product")
-                        .WithMany("SupplierProducts")
+                        .WithMany("Suppliers")
                         .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -584,6 +605,49 @@ namespace Inventory_Management_System.Migrations
                     b.Navigation("Warehouse");
                 });
 
+            modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseTransfers", b =>
+                {
+                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "FromWarehouse")
+                        .WithMany("FromWarehouseTransfers")
+                        .HasForeignKey("FromWarehouseID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Inventory_Management_System.Entities.InventoryTransaction", "InTransaction")
+                        .WithMany("InTransfers")
+                        .HasForeignKey("InTransactionID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Inventory_Management_System.Entities.InventoryTransaction", "OutTransaction")
+                        .WithMany("OutTransfers")
+                        .HasForeignKey("OutTransactionID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
+                        .WithMany("WarehouseTransfers")
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "ToWarehouse")
+                        .WithMany("ToWarehouseTransfers")
+                        .HasForeignKey("ToWarehouseID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FromWarehouse");
+
+                    b.Navigation("InTransaction");
+
+                    b.Navigation("OutTransaction");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ToWarehouse");
+                });
+
             modelBuilder.Entity("Inventory_Management_System.Entities.Category", b =>
                 {
                     b.Navigation("Products");
@@ -591,13 +655,18 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Customer", b =>
                 {
-                    b.Navigation("CustomerOrders");
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
+                {
+                    b.Navigation("InTransfers");
+
+                    b.Navigation("OutTransfers");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
                 {
-                    b.Navigation("CustomerOrders");
-
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Shipment")
@@ -610,9 +679,11 @@ namespace Inventory_Management_System.Migrations
 
                     b.Navigation("OrderDetails");
 
-                    b.Navigation("SupplierProducts");
+                    b.Navigation("Suppliers");
 
                     b.Navigation("WarehouseStocks");
+
+                    b.Navigation("WarehouseTransfers");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Supplier", b =>
@@ -629,9 +700,13 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
                 {
+                    b.Navigation("FromWarehouseTransfers");
+
                     b.Navigation("InventoryTransactions");
 
                     b.Navigation("Shipments");
+
+                    b.Navigation("ToWarehouseTransfers");
 
                     b.Navigation("WarehouseStocks");
                 });

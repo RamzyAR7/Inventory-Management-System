@@ -16,7 +16,6 @@
             <th>Type</th>
             <th>Quantity</th>
             <th>Date</th>
-            <th>Reference</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -28,7 +27,6 @@
                 <td>@t.Type</td>
                 <td>@t.Quantity</td>
                 <td>@t.TransactionDate.ToShortDateString()</td>
-                <td>@t.Reference</td>
                 <td>
                     <a class="btn btn-sm btn-info" href="@Url.Action("Details", new { id = t.TransactionID })">Details</a>
                     <a class="btn btn-sm btn-warning" href="@Url.Action("Edit", new { id = t.TransactionID })">Edit</a>

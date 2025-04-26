@@ -24,6 +24,7 @@ namespace Inventory_Management_System.Entities
         public ICollection<WarehouseStock> WarehouseStocks { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
         public ICollection<InventoryTransaction> InventoryTransactions { get; set; }
+        public ICollection<WarehouseTransfers> WarehouseTransfers { get; set; }
         #endregion
     }
 }

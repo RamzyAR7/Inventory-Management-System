@@ -13,5 +13,7 @@
         public ICollection<Shipment> Shipments { get; set; }
 
         public ICollection<InventoryTransaction> InventoryTransactions { get; set; }
+        public ICollection<WarehouseTransfers> FromWarehouseTransfers { get; set; }
+        public ICollection<WarehouseTransfers> ToWarehouseTransfers { get; set; }
     }
 }

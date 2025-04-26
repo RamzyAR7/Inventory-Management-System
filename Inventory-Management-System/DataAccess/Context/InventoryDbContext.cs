@@ -15,9 +15,9 @@ namespace Inventory_Management_System.DataAccess.Context
         public DbSet<SupplierProduct> SupplierProducts { get; set; }
         public DbSet<WarehouseStock> WarehouseStocks { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<CustomerOrder> CustomerOrders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
+        public DbSet<WarehouseTransfers> WarehouseTransfers { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
 
 
@@ -159,23 +159,39 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.Entity<Customer>(e => {
                 e.HasKey(c => c.CustomerID);
                 e.HasIndex(u => u.Email).IsUnique();
+
+                e.HasMany(c => c.Orders)
+                .WithOne(o => o.Customer)
+                .HasForeignKey(o => o.CustomerID);
                 //e.HasIndex(u => u.FullName).IsUnique();
             });
-            modelBuilder.Entity<CustomerOrder>(e => {
-                e.HasKey(co => co.CustomerOrderID);
+            modelBuilder.Entity<WarehouseTransfers>(e =>
+            {
+                e.HasKey(wt => wt.WarehouseTransferID);
 
-               e.HasIndex(co => new { co.CustomerID, co.OrderID });
+                e.HasOne(wt => wt.Product)
+                 .WithMany(p => p.WarehouseTransfers)
+                 .HasForeignKey(wt => wt.ProductID);
 
-                e.HasOne(co => co.Customer)
-                .WithMany(c => c.CustomerOrders)
-                .HasForeignKey(co => co.CustomerID)
-                .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(wt => wt.FromWarehouse)
+                  .WithMany(w => w.FromWarehouseTransfers)
+                  .HasForeignKey(wt => wt.FromWarehouseID)
+                  .OnDelete(DeleteBehavior.Restrict);
 
-                e.HasOne(co => co.Order)
-                .WithMany(order => order.CustomerOrders)
-                .HasForeignKey(co => co.OrderID)
-                .OnDelete(DeleteBehavior.NoAction);
+                e.HasOne(wt => wt.ToWarehouse)
+                 .WithMany(w => w.ToWarehouseTransfers)
+                 .HasForeignKey(wt => wt.ToWarehouseID)
+                 .OnDelete(DeleteBehavior.Restrict);
 
+                e.HasOne(wt => wt.OutTransaction)
+                  .WithMany(t => t.OutTransfers)
+                  .HasForeignKey(wt => wt.OutTransactionID)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(wt => wt.InTransaction)
+                  .WithMany(t => t.InTransfers)
+                  .HasForeignKey(wt => wt.InTransactionID)
+                  .OnDelete(DeleteBehavior.Restrict);
             });
 
             SeedAdmin(modelBuilder);

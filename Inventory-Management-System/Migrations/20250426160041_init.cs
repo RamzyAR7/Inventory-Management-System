@@ -41,6 +41,23 @@ namespace Inventory_Management_System.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProductReqDto",
+                columns: table => new
+                {
+                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProductName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ProductDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    RecoderLevel = table.Column<int>(type: "int", nullable: false),
+                    CategoryID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SuppliersIDs = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductReqDto", x => x.ProductID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Suppliers",
                 columns: table => new
                 {
@@ -170,33 +187,6 @@ namespace Inventory_Management_System.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CustomerOrders",
-                columns: table => new
-                {
-                    CustomerOrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CustomerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    CustomerID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CustomerOrders", x => x.CustomerOrderID);
-                    table.ForeignKey(
-                        name: "FK_CustomerOrders_Customers_CustomerID",
-                        column: x => x.CustomerID,
-                        principalTable: "Customers",
-                        principalColumn: "CustomerID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_CustomerOrders_Orders_OrderID",
-                        column: x => x.OrderID,
-                        principalTable: "Orders",
-                        principalColumn: "OrderID");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "OrderDetails",
                 columns: table => new
                 {
@@ -231,7 +221,6 @@ namespace Inventory_Management_System.Migrations
                     Type = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Reference = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     WarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
@@ -308,20 +297,58 @@ namespace Inventory_Management_System.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "WarehouseTransfers",
+                columns: table => new
+                {
+                    WarehouseTransferID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FromWarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ToWarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OutTransactionID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    InTransactionID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    TransferDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WarehouseTransfers", x => x.WarehouseTransferID);
+                    table.ForeignKey(
+                        name: "FK_WarehouseTransfers_InventoryTransactions_InTransactionID",
+                        column: x => x.InTransactionID,
+                        principalTable: "InventoryTransactions",
+                        principalColumn: "TransactionID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WarehouseTransfers_InventoryTransactions_OutTransactionID",
+                        column: x => x.OutTransactionID,
+                        principalTable: "InventoryTransactions",
+                        principalColumn: "TransactionID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WarehouseTransfers_Products_ProductID",
+                        column: x => x.ProductID,
+                        principalTable: "Products",
+                        principalColumn: "ProductID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_WarehouseTransfers_Warehouses_FromWarehouseID",
+                        column: x => x.FromWarehouseID,
+                        principalTable: "Warehouses",
+                        principalColumn: "WarehouseID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WarehouseTransfers_Warehouses_ToWarehouseID",
+                        column: x => x.ToWarehouseID,
+                        principalTable: "Warehouses",
+                        principalColumn: "WarehouseID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("fea239dc-d86c-4f5f-9c9d-d3ecedcf4dad"), new DateTime(2025, 4, 23, 13, 33, 19, 667, DateTimeKind.Utc).AddTicks(8327), "admin@gmail.com", "$2a$11$AV4eU0kxDMoAiUtk7HupyuioLJv2pkJdToHxRol8BnQJOkPFf1JkK", null, "Admin", "Admin" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CustomerOrders_CustomerID_OrderID",
-                table: "CustomerOrders",
-                columns: new[] { "CustomerID", "OrderID" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CustomerOrders_OrderID",
-                table: "CustomerOrders",
-                column: "OrderID");
+                values: new object[] { new Guid("3f915ddb-561d-4bb3-a458-8b6b296de732"), new DateTime(2025, 4, 26, 16, 0, 40, 128, DateTimeKind.Utc).AddTicks(2155), "admin@gmail.com", "$2a$11$pmfK5hLfNOlx8N8cOiHR7eZ774X/QgHQKkeJKAm8tfVLN./JBrEJm", null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_Email",
@@ -413,19 +440,41 @@ namespace Inventory_Management_System.Migrations
                 name: "IX_WarehouseStocks_ProductID",
                 table: "WarehouseStocks",
                 column: "ProductID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WarehouseTransfers_FromWarehouseID",
+                table: "WarehouseTransfers",
+                column: "FromWarehouseID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WarehouseTransfers_InTransactionID",
+                table: "WarehouseTransfers",
+                column: "InTransactionID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WarehouseTransfers_OutTransactionID",
+                table: "WarehouseTransfers",
+                column: "OutTransactionID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WarehouseTransfers_ProductID",
+                table: "WarehouseTransfers",
+                column: "ProductID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WarehouseTransfers_ToWarehouseID",
+                table: "WarehouseTransfers",
+                column: "ToWarehouseID");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CustomerOrders");
-
-            migrationBuilder.DropTable(
-                name: "InventoryTransactions");
-
-            migrationBuilder.DropTable(
                 name: "OrderDetails");
+
+            migrationBuilder.DropTable(
+                name: "ProductReqDto");
 
             migrationBuilder.DropTable(
                 name: "Shipments");
@@ -437,19 +486,25 @@ namespace Inventory_Management_System.Migrations
                 name: "WarehouseStocks");
 
             migrationBuilder.DropTable(
+                name: "WarehouseTransfers");
+
+            migrationBuilder.DropTable(
                 name: "Orders");
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
 
             migrationBuilder.DropTable(
+                name: "InventoryTransactions");
+
+            migrationBuilder.DropTable(
+                name: "Customers");
+
+            migrationBuilder.DropTable(
                 name: "Products");
 
             migrationBuilder.DropTable(
                 name: "Warehouses");
-
-            migrationBuilder.DropTable(
-                name: "Customers");
 
             migrationBuilder.DropTable(
                 name: "Categories");
