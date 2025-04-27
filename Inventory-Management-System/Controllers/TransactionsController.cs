@@ -6,9 +6,12 @@ using Inventory_Management_System.Models.DTOs.Warehouse;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Linq.Expressions;
 
 namespace Inventory_Management_System.Controllers
 {
@@ -31,7 +34,6 @@ namespace Inventory_Management_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10)
         {
-            // Fetch transactions with pagination
             var includes = new Expression<Func<InventoryTransaction, object>>[]
             {
                 t => t.Warehouse,
@@ -41,7 +43,6 @@ namespace Inventory_Management_System.Controllers
                 ? await _unitOfWork.InventoryTransactions.GetPagedAsync(pageNumber, pageSize, t => t.WarehouseID == warehouseId.Value, includes)
                 : await _unitOfWork.InventoryTransactions.GetPagedAsync(pageNumber, pageSize, null, includes);
 
-            // Fetch transfers (no pagination for simplicity)
             var transferIncludes = new Expression<Func<WarehouseTransfers, object>>[]
             {
                 t => t.FromWarehouse,
@@ -50,7 +51,6 @@ namespace Inventory_Management_System.Controllers
             };
             var transfers = await _unitOfWork.WarehouseTransfers.GetAllAsync(transferIncludes);
 
-            // Populate ViewBag for warehouse filter dropdown and pagination
             var warehouses = await _warehouseService.GetAllAsync();
             ViewBag.Warehouses = new SelectList(warehouses, "WarehouseID", "WarehouseName", warehouseId);
             ViewBag.Transfers = transfers;
@@ -64,7 +64,6 @@ namespace Inventory_Management_System.Controllers
         [HttpGet]
         public async Task<IActionResult> ListTransactions(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10)
         {
-            // Fetch transactions with pagination
             var includes = new Expression<Func<InventoryTransaction, object>>[]
             {
                 t => t.Warehouse,
@@ -84,7 +83,6 @@ namespace Inventory_Management_System.Controllers
         [HttpGet]
         public async Task<IActionResult> ListTransfers(int pageNumber = 1, int pageSize = 10)
         {
-            // Fetch transfers with pagination
             var includes = new Expression<Func<WarehouseTransfers, object>>[]
             {
                 t => t.FromWarehouse,
@@ -158,9 +156,9 @@ namespace Inventory_Management_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> TransferBetweenWarehouses(Guid? fromWarehouseId = null, Guid? toWarehouseId = null, Guid? productId = null)
+        public async Task<IActionResult> TransferBetweenWarehouses(Guid? fromWarehouseId = null, Guid? toWarehouseId = null, Guid? productId = null, Guid? toProductId = null)
         {
-            await PopulateViewBagAsync(fromWarehouseId, productId, toWarehouseId);
+            await PopulateViewBagAsync(fromWarehouseId, productId, toWarehouseId, toProductId);
             return View(new CreateWarehouseTransferDto());
         }
 
@@ -177,14 +175,14 @@ namespace Inventory_Management_System.Controllers
                 }
                 catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = ex.Message; // Use the specific message
+                    TempData["ErrorMessage"] = ex.Message;
                 }
             }
-            await PopulateViewBagAsync(dto.FromWarehouseId, dto.ProductId, dto.ToWarehouseId);
+            await PopulateViewBagAsync(dto.FromWarehouseId, dto.ProductId, dto.ToWarehouseId, dto.ToProductId);
             return View(dto);
         }
 
-        private async Task PopulateViewBagAsync(Guid? selectedWarehouseId = null, Guid? selectedProductId = null, Guid? selectedToWarehouseId = null)
+        private async Task PopulateViewBagAsync(Guid? selectedWarehouseId = null, Guid? selectedProductId = null, Guid? selectedToWarehouseId = null, Guid? selectedToProductId = null)
         {
             var warehouseDtos = await _warehouseService.GetAllAsync();
             var products = await _productService.GetAllAsync();
@@ -220,39 +218,91 @@ namespace Inventory_Management_System.Controllers
                 "WarehouseName",
                 selectedToWarehouseId);
 
+            // Populate Products for source warehouse
             if (selectedWarehouseId.HasValue)
             {
-                var warehouseStocks = await _unitOfWork.WarehouseStocks.FindAsync(ws => ws.WarehouseID == selectedWarehouseId.Value);
-                var availableProductIds = warehouseStocks
-                    .Where(ws => ws.StockQuantity > 0) // Only include products with stock
-                    .Select(ws => ws.ProductID)
+                var warehouseStocks = await _unitOfWork.WarehouseStocks
+                    .Find(ws => ws.WarehouseID == selectedWarehouseId.Value)
+                    .Include(ws => ws.Product)
+                    .ToListAsync();
+                var availableProductIdsWithStock = warehouseStocks
+                    .Where(ws => ws.StockQuantity > 0)
+                    .Select(ws => new { ws.ProductID, ws.StockQuantity })
                     .ToList();
                 var availableProducts = products
-                    .Where(p => availableProductIds.Contains(p.ProductID))
+                    .Where(p => availableProductIdsWithStock.Select(x => x.ProductID).Contains(p.ProductID))
+                    .Select(p => new
+                    {
+                        p.ProductID,
+                        DisplayText = $"{p.ProductName} (Stock: {availableProductIdsWithStock.FirstOrDefault(x => x.ProductID == p.ProductID)?.StockQuantity})"
+                    })
                     .ToList();
                 ViewBag.Products = new SelectList(
-                    availableProducts.Select(p => new { p.ProductID, p.ProductName }),
+                    availableProducts,
                     "ProductID",
-                    "ProductName",
+                    "DisplayText",
                     selectedProductId);
 
-                // If the selected product has insufficient stock, add a validation message
                 if (selectedProductId.HasValue)
                 {
                     var selectedStock = warehouseStocks.FirstOrDefault(ws => ws.ProductID == selectedProductId.Value);
                     if (selectedStock == null || selectedStock.StockQuantity <= 0)
                     {
-                        ModelState.AddModelError("ProductId", "The selected product is out of stock in the source warehouse.");
+                        ModelState.AddModelError("ProductId", $"The selected product is out of stock in the source warehouse. Available stock: {selectedStock?.StockQuantity ?? 0}");
                     }
                 }
             }
             else
             {
                 ViewBag.Products = new SelectList(
-                    products.Select(p => new { p.ProductID, p.ProductName }),
+                    products.Select(p => new { p.ProductID, DisplayText = $"{p.ProductName} (Stock: N/A)" }),
                     "ProductID",
-                    "ProductName",
+                    "DisplayText",
                     selectedProductId);
+            }
+
+            // Populate ToProducts for destination warehouse
+            if (selectedToWarehouseId.HasValue && selectedProductId.HasValue)
+            {
+                var fromProduct = products.FirstOrDefault(p => p.ProductID == selectedProductId.Value);
+                if (fromProduct != null)
+                {
+                    var toWarehouseStocks = await _unitOfWork.WarehouseStocks
+                        .Find(ws => ws.WarehouseID == selectedToWarehouseId.Value)
+                        .Include(ws => ws.Product)
+                        .ToListAsync();
+                    var matchingProductsWithStock = toWarehouseStocks
+                        .Where(ws => ws.Product != null && ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())
+                        .Select(ws => new
+                        {
+                            ws.Product.ProductID,
+                            DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
+                        })
+                        .Distinct()
+                        .ToList();
+                    ViewBag.ToProducts = new SelectList(
+                        matchingProductsWithStock,
+                        "ProductID",
+                        "DisplayText",
+                        selectedToProductId);
+
+                    if (selectedToProductId.HasValue)
+                    {
+                        var selectedToProduct = matchingProductsWithStock.FirstOrDefault(p => p.ProductID == selectedToProductId.Value);
+                        if (selectedToProduct == null)
+                        {
+                            ModelState.AddModelError("ToProductId", "The selected destination product does not match the source product.");
+                        }
+                    }
+                }
+                else
+                {
+                    ViewBag.ToProducts = new SelectList(Enumerable.Empty<object>(), "ProductID", "DisplayText", selectedToProductId);
+                }
+            }
+            else
+            {
+                ViewBag.ToProducts = new SelectList(Enumerable.Empty<object>(), "ProductID", "DisplayText", selectedToProductId);
             }
         }
     }

@@ -1,7 +1,10 @@
 ﻿using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs.InventoryTransaction;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Interface
+namespace Inventory_Management_System.BusinessLogic.Interfaces
 {
     public interface ITransactionService
     {
@@ -10,6 +13,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Interface
         Task<IEnumerable<WarehouseTransfers>> GetAllTransfersAsync();
         Task<WarehouseTransfers> GetTransferByIdAsync(Guid transferId);
         Task CreateInOrOutTransactionAsync(CreateInventoryTransactionDto dto);
-        Task TransferBetweenWarehousesAsync(CreateWarehouseTransferDto dto);
+        Task TransferBetweenWarehousesAsync(CreateWarehouseTransferDto dto); // Updated
     }
 }

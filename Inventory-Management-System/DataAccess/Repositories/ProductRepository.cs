@@ -64,5 +64,12 @@ namespace Inventory_Management_System.DataAccess.Repositories
                 .Where(p => p.WarehouseStocks.Any(ws => warehouseIds.Contains(ws.WarehouseID)))
                 .ToListAsync();
         }
+        public async Task<Product> FindFirstOrDefaultAsync(Expression<Func<Product, bool>> predicate)
+        {
+            return await _context.Products
+                .Include(p => p.WarehouseStocks) // Include WarehouseStocks for the Any check
+                .Where(predicate)
+                .FirstOrDefaultAsync();
+        }
     }
 }

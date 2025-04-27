@@ -29,6 +29,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
         public UnitOfWork(InventoryDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _warehouseStocks = new WarehouseStockRepository(_context);
         }
 
         public IUserRepository Users => _users ??= new UserRepository(_context);

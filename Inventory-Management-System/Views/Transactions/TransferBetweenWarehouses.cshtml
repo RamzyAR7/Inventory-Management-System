@@ -1,9 +1,15 @@
 ﻿@model Inventory_Management_System.Models.DTOs.InventoryTransaction.CreateWarehouseTransferDto
+
 @{
     ViewData["Title"] = "Transfer Between Warehouses";
 }
 
 <h2>Transfer Between Warehouses</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
 
 @if (TempData["ErrorMessage"] != null)
 {
@@ -14,31 +20,37 @@
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="form-group">
-        <label asp-for="FromWarehouseId">From Warehouse</label>
-        <select asp-for="FromWarehouseId" asp-items="ViewBag.Warehouses" class="form-control" onchange="this.form.submit()"></select>
+        <label asp-for="FromWarehouseId" class="control-label">From Warehouse</label>
+        <select asp-for="FromWarehouseId" class="form-control" asp-items="ViewBag.Warehouses" onchange="this.form.submit()"></select>
         <span asp-validation-for="FromWarehouseId" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="ToWarehouseId">To Warehouse</label>
-        <select asp-for="ToWarehouseId" asp-items="ViewBag.ToWarehouses" class="form-control"></select>
-        <span asp-validation-for="ToWarehouseId" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="ProductId">Product</label>
-        <select asp-for="ProductId" asp-items="ViewBag.Products" class="form-control"></select>
+        <label asp-for="ProductId" class="control-label">Source Product</label>
+        <select asp-for="ProductId" class="form-control" asp-items="ViewBag.Products" onchange="this.form.submit()"></select>
         <span asp-validation-for="ProductId" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="Quantity">Quantity</label>
-        <input asp-for="Quantity" class="form-control" />
+        <label asp-for="ToWarehouseId" class="control-label">To Warehouse</label>
+        <select asp-for="ToWarehouseId" class="form-control" asp-items="ViewBag.ToWarehouses" onchange="this.form.submit()"></select>
+        <span asp-validation-for="ToWarehouseId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ToProductId" class="control-label">Destination Product</label>
+        <select asp-for="ToProductId" class="form-control" asp-items="ViewBag.ToProducts"></select>
+        <span asp-validation-for="ToProductId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Quantity" class="control-label">Quantity</label>
+        <input asp-for="Quantity" class="form-control" type="number" min="1" />
         <span asp-validation-for="Quantity" class="text-danger"></span>
     </div>
 
-    <div class="form-group mt-3">
-        <button type="submit" class="btn btn-primary">Transfer</button>
+    <div class="form-group">
+        <input type="submit" value="Transfer" class="btn btn-primary" />
         <a asp-action="Index" class="btn btn-secondary">Cancel</a>
     </div>
 </form>

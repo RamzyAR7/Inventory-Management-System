@@ -277,6 +277,20 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             await _unitOfWork.Save();
         }
 
+        public async Task<List<ProductReqDto>> GetProductsByWarehouseAsync(Guid warehouseId)
+        {
+            var warehouseStocks = await _unitOfWork.WarehouseStocks
+                .FindAsync(ws => ws.WarehouseID == warehouseId);
+
+            // Explicitly include the Product property after awaiting the task
+            var warehouseStocksList = warehouseStocks.ToList();
+            var products = warehouseStocksList
+                .Select(ws => ws.Product)
+                .Distinct()
+                .ToList();
+
+            return _mapper.Map<List<ProductReqDto>>(products);
+        }
         private string GetCurrentUserRole()
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -1,12 +1,13 @@
 ﻿using AutoMapper;
 using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs.InventoryTransaction;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
 
 namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 {
@@ -33,13 +34,11 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 t => t.Product
             };
 
-            // Apply filter only if warehouseId is non-empty
             if (warehouseId != Guid.Empty)
             {
                 return await _unitOfWork.InventoryTransactions.FindAsync(t => t.WarehouseID == warehouseId, includes);
             }
 
-            // Fetch all transactions without filter
             return await _unitOfWork.InventoryTransactions.GetAllAsync(includes);
         }
 
@@ -96,6 +95,13 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             if (userRole == "Manager" && warehouse.ManagerID != Guid.Parse(GetCurrentUserId()))
                 throw new UnauthorizedAccessException("You can only make transactions for your own warehouse.");
 
+            var product = await _unitOfWork.Products.GetByIdAsync(dto.ProductId);
+            if (product == null)
+                throw new KeyNotFoundException($"Product with ID '{dto.ProductId}' not found.");
+
+            if (dto.ProductId != product.ProductID)
+                throw new InvalidOperationException("The provided ProductId does not match the retrieved ProductId.");
+
             var transaction = _mapper.Map<InventoryTransaction>(dto);
             transaction.TransactionID = Guid.NewGuid();
             transaction.TransactionDate = DateTime.UtcNow;
@@ -103,10 +109,9 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             await _unitOfWork.InventoryTransactions.AddAsync(transaction);
 
             int quantityChange = dto.Type == TransactionType.In ? dto.Quantity : -dto.Quantity;
-
             await UpdateWarehouseStockAsync(dto.WarehouseId, dto.ProductId, quantityChange);
 
-            await _unitOfWork.SaveAsync(); // Use SaveAsync
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task TransferBetweenWarehousesAsync(CreateWarehouseTransferDto dto)
@@ -114,12 +119,19 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             // Validate input
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
+            if (dto.Quantity <= 0)
+                throw new ArgumentException("Transfer quantity must be positive.", nameof(dto.Quantity));
+            if (dto.ToProductId == Guid.Empty)
+                throw new ArgumentException("Destination product ID is required.", nameof(dto.ToProductId));
 
             // Check warehouse existence
             var fromWarehouse = await _unitOfWork.Warehouses.GetByIdAsync(dto.FromWarehouseId);
             var toWarehouse = await _unitOfWork.Warehouses.GetByIdAsync(dto.ToWarehouseId);
             if (fromWarehouse == null || toWarehouse == null)
                 throw new KeyNotFoundException("Source or destination warehouse not found.");
+
+            _logger.LogInformation("Transfer details: FromWarehouseID: {FromWarehouseID}, ToWarehouseID: {ToWarehouseID}, FromProductID: {FromProductID}, ToProductID: {ToProductID}, Quantity: {Quantity}",
+                fromWarehouse.WarehouseID, toWarehouse.WarehouseID, dto.ProductId, dto.ToProductId, dto.Quantity);
 
             // Prevent transfer to the same warehouse
             if (fromWarehouse.WarehouseID == toWarehouse.WarehouseID)
@@ -140,15 +152,41 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             }
 
             // Validate product existence
-            var productExists = await _unitOfWork.Products.ExistsAsync(dto.ProductId);
-            if (!productExists)
-                throw new KeyNotFoundException($"Product with ID {dto.ProductId} not found.");
+            var fromProduct = await _unitOfWork.Products.GetByIdAsync(dto.ProductId);
+            if (fromProduct == null)
+                throw new KeyNotFoundException($"Source product with ID {dto.ProductId} not found.");
 
-            // Check stock availability
-            var stock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(dto.FromWarehouseId, dto.ProductId);
-            int availableStock = stock?.StockQuantity ?? 0; // Assume 0 if no stock record exists
+            var toProduct = await _unitOfWork.Products.GetByIdAsync(dto.ToProductId);
+            if (toProduct == null)
+                throw new KeyNotFoundException($"Destination product with ID {dto.ToProductId} not found.");
+
+            // Validate product name match
+            if (toProduct.ProductName.ToLower() != fromProduct.ProductName.ToLower())
+                throw new InvalidOperationException($"The destination product '{toProduct.ProductName}' does not match the source product '{fromProduct.ProductName}'.");
+
+            // Check stock availability in fromWarehouse
+            var fromStock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(dto.FromWarehouseId, dto.ProductId);
+            int availableStock = fromStock?.StockQuantity ?? 0;
             if (availableStock < dto.Quantity)
-                throw new InvalidOperationException($"Insufficient stock in the source warehouse '{fromWarehouse.WarehouseName}' for product with ID {dto.ProductId}. Available: {availableStock}, Requested: {dto.Quantity}");
+                throw new InvalidOperationException($"Insufficient stock in the source warehouse '{fromWarehouse.WarehouseName}' for product '{fromProduct.ProductName}'. Available: {availableStock}, Requested: {dto.Quantity}");
+
+            // Check or create WarehouseStock for toWarehouse
+            var toWarehouseStock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(toWarehouse.WarehouseID, dto.ToProductId);
+            if (toWarehouseStock == null)
+            {
+                _logger.LogInformation("Creating new WarehouseStock for toWarehouse. ProductID: {ProductID}", dto.ToProductId);
+                toWarehouseStock = new WarehouseStock
+                {
+                    WarehouseID = toWarehouse.WarehouseID,
+                    ProductID = dto.ToProductId,
+                    StockQuantity = 0
+                };
+                await _unitOfWork.WarehouseStocks.AddAsync(toWarehouseStock);
+                await _unitOfWork.SaveAsync();
+            }
+
+            _logger.LogInformation("toWarehouseStock exists: {Exists}, ProductID: {ProductID}, StockQuantity: {StockQuantity}",
+                toWarehouseStock != null, dto.ToProductId, toWarehouseStock?.StockQuantity ?? 0);
 
             // Begin transaction
             using var transaction = await _unitOfWork.BeginTransactionAsync();
@@ -161,7 +199,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                     TransactionDate = DateTime.UtcNow,
                     Type = TransactionType.Out,
                     WarehouseID = fromWarehouse.WarehouseID,
-                    ProductID = dto.ProductId,
+                    ProductID = fromProduct.ProductID,
                     Quantity = dto.Quantity
                 };
 
@@ -172,18 +210,18 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                     TransactionDate = DateTime.UtcNow,
                     Type = TransactionType.In,
                     WarehouseID = toWarehouse.WarehouseID,
-                    ProductID = dto.ProductId,
+                    ProductID = dto.ToProductId,
                     Quantity = dto.Quantity
                 };
 
                 // Create warehouse transfer
-                var transfer = new WarehouseTransfers
+                var warehouseTransfer = new WarehouseTransfers
                 {
                     WarehouseTransferID = Guid.NewGuid(),
                     TransferDate = DateTime.UtcNow,
                     FromWarehouseID = fromWarehouse.WarehouseID,
                     ToWarehouseID = toWarehouse.WarehouseID,
-                    ProductID = dto.ProductId,
+                    ProductID = dto.ToProductId,
                     Quantity = dto.Quantity,
                     OutTransactionID = outTransaction.TransactionID,
                     InTransactionID = inTransaction.TransactionID
@@ -192,26 +230,27 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 // Add entities
                 await _unitOfWork.InventoryTransactions.AddAsync(outTransaction);
                 await _unitOfWork.InventoryTransactions.AddAsync(inTransaction);
-                await _unitOfWork.WarehouseTransfers.AddAsync(transfer);
+                await _unitOfWork.WarehouseTransfers.AddAsync(warehouseTransfer);
 
                 // Update stock
                 await UpdateWarehouseStockAsync(fromWarehouse.WarehouseID, dto.ProductId, -dto.Quantity);
-                await UpdateWarehouseStockAsync(toWarehouse.WarehouseID, dto.ProductId, dto.Quantity);
+                await UpdateWarehouseStockAsync(toWarehouse.WarehouseID, dto.ToProductId, dto.Quantity);
 
                 // Save changes
                 await _unitOfWork.SaveAsync();
                 await _unitOfWork.CommitAsync();
+                _logger.LogInformation("Transfer completed successfully for WarehouseTransferID: {WarehouseTransferID}", warehouseTransfer.WarehouseTransferID);
             }
             catch (DbUpdateConcurrencyException ex)
             {
                 await _unitOfWork.RollbackAsync();
-                _logger.LogError(ex, "Concurrency error occurred during transfer: {Message}", ex.Message);
+                _logger.LogError(ex, "Concurrency error during transfer: {Message}", ex.Message);
                 throw new Exception("Concurrency error occurred during transfer. Please try again.", ex);
             }
             catch (DbUpdateException ex)
             {
                 await _unitOfWork.RollbackAsync();
-                _logger.LogError(ex, "Database error occurred during transfer: {Message}", ex.InnerException?.Message ?? ex.Message);
+                _logger.LogError(ex, "Database error during transfer: {Message}", ex.InnerException?.Message ?? ex.Message);
                 throw new Exception($"Database error occurred during transfer: {ex.InnerException?.Message ?? ex.Message}", ex);
             }
             catch (Exception ex)
@@ -224,26 +263,55 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         private async Task UpdateWarehouseStockAsync(Guid warehouseId, Guid productId, int quantityChange)
         {
+            var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(warehouseId);
+            if (warehouse == null)
+                throw new KeyNotFoundException($"Warehouse with ID {warehouseId} not found.");
+
+            var product = await _unitOfWork.Products.GetByIdAsync(productId);
+            if (product == null)
+                throw new KeyNotFoundException($"Product with ID {productId} not found.");
+
             var stock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(warehouseId, productId);
             if (stock == null)
             {
+                _logger.LogInformation("Creating new WarehouseStock for WarehouseID: {WarehouseID}, ProductID: {ProductID}", warehouseId, productId);
                 stock = new WarehouseStock
                 {
                     WarehouseID = warehouseId,
                     ProductID = productId,
                     StockQuantity = 0
                 };
-                await _unitOfWork.WarehouseStocks.AddAsync(stock);
+                try
+                {
+                    await _unitOfWork.WarehouseStocks.AddAsync(stock);
+                    await _unitOfWork.SaveAsync();
+                    _logger.LogInformation("New WarehouseStock created successfully for WarehouseID: {WarehouseID}, ProductID: {ProductID}", warehouseId, productId);
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Failed to create WarehouseStock for WarehouseID: {WarehouseID}, ProductID: {ProductID}. InnerException: {InnerException}",
+                        warehouseId, productId, ex.InnerException?.Message);
+                    throw new Exception($"Failed to create WarehouseStock for WarehouseID: {warehouseId}, ProductID: {productId}. Ensure the warehouse and product exist.", ex);
+                }
             }
 
             stock.StockQuantity += quantityChange;
             if (stock.StockQuantity < 0)
-                throw new InvalidOperationException("Insufficient stock.");
+                throw new InvalidOperationException($"Insufficient stock in warehouse {warehouseId} for product {productId}. Available: {stock.StockQuantity - quantityChange}, Requested: {-quantityChange}");
 
-            // Use the new UpdateAsync method for composite key entities
-            await _unitOfWork.WarehouseStocks.UpdateAsync(stock);
-
-            await _unitOfWork.Save();
+            try
+            {
+                await _unitOfWork.WarehouseStocks.UpdateAsync(stock);
+                await _unitOfWork.SaveAsync();
+                _logger.LogInformation("WarehouseStock updated successfully for WarehouseID: {WarehouseID}, ProductID: {ProductID}, New StockQuantity: {StockQuantity}",
+                    warehouseId, productId, stock.StockQuantity);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Failed to update WarehouseStock for WarehouseID: {WarehouseID}, ProductID: {ProductID}. InnerException: {InnerException}",
+                    warehouseId, productId, ex.InnerException?.Message);
+                throw new Exception($"Failed to update WarehouseStock for WarehouseID: {warehouseId}, ProductID: {productId}.", ex);
+            }
         }
 
         private async Task<string> GetCurrentUserRoleAsync()

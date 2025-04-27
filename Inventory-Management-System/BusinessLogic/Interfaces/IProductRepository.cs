@@ -9,6 +9,7 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
         Task<Product> GetAsyncWithNestedIncludesBy(Expression<Func<Product, bool>> predicate);
         Task<Product?> FindAsyncWithNestedIncludes(Expression<Func<Product, bool>> predicate);
         Task<IEnumerable<Product>> GetAllForWarehousesAsync(List<Guid> warehouseIds);
+        Task<Product> FindFirstOrDefaultAsync(Expression<Func<Product, bool>> predicate);
     }
 
 }
