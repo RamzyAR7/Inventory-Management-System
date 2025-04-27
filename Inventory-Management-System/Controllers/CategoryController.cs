@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Models.DTOs.Category;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.CodeDom;
 using System.Threading.Tasks;
 
 namespace Inventory_Management_System.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class CategoryController : Controller
     {
         private readonly ICategoryService _categoryService;
@@ -18,20 +18,37 @@ namespace Inventory_Management_System.Controllers
             _categoryService = categoryService;
             _mapper = mapper;
         }
+
         [HttpGet]
         public async Task<ActionResult> Index()
         {
-            var Categories = await _categoryService.GetAllCategories();
-            return View(Categories);
+            try
+            {
+                var categories = await _categoryService.GetAllCategories();
+                return View(categories);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return View(new List<CategoryResDto>());
+            }
         }
 
         [HttpGet]
         public async Task<ActionResult> Details(Guid id)
         {
-            var category = await _categoryService.GetCategoryById(id);
-            if (category == null)
-                return NotFound();
-            return View(category);
+            try
+            {
+                var category = await _categoryService.GetCategoryById(id);
+                if (category == null)
+                    return NotFound();
+                return View(category);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]
@@ -44,28 +61,39 @@ namespace Inventory_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(CategoryReqDto categoryDto)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return View(categoryDto);
             }
             try
             {
                 await _categoryService.CreateCategory(categoryDto);
+                TempData["SuccessMessage"] = "Category created successfully.";
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
+                TempData["Error"] = ex.Message;
                 return View(categoryDto);
             }
         }
+
         [HttpGet]
         public async Task<ActionResult> Edit(Guid id)
         {
-            var category = await _categoryService.GetCategoryById(id);
-            if (category == null)
-                return NotFound();
-            var categoryReqDto = _mapper.Map<CategoryReqDto>(category);
-            return View(categoryReqDto);
+            try
+            {
+                var category = await _categoryService.GetCategoryById(id);
+                if (category == null)
+                    return NotFound();
+                var categoryReqDto = _mapper.Map<CategoryReqDto>(category);
+                return View(categoryReqDto);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpPost]
@@ -79,10 +107,12 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _categoryService.UpdateCategory(id, categoryDto);
+                TempData["SuccessMessage"] = "Category updated successfully.";
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
+                TempData["Error"] = ex.Message;
                 return View(categoryDto);
             }
         }
@@ -90,18 +120,35 @@ namespace Inventory_Management_System.Controllers
         [HttpGet]
         public async Task<ActionResult> Delete(Guid id)
         {
-            var category = await  _categoryService.GetCategoryById(id);
-            if (category == null)
-                return NotFound();
-            return View(category);
+            try
+            {
+                var category = await _categoryService.GetCategoryById(id);
+                if (category == null)
+                    return NotFound();
+                return View(category);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(Guid id)
         {
-            await _categoryService.DeleteCategory(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _categoryService.DeleteCategory(id);
+                TempData["SuccessMessage"] = "Category deleted successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

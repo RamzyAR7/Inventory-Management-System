@@ -3,13 +3,15 @@ using Inventory_Management_System.DataAccess.Context;
 using Inventory_Management_System.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Inventory_Management_System.DataAccess.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        public InventoryDbContext _context;
+        protected readonly InventoryDbContext _context;
         private readonly DbSet<T> _dbSet;
 
         public GenericRepository(InventoryDbContext context)
@@ -23,7 +25,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
             IQueryable<T> query = _dbSet;
             foreach (var include in includes)
             {
-                if (include != null) // Skip null includes
+                if (include != null)
                 {
                     query = query.Include(include);
                 }
@@ -31,11 +33,9 @@ namespace Inventory_Management_System.DataAccess.Repositories
             return await query.ToListAsync();
         }
 
-
         public async Task<T?> GetByIdAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
-
             foreach (var include in includes)
             {
                 if (include != null)
@@ -43,16 +43,14 @@ namespace Inventory_Management_System.DataAccess.Repositories
                     query = query.Include(include);
                 }
             }
-
             return await query.FirstOrDefaultAsync(predicate);
         }
 
-        // overload on GetByIdAsync
         public async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
         {
             var keyName = _context.Model.FindEntityType(typeof(T))!
-                                       .FindPrimaryKey()!
-                                       .Properties[0].Name;
+                                 .FindPrimaryKey()!
+                                 .Properties[0].Name;
 
             var parameter = Expression.Parameter(typeof(T), "e");
             var property = Expression.Property(parameter, keyName);
@@ -63,6 +61,29 @@ namespace Inventory_Management_System.DataAccess.Repositories
             return await GetByIdAsync(lambda, includes);
         }
 
+        // New method for composite keys (e.g., WarehouseStock)
+        public async Task<T?> GetByCompositeKeyAsync(Guid key1, Guid key2, params Expression<Func<T, object>>[] includes)
+        {
+            var entityType = _context.Model.FindEntityType(typeof(T));
+            var primaryKey = entityType!.FindPrimaryKey();
+            if (primaryKey!.Properties.Count != 2)
+                throw new InvalidOperationException("This method is for entities with exactly two key properties.");
+
+            var keyName1 = primaryKey.Properties[0].Name;
+            var keyName2 = primaryKey.Properties[1].Name;
+
+            var parameter = Expression.Parameter(typeof(T), "e");
+            var property1 = Expression.Property(parameter, keyName1);
+            var property2 = Expression.Property(parameter, keyName2);
+            var keyValue1 = Expression.Constant(key1);
+            var keyValue2 = Expression.Constant(key2);
+            var equals1 = Expression.Equal(property1, keyValue1);
+            var equals2 = Expression.Equal(property2, keyValue2);
+            var andAlso = Expression.AndAlso(equals1, equals2);
+            var lambda = Expression.Lambda<Func<T, bool>>(andAlso, parameter);
+
+            return await GetByIdAsync(lambda, includes);
+        }
 
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
@@ -135,48 +156,48 @@ namespace Inventory_Management_System.DataAccess.Repositories
             await _dbSet.AddAsync(entity);
         }
 
-        //public async Task UpdateAsync(T entity)
-        //{
-        //    if (entity == null)
-        //        throw new ArgumentNullException(nameof(entity));
-
-        //    var entry = _context.Entry(entity);
-        //    if (entry.State == EntityState.Detached)
-        //    {
-        //        var key = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
-        //        var id = (Guid)entry.Property(key).CurrentValue;
-        //        var existingEntity = await GetByIdAsync(id);
-        //        if (existingEntity == null)
-        //            throw new KeyNotFoundException($"Entity with ID {id} not found.");
-
-        //        _context.Entry(existingEntity).CurrentValues.SetValues(entity);
-        //    }
-        //    else
-        //    {
-        //        _dbSet.Update(entity);
-        //    }
-        //}
-
-
         public async Task UpdateAsync(T entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-            var key = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
-            var id = (Guid)typeof(T).GetProperty(key).GetValue(entity);
-            var existing = await GetByIdAsync(id);
+            // Get the primary key properties
+            var entityType = _context.Model.FindEntityType(typeof(T));
+            var primaryKey = entityType!.FindPrimaryKey();
+            var keyProperties = primaryKey!.Properties;
+
+            // Build a predicate to find the existing entity based on all key properties
+            var parameter = Expression.Parameter(typeof(T), "e");
+            Expression predicateBody = null;
+            var keyValues = new object[keyProperties.Count];
+
+            for (int i = 0; i < keyProperties.Count; i++)
+            {
+                var keyName = keyProperties[i].Name;
+                var keyValue = typeof(T).GetProperty(keyName)!.GetValue(entity);
+                keyValues[i] = keyValue;
+
+                var property = Expression.Property(parameter, keyName);
+                var constant = Expression.Constant(keyValue);
+                var equals = Expression.Equal(property, constant);
+
+                predicateBody = predicateBody == null ? equals : Expression.AndAlso(predicateBody, equals);
+            }
+
+            var predicate = Expression.Lambda<Func<T, bool>>(predicateBody!, parameter);
+            var existing = await _dbSet.FirstOrDefaultAsync(predicate);
 
             if (existing == null)
-                throw new KeyNotFoundException($"Entity with ID {id} not found.");
+                throw new KeyNotFoundException($"Entity with keys {string.Join(", ", keyValues)} not found.");
 
+            // Update non-key properties
             var entry = _context.Entry(existing);
             var values = _context.Entry(entity).CurrentValues;
 
             foreach (var prop in values.Properties)
             {
-                // ignore Navigation Properties like CustomerOrders
-                if (entry.Metadata.FindNavigation(prop.Name) == null)
+                // Skip navigation properties and key properties
+                if (entry.Metadata.FindNavigation(prop.Name) == null && !keyProperties.Any(kp => kp.Name == prop.Name))
                 {
                     entry.CurrentValues[prop.Name] = values[prop.Name];
                 }
@@ -192,6 +213,16 @@ namespace Inventory_Management_System.DataAccess.Repositories
             _dbSet.Remove(entity);
         }
 
+        // New method for deleting entities with composite keys
+        public async Task DeleteAsync(Guid key1, Guid key2)
+        {
+            var entity = await GetByCompositeKeyAsync(key1, key2);
+            if (entity == null)
+                throw new KeyNotFoundException($"Entity with keys {key1}, {key2} not found.");
+
+            _dbSet.Remove(entity);
+        }
+
         public async Task<bool> ExistsAsync(Guid id)
         {
             var keyName = _context.Model.FindEntityType(typeof(T))
@@ -200,14 +231,11 @@ namespace Inventory_Management_System.DataAccess.Repositories
                             ?.FirstOrDefault()
                             ?.Name;
 
-
             var propertyType = typeof(T).GetProperty(keyName!)?.PropertyType;
             var convertedId = Convert.ChangeType(id, propertyType!);
 
             var entity = await _dbSet.FindAsync(convertedId);
             return entity != null;
         }
-
-       
     }
 }

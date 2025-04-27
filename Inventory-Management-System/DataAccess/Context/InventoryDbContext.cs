@@ -211,6 +211,5 @@ namespace Inventory_Management_System.DataAccess.Context
 
             modelBuilder.Entity<User>().HasData(admin);
         }
-        public DbSet<Inventory_Management_System.Models.DTOs.Products.ProductReqDto> ProductReqDto { get; set; } = default!;
     }
 }

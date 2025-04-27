@@ -1,5 +1,7 @@
-﻿using Inventory_Management_System.DataAccess.Repositories;
+﻿using Inventory_Management_System.DataAccess.Context;
+using Inventory_Management_System.DataAccess.Repositories;
 using Inventory_Management_System.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Inventory_Management_System.BusinessLogic.Interfaces
 {
@@ -9,15 +11,18 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
         IUserRepository Users { get; }        
         IGenericRepository<Customer> Customers { get; }
         IGenericRepository<Category> Categories { get; }
-        IGenericRepository<Supplier> Suppliers { get; }
+        ISuppliersRepository Suppliers { get; }
         IGenericRepository<Warehouse> Warehouses { get; }
-        ProductRepository Products { get; }
-        IGenericRepository<SupplierProduct> SupplierProducts { get; }
-        IGenericRepository<WarehouseStock> WarehouseStocks { get; }
+        IProductRepository Products { get; }
+
+        ISupplierProductRepository SupplierProducts { get; }
+        IWarehouseStockRepository WarehouseStocks { get; }
         IGenericRepository<Order> Orders { get; }
         IGenericRepository<OrderDetail> OrderDetails { get; }
         IGenericRepository<InventoryTransaction> InventoryTransactions { get; }
         IGenericRepository<Shipment> Shipments { get; }
+
+        InventoryDbContext Context { get; }
 
 
         // Save all changes

@@ -41,23 +41,6 @@ namespace Inventory_Management_System.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductReqDto",
-                columns: table => new
-                {
-                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    ProductDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    RecoderLevel = table.Column<int>(type: "int", nullable: false),
-                    CategoryID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SuppliersIDs = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductReqDto", x => x.ProductID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Suppliers",
                 columns: table => new
                 {
@@ -348,7 +331,7 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("3f915ddb-561d-4bb3-a458-8b6b296de732"), new DateTime(2025, 4, 26, 16, 0, 40, 128, DateTimeKind.Utc).AddTicks(2155), "admin@gmail.com", "$2a$11$pmfK5hLfNOlx8N8cOiHR7eZ774X/QgHQKkeJKAm8tfVLN./JBrEJm", null, "Admin", "Admin" });
+                values: new object[] { new Guid("4c5132b9-0af3-4af8-9945-abd39c3a1db5"), new DateTime(2025, 4, 26, 17, 3, 22, 717, DateTimeKind.Utc).AddTicks(5486), "admin@gmail.com", "$2a$11$gwVA017LnrYw6uNTswArpu23w8Jy951gr.ZDyln8WDEc/nhiuSHly", null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_Email",
@@ -472,9 +455,6 @@ namespace Inventory_Management_System.Migrations
         {
             migrationBuilder.DropTable(
                 name: "OrderDetails");
-
-            migrationBuilder.DropTable(
-                name: "ProductReqDto");
 
             migrationBuilder.DropTable(
                 name: "Shipments");

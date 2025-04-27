@@ -6,8 +6,6 @@ namespace Inventory_Management_System.Models.DTOs.Products
 {
     public class ProductReqDto
     {
-        [Key]
-        public Guid ProductID { get; set; }
         [Required(ErrorMessage = "Product Name not found"), MaxLength(100)]
         public string ProductName { get; set; }
         [Required(ErrorMessage = "Product Description not found")]
@@ -21,6 +19,11 @@ namespace Inventory_Management_System.Models.DTOs.Products
         public Guid CategoryID { get; set; }
         [Required(ErrorMessage = "Supplier not found")]
         public List<Guid> SuppliersIDs { get; set; } = new();
+        [Required(ErrorMessage = "StockQuantity not found")]
+        public int StockQuantity { get; set; }
+        [Required(ErrorMessage = "Warehouse not found")]
+        public Guid WarehouseId { get; set; }
 
+        public ICollection<WarehouseStock> WarehouseStocks { get; set; } = new List<WarehouseStock>();
     }
 }

@@ -19,17 +19,15 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<SupplierResDto>> GetAllAsync()
+        public async Task<IEnumerable<Supplier>> GetAllAsync()
         {
-            var suppliers = await _unitOfWork.Suppliers.GetAllAsync(s=> s.SupplierProducts);
-            return _mapper.Map<IEnumerable<SupplierResDto>>(suppliers);
+             return await _unitOfWork.Suppliers.GetAllSuppliersWithProducts();
         }
 
-        public async Task<SupplierResDto?> GetByIdAsync(Guid id)
+        public async Task<Supplier> GetByIdAsync(Guid id)
         {
 
-            var supplier = await _unitOfWork.Suppliers.GetByIdAsync(s => s.SupplierID == id, s=> s.SupplierProducts );
-            return _mapper.Map<SupplierResDto>(supplier);
+            return await _unitOfWork.Suppliers.GetSupplierBy(s => s.SupplierID == id);
         }
 
         public async Task CreateAsync(SupplierReqDto supplierDto)

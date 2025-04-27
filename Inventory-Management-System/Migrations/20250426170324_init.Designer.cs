@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250426160041_init")]
+    [Migration("20250426170324_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -332,10 +332,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("3f915ddb-561d-4bb3-a458-8b6b296de732"),
-                            CreatedAt = new DateTime(2025, 4, 26, 16, 0, 40, 128, DateTimeKind.Utc).AddTicks(2155),
+                            UserID = new Guid("4c5132b9-0af3-4af8-9945-abd39c3a1db5"),
+                            CreatedAt = new DateTime(2025, 4, 26, 17, 3, 22, 717, DateTimeKind.Utc).AddTicks(5486),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$pmfK5hLfNOlx8N8cOiHR7eZ774X/QgHQKkeJKAm8tfVLN./JBrEJm",
+                            HashedPassword = "$2a$11$gwVA017LnrYw6uNTswArpu23w8Jy951gr.ZDyln8WDEc/nhiuSHly",
                             Role = "Admin",
                             UserName = "Admin"
                         });
@@ -427,39 +427,6 @@ namespace Inventory_Management_System.Migrations
                     b.HasIndex("ToWarehouseID");
 
                     b.ToTable("WarehouseTransfers");
-                });
-
-            modelBuilder.Entity("Inventory_Management_System.Models.DTOs.Products.ProductReqDto", b =>
-                {
-                    b.Property<Guid>("ProductID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CategoryID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<string>("ProductDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("RecoderLevel")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SuppliersIDs")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ProductID");
-
-                    b.ToTable("ProductReqDto");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>

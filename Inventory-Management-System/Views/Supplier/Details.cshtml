@@ -1,4 +1,4 @@
-﻿@model Inventory_Management_System.Models.DTOs.Supplier.SupplierResDto
+﻿@model Inventory_Management_System.Entities.Supplier
 
 @{
     Layout = "_Layout";
@@ -30,11 +30,6 @@
                 <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Email)</dt>
                 <dd class="col-sm-9">@Model.Email</dd>
             </dl>
-
-            @if (Model.Products != null && Model.Products.Any())
-            {
-                <hr />
-                <h5 class="mb-3">Products Supplied</h5>
                 <div class="table-responsive">
                     <table class="table table-sm">
                         <thead>
@@ -43,9 +38,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @if (Model.Products != null && Model.Products.Any())
+                            @if (Model.SupplierProducts?.Any() == true)
                             {
-                                foreach (var product in Model.Products)
+                                foreach (var product in Model.SupplierProducts)
                                 {
                                     <tr>
                                         <td>@product.Product.ProductName</td>
@@ -57,11 +52,10 @@
                                 <tr>
                                     <td colspan="3" class="text-center">No products available.</td>
                                 </tr>
-                            })
+                            }
                         </tbody>
                     </table>
                 </div>
-            }
         </div>
     </div>
 </div>

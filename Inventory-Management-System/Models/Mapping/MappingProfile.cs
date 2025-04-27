@@ -42,15 +42,10 @@ namespace Inventory_Management_System.Models.Mapping
             #region Supplier
 
             CreateMap<SupplierReqDto, Supplier>()
-                .ForMember(dest => dest.SupplierID, opt => opt.Ignore());
+                .ForMember(dest => dest.SupplierID, opt => opt.Ignore())
+                .ReverseMap();
 
-            CreateMap<Supplier, SupplierResDto>()
-                .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.SupplierProducts.ToList()));
 
-            CreateMap<SupplierResDto, SupplierReqDto>();
-
-            CreateMap<SupplierProduct, SupplierProductResDto>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.ProductName));
             #endregion
 
             #region Category
@@ -80,10 +75,16 @@ namespace Inventory_Management_System.Models.Mapping
 
             #region Product
             CreateMap<ProductReqDto, Product>()
-                .ForMember(dest => dest.ProductID, opt => opt.Ignore());
+                .ForMember(dest => dest.ProductID, opt => opt.Ignore())
+                .ForMember(dest => dest.WarehouseStocks, opt => opt.Ignore())
+                .ForMember(dest => dest.Suppliers, opt => opt.Ignore());
 
             CreateMap<Product, ProductReqDto>()
-                .ForMember(dest => dest.SuppliersIDs, opt => opt.MapFrom(src => src.Suppliers.Select(s => s.SupplierID)));
+                .ForMember(dest => dest.SuppliersIDs, opt => opt.MapFrom(src => src.Suppliers.Select(s => s.SupplierID).ToList()))
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src =>
+                    src.WarehouseStocks.Any() ? src.WarehouseStocks.First().StockQuantity : 0))
+                .ForMember(dest => dest.WarehouseId, opt => opt.MapFrom(src =>
+                    src.WarehouseStocks.Any() ? src.WarehouseStocks.First().WarehouseID : Guid.Empty));
             #endregion
 
         }

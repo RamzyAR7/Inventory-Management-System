@@ -17,7 +17,7 @@ namespace Inventory_Management_System.Controllers
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public UserController(IUserService userService,IMapper mapper)
+        public UserController(IUserService userService, IMapper mapper)
         {
             _userService = userService;
             _mapper = mapper;
@@ -28,13 +28,12 @@ namespace Inventory_Management_System.Controllers
         {
             try
             {
-
                 IEnumerable<UserResDto> users;
-                if(User.IsInRole("Admin"))
+                if (User.IsInRole("Admin"))
                 {
                     users = await _userService.GetAllUsers(includeManager: true);
                 }
-                else if(User.IsInRole("Manager"))
+                else if (User.IsInRole("Manager"))
                 {
                     users = await _userService.GetAllEmployee(includeManager: true);
                 }
@@ -123,6 +122,7 @@ namespace Inventory_Management_System.Controllers
                 );
                 return View(model);
             }
+
             if (User.IsInRole("Manager") && model.Role != "Employee")
             {
                 ModelState.AddModelError(string.Empty, "Managers can only create users with the Employee role.");
@@ -138,12 +138,15 @@ namespace Inventory_Management_System.Controllers
                 );
                 return View(model);
             }
+
             try
             {
                 var result = await _userService.CreateUser(model);
-                if (result.ManagerID != Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+
+                // Apply ManagerID restriction only for Managers
+                if (User.IsInRole("Manager") && result.ManagerID != Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
                 {
-                    ModelState.AddModelError(string.Empty, "Managers can not set Admin to Employee.");
+                    ModelState.AddModelError(string.Empty, "Managers can only assign themselves as the manager for new users.");
                     var managers = await _userService.GetManagers();
                     ViewData["Managers"] = new SelectList(
                         managers.Select(m => new
@@ -156,6 +159,7 @@ namespace Inventory_Management_System.Controllers
                     );
                     return View(model);
                 }
+
                 TempData["SuccessMessage"] = "User created successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -241,12 +245,15 @@ namespace Inventory_Management_System.Controllers
                 );
                 return View(model);
             }
+
             try
-            { 
-                var result = await _userService.UpdateUser(id, model); // Pass UserEditDto to service
+            {
+                var result = await _userService.UpdateUser(id, model);
+
+                // Apply ManagerID restriction only for Managers
                 if (User.IsInRole("Manager") && result.Role != "Employee")
                 {
-                    ModelState.AddModelError(string.Empty, "Managers can only create users with the Employee role.");
+                    ModelState.AddModelError(string.Empty, "Managers can only edit users with the Employee role.");
                     var managers = await _userService.GetManagers();
                     ViewData["Managers"] = new SelectList(
                         managers.Select(m => new
@@ -259,9 +266,10 @@ namespace Inventory_Management_System.Controllers
                     );
                     return View(model);
                 }
-                if (result.ManagerID != Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
+
+                if (User.IsInRole("Manager") && result.ManagerID != Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
                 {
-                    ModelState.AddModelError(string.Empty, "Managers can not set Admin to Employee.");
+                    ModelState.AddModelError(string.Empty, "Managers can only assign themselves as the manager for users they edit.");
                     var managers = await _userService.GetManagers();
                     ViewData["Managers"] = new SelectList(
                         managers.Select(m => new
@@ -274,6 +282,7 @@ namespace Inventory_Management_System.Controllers
                     );
                     return View(model);
                 }
+
                 TempData["SuccessMessage"] = "User updated successfully!";
                 return RedirectToAction("Index");
             }

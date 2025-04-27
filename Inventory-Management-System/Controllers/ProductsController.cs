@@ -2,31 +2,44 @@
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs.Products;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
+using Inventory_Management_System.Models.DTOs.Warehouse;
 
 namespace Inventory_Management_System.Controllers
 {
+    [Authorize(Roles = "Admin,Manager")]
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly ISupplierService _supplierService;
+        private readonly IWarehouseService _warehouseService;
         private readonly IMapper _mapper;
 
-        public ProductsController(IProductService productService,ICategoryService categoryService, ISupplierService supplierService, IMapper mapper)
+        public ProductsController(
+            IProductService productService,
+            ICategoryService categoryService,
+            ISupplierService supplierService,
+            IWarehouseService warehouseService,
+            IMapper mapper)
         {
             _productService = productService;
             _categoryService = categoryService;
             _supplierService = supplierService;
+            _warehouseService = warehouseService;
             _mapper = mapper;
         }
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-           var products = await _productService.GetAllAsync();
+            var products = await _productService.GetAllAsync();
             return View(products);
         }
+
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
@@ -40,26 +53,7 @@ namespace Inventory_Management_System.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var Categories = await _categoryService.GetAllCategories();
-            var Suppliers = await _supplierService.GetAllAsync();
-            ViewBag.Categories = new SelectList(
-                Categories.Select(c => new
-                {
-                    c.CategoryID,
-                    c.CategoryName
-                }),
-                "CategoryID",
-                "CategoryName"
-            );
-            ViewBag.Suppliers = new SelectList(
-                Suppliers.Select(s => new
-                {
-                    s.SupplierID,
-                    s.SupplierName
-                }),
-                "SupplierID",
-                "SupplierName"
-            );
+            await PopulateViewBagAsync();
             return View(new ProductReqDto());
         }
 
@@ -67,33 +61,14 @@ namespace Inventory_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductReqDto product)
         {
-            var Categories = await _categoryService.GetAllCategories();
-            var Suppliers = await _supplierService.GetAllAsync();
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = new SelectList(
-                    Categories.Select(c => new
-                    {
-                        c.CategoryID,
-                        c.CategoryName
-                    }),
-                    "CategoryID",
-                    "CategoryName"
-                );
-                ViewBag.Suppliers = new SelectList(
-                    Suppliers.Select(s => new
-                    {
-                        s.SupplierID,
-                        s.SupplierName
-                    }),
-                    "SupplierID",
-                    "SupplierName"
-                );
+                await PopulateViewBagAsync();
                 return View(product);
             }
+
             try
             {
-
                 await _productService.CreateAsync(product);
                 TempData["Success"] = "Product created successfully.";
                 return RedirectToAction(nameof(Index));
@@ -101,59 +76,24 @@ namespace Inventory_Management_System.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                ViewBag.Categories = new SelectList(
-                    Categories.Select(c => new
-                    {
-                        c.CategoryID,
-                        c.CategoryName
-                    }),
-                    "CategoryID",
-                    "CategoryName"
-                );
-                ViewBag.Suppliers = new SelectList(
-                    Suppliers.Select(s => new
-                    {
-                        s.SupplierID,
-                        s.SupplierName
-                    }),
-                    "SupplierID",
-                    "SupplierName"
-                );
+                await PopulateViewBagAsync();
                 return View(product);
             }
-
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
-            var productRes = await _productService.GetByIdAsync(id);
-            if (productRes == null)
+            var product = await _productService.GetByIdAsync(id);
+            if (product == null)
                 return NotFound();
 
-            var Categories = await _categoryService.GetAllCategories();
-            var Suppliers = await _supplierService.GetAllAsync();
-            ViewBag.Categories = new SelectList(
-                Categories.Select(c => new
-                {
-                    c.CategoryID,
-                    c.CategoryName
-                }),
-                "CategoryID",
-                "CategoryName",
-                productRes.CategoryID
-            );
-            ViewBag.Suppliers = new SelectList(
-                Suppliers.Select(s => new
-                {
-                    s.SupplierID,
-                    s.SupplierName
-                }),
-                "SupplierID",
-                "SupplierName",
-                productRes.Suppliers.Select(sp => sp.SupplierID).FirstOrDefault()
-            );
-            var productReq = _mapper.Map<ProductReqDto>(productRes);
+            var productReq = _mapper.Map<ProductReqDto>(product);
+            await PopulateViewBagAsync(
+                product.CategoryID,
+                product.Suppliers.Any() ? product.Suppliers.First().SupplierID : null,
+                productReq.WarehouseId);
+
             return View(productReq);
         }
 
@@ -161,32 +101,12 @@ namespace Inventory_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, ProductReqDto product)
         {
-            var Categories = await _categoryService.GetAllCategories();
-            var Suppliers = await _supplierService.GetAllAsync();
             if (!ModelState.IsValid)
             {
-                ViewBag.Categories = new SelectList(
-                    Categories.Select(c => new
-                    {
-                        c.CategoryID,
-                        c.CategoryName
-                    }),
-                    "CategoryID",
-                    "CategoryName",
-                    product.CategoryID
-                );
-                ViewBag.Suppliers = new SelectList(
-                    Suppliers.Select(s => new
-                    {
-                        s.SupplierID,
-                        s.SupplierName
-                    }),
-                    "SupplierID",
-                    "SupplierName",
-                    product.SuppliersIDs
-                );
+                await PopulateViewBagAsync(product.CategoryID, product.SuppliersIDs?.FirstOrDefault(), product.WarehouseId);
                 return View(product);
             }
+
             try
             {
                 await _productService.UpdateAsync(id, product);
@@ -195,31 +115,12 @@ namespace Inventory_Management_System.Controllers
             }
             catch (Exception ex)
             {
-                var message = ex.Message;
-                ModelState.AddModelError(string.Empty, message);
-                ViewBag.Categories = new SelectList(
-                    Categories.Select(c => new
-                    {
-                        c.CategoryID,
-                        c.CategoryName
-                    }),
-                    "CategoryID",
-                    "CategoryName",
-                    product.CategoryID
-                );
-                ViewBag.Suppliers = new SelectList(
-                    Suppliers.Select(s => new
-                    {
-                        s.SupplierID,
-                        s.SupplierName
-                    }),
-                    "SupplierID",
-                    "SupplierName",
-                    product.SuppliersIDs
-                );
+                ModelState.AddModelError(string.Empty, ex.Message);
+                await PopulateViewBagAsync(product.CategoryID, product.SuppliersIDs?.FirstOrDefault(), product.WarehouseId);
                 return View(product);
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -232,7 +133,7 @@ namespace Inventory_Management_System.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                TempData["Error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -241,9 +142,62 @@ namespace Inventory_Management_System.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            await _productService.DeleteAsync(id);
-            TempData["Success"] = "Product deleted successfully.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _productService.DeleteAsync(id);
+                TempData["Success"] = "Product deleted successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(Delete), new { id });
+            }
+        }
+
+        private async Task PopulateViewBagAsync(Guid? selectedCategoryId = null, Guid? selectedSupplierId = null, Guid? selectedWarehouseId = null)
+        {
+            var categories = await _categoryService.GetAllCategories();
+            var suppliers = await _supplierService.GetAllAsync();
+            var warehouseDtos = await _warehouseService.GetAllAsync();
+
+            IEnumerable<WarehouseResDto> filteredWarehouseDtos = warehouseDtos;
+
+            if (User.IsInRole("Manager"))
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userId != null)
+                {
+                    filteredWarehouseDtos = warehouseDtos.Where(w => w.ManagerID == Guid.Parse(userId)).ToList();
+                    if (!filteredWarehouseDtos.Any())
+                    {
+                        ModelState.AddModelError(string.Empty, "No warehouse assigned to this manager.");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "User not found.");
+                    filteredWarehouseDtos = new List<WarehouseResDto>();
+                }
+            }
+
+            ViewBag.Categories = new SelectList(
+                categories.Select(c => new { c.CategoryID, c.CategoryName }),
+                "CategoryID",
+                "CategoryName",
+                selectedCategoryId);
+
+            ViewBag.Suppliers = new MultiSelectList(
+                suppliers.Select(s => new { s.SupplierID, s.SupplierName }),
+                "SupplierID",
+                "SupplierName",
+                selectedSupplierId != null ? new List<Guid> { selectedSupplierId.Value } : null);
+
+            ViewBag.Warehouses = new SelectList(
+                filteredWarehouseDtos.Select(w => new { w.WarehouseID, w.WarehouseName }),
+                "WarehouseID",
+                "WarehouseName",
+                selectedWarehouseId);
         }
     }
 }

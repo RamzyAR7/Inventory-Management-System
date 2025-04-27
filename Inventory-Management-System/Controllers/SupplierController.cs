@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory_Management_System.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class SupplierController : Controller
     {
         private readonly ISupplierService _supplierService;

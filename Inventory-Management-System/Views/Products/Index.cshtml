@@ -6,16 +6,19 @@
 
 <div class="products-container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Products Management</h1>
-        <div>
-            <a asp-controller="Category" asp-action="Index" class="btn btn-outline-secondary me-2">
-                <i class="fas fa-list me-2" data-feather="list"></i> Manage Categories
-            </a>
+        <h1 class="h3 mb-0 text-primary"><i class="fas fa-boxes me-2"></i>Inventory Management</h1>
+        <div class="d-flex gap-2">
+            @if(User.IsInRole("Admin"))
+            {
+                <a asp-controller="Category" asp-action="Index" class="btn btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> Categories
+                </a>
+            }
             <a asp-controller="Transactions" asp-action="Index" class="btn btn-outline-primary">
-                <i class="fas fa-exchange-alt me-2" data-feather="repeat"></i> Manage Transactions
+                <i class="fas fa-exchange-alt me-1"></i> Transactions
             </a>
             <a asp-action="Create" class="btn btn-primary">
-                <i class="align-middle me-1" data-feather="plus"></i> Create New
+                <i class="fas fa-plus me-1"></i> New Product
             </a>
         </div>
     </div>
@@ -35,48 +38,90 @@
         </div>
     }
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
+    <div class="table-responsive bg-white rounded-3 shadow-sm">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
                 <tr>
-                    <th>@Html.DisplayNameFor(model => model.ProductName)</th>
-                    <th>@Html.DisplayNameFor(model => model.Price)</th>
-                    <th>@Html.DisplayNameFor(model => model.RecoderLevel)</th>
-                    <th>Category</th>
-                    <th>Suppliers</th>
-                    <th>Actions</th>
+                    <th class="col-product-name">@Html.DisplayNameFor(model => model.ProductName)</th>
+                    <th class="col-price">@Html.DisplayNameFor(model => model.Price)</th>
+                    <th class="col-reorder-level">@Html.DisplayNameFor(model => model.RecoderLevel)</th>
+                    <th class="col-stock-quantity">Stock Quantity</th>
+                    <th class="col-category">Category</th>
+                    <th class="col-suppliers">Suppliers</th>
+                    <th class="col-warehouse">Warehouse Name</th>
+                    <th class="col-actions">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var product in Model)
                 {
                     <tr>
-                        <td>@product.ProductName</td>
+                        <td class="ps-4 fw-semibold">@product.ProductName</td>
                         <td>@product.Price.ToString("C")</td>
-                        <td>@product.RecoderLevel</td>
+                        <td>
+                            <span class="@(product.RecoderLevel <= 10 ? "badge bg-warning" : "badge bg-success")">
+                                @product.RecoderLevel
+                            </span>
+                        </td>
+                        <td>
+                            @if (product.WarehouseStocks.Any())
+                            {
+                                <span class="badge @(product.WarehouseStocks.Sum(w => w.StockQuantity) <= product.RecoderLevel ? "bg-warning" : "bg-success")">
+                                    @product.WarehouseStocks.Sum(w => w.StockQuantity)
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">0</span>
+                            }
+                        </td>
                         <td>
                             <span class="badge bg-primary">@product.Category?.CategoryName</span>
                         </td>
                         <td>
                             @if (product.Suppliers?.Any() == true)
                             {
-                                @string.Join(", ", product.Suppliers.Select(s => s.Supplier?.SupplierName))
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach (var supplier in product.Suppliers.Take(2))
+                                    {
+                                        <span class="badge bg-info">@supplier.Supplier?.SupplierName</span>
+                                    }
+                                    @if (product.Suppliers.Count > 2)
+                                    {
+                                        <span class="badge bg-secondary">+@(product.Suppliers.Count - 2)</span>
+                                    }
+                                </div>
                             }
                             else
                             {
-                                <span class="text-muted">None</span>
+                                <span class="text-muted small">None</span>
                             }
                         </td>
                         <td>
+                            @if (product.WarehouseStocks.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach (var warehouse in product.WarehouseStocks.Take(2))
+                                    {
+                                        <span class="badge bg-secondary">@warehouse.Warehouse.WarehouseName</span>
+                                    }
+                                    @if (product.WarehouseStocks.Count > 2)
+                                    {
+                                        <span class="badge bg-light text-dark">+@(product.WarehouseStocks.Count - 2)</span>
+                                    }
+                                </div>
+                            }
+                        </td>
+                        <td class="text-end pe-4">
                             <div class="action-buttons">
-                                <a asp-action="Details" asp-route-id="@product.ProductID" class="btn btn-info btn-sm" title="Details">
-                                    <i class="align-middle" data-feather="eye"></i>
+                                <a asp-action="Details" asp-route-id="@product.ProductID" class="btn btn-sm btn-outline-info" title="Details">
+                                    <i class="fas fa-eye"></i>
                                 </a>
-                                <a asp-action="Edit" asp-route-id="@product.ProductID" class="btn btn-warning btn-sm" title="Edit">
-                                    <i class="align-middle" data-feather="edit"></i>
+                                <a asp-action="Edit" asp-route-id="@product.ProductID" class="btn btn-sm btn-outline-warning" title="Edit">
+                                    <i class="fas fa-edit"></i>
                                 </a>
-                                <a asp-action="Delete" asp-route-id="@product.ProductID" class="btn btn-danger btn-sm" title="Delete">
-                                    <i class="align-middle" data-feather="trash-2"></i>
+                                <a asp-action="Delete" asp-route-id="@product.ProductID" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
                                 </a>
                             </div>
                         </td>
@@ -108,6 +153,57 @@
         .badge {
             font-weight: 500;
             padding: 5px 10px;
+        }
+
+        /* Fix table column alignment */
+        .table th, .table td {
+            vertical-align: middle; /* Vertically center content */
+        }
+
+        /* Define column widths to ensure alignment */
+        .col-product-name {
+            width: 15%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .col-price {
+            width: 10%;
+            white-space: nowrap;
+        }
+
+        .col-reorder-level {
+            width: 10%;
+            white-space: nowrap;
+        }
+
+        .col-stock-quantity {
+            width: 10%;
+            white-space: normal; /* Allow wrapping for multiple values */
+            word-wrap: break-word;
+        }
+
+        .col-category {
+            width: 10%;
+            white-space: nowrap;
+        }
+
+        .col-suppliers {
+            width: 20%;
+            white-space: normal; /* Allow wrapping for multiple suppliers */
+            word-wrap: break-word;
+        }
+
+        .col-warehouse {
+            width: 15%;
+            white-space: normal; /* Allow wrapping for multiple warehouse names */
+            word-wrap: break-word;
+        }
+
+        .col-actions {
+            width: 10%;
+            white-space: nowrap;
         }
     </style>
 }

@@ -21,7 +21,6 @@
     }
 
     <form asp-action="Edit" method="post">
-        <input type="hidden" asp-for="ProductID" />
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
@@ -29,30 +28,28 @@
                     <input asp-for="ProductName" class="form-control" placeholder="Enter product name" />
                     <span asp-validation-for="ProductName" class="text-danger"></span>
                 </div>
-
                 <div class="mb-3">
                     <label asp-for="ProductDescription" class="form-label"></label>
                     <textarea asp-for="ProductDescription" class="form-control" placeholder="Enter product description" rows="3"></textarea>
                     <span asp-validation-for="ProductDescription" class="text-danger"></span>
                 </div>
-            </div>
-
-            <div class="col-md-6">
                 <div class="mb-3">
                     <label asp-for="Price" class="form-label"></label>
                     <input asp-for="Price" class="form-control" placeholder="0.00" />
                     <span asp-validation-for="Price" class="text-danger"></span>
                 </div>
-
                 <div class="mb-3">
                     <label asp-for="RecoderLevel" class="form-label"></label>
                     <input asp-for="RecoderLevel" class="form-control" placeholder="Enter reorder level" />
                     <span asp-validation-for="RecoderLevel" class="text-danger"></span>
                 </div>
+                <div class="mb-3">
+                    <label asp-for="StockQuantity" class="form-label"></label>
+                    <input asp-for="StockQuantity" class="form-control" placeholder="Enter stock quantity" />
+                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                </div>
             </div>
-        </div>
 
-        <div class="row mt-3">
             <div class="col-md-6">
                 <div class="mb-3">
                     <label asp-for="CategoryID" class="form-label">Category</label>
@@ -61,13 +58,16 @@
                     </select>
                     <span asp-validation-for="CategoryID" class="text-danger"></span>
                 </div>
-            </div>
-            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="WarehouseId" class="form-label">Warehouse Name</label>
+                    <select asp-for="WarehouseId" asp-items="ViewBag.Warehouses" class="form-select">
+                        <option value="">Select Warehouse</option>
+                    </select>
+                    <span asp-validation-for="WarehouseId" class="text-danger"></span>
+                </div>
                 <div class="mb-3">
                     <label asp-for="SuppliersIDs" class="form-label">Suppliers</label>
-                    <select asp-for="SuppliersIDs" asp-items="ViewBag.Suppliers" class="form-select" multiple="multiple">
-                        <option value="">Select Suppliers</option>
-                    </select>
+                    <select asp-for="SuppliersIDs" asp-items="ViewBag.Suppliers" class="form-select" multiple="multiple"></select>
                     <span asp-validation-for="SuppliersIDs" class="text-danger"></span>
                 </div>
             </div>
@@ -77,8 +77,8 @@
             <button type="submit" class="btn btn-primary">
                 <i class="align-middle me-1" data-feather="save"></i> Save Changes
             </button>
-            <a asp-action="Details" asp-route-id="@Model.ProductID" class="btn btn-info">
-                <i class="align-middle me-1" data-feather="eye"></i> View Details
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="align-middle me-1" data-feather="arrow-left"></i> Back to List
             </a>
         </div>
     </form>
@@ -93,8 +93,28 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
         }
 
+        /* Ensure consistent input heights and spacing */
+        .form-control, .form-select {
+            height: 38px; /* Match Bootstrap's default input height */
+            line-height: 1.5;
+        }
+
+        .form-control[rows] {
+            height: auto; /* Allow textarea to adjust height based on rows */
+        }
+
         select[multiple] {
-            min-height: 120px;
+            min-height: 120px; /* Keep the existing height for multiple select */
+            height: auto; /* Ensure it doesn't overflow */
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem !important; /* Ensure consistent spacing */
+        }
+
+        .text-danger {
+            display: block;
+            margin-top: 0.25rem; /* Space below inputs for validation messages */
         }
     </style>
 }

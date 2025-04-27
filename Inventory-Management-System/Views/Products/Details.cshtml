@@ -39,6 +39,18 @@
             <dt class="col-sm-3">@Html.DisplayNameFor(model => model.RecoderLevel)</dt>
             <dd class="col-sm-9">@Model.RecoderLevel</dd>
 
+            <dt class="col-sm-3">Stock Quantity</dt>
+            <dd class="col-sm-9">
+                @if (Model.WarehouseStocks?.Any() == true)
+                {
+                    @string.Join(", ", Model.WarehouseStocks.Select(w => w.StockQuantity))
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
+            </dd>
+
             <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Category)</dt>
             <dd class="col-sm-9">
                 <span class="badge bg-primary">@Model.Category?.CategoryName</span>
@@ -52,6 +64,18 @@
                     {
                         <span class="badge bg-info me-1">@supplier.Supplier?.SupplierName</span>
                     }
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Warehouse Name</dt>
+            <dd class="col-sm-9">
+                @if (Model.WarehouseStocks?.Any() == true)
+                {
+                    @string.Join(", ", Model.WarehouseStocks.Select(w => w.Warehouse.WarehouseName))
                 }
                 else
                 {
@@ -74,6 +98,21 @@
         .badge {
             font-weight: 500;
             padding: 5px 10px;
+        }
+
+        /* Fix description list layout */
+        .product-details dl dt {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-details dl dd {
+            margin-bottom: 1rem;
+            word-wrap: break-word; /* Ensure long text wraps properly */
+        }
+
+        .product-details dl dd.text-muted {
+            font-style: italic;
         }
     </style>
 }
