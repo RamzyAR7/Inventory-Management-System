@@ -47,7 +47,8 @@ namespace Inventory_Management_System.Controllers
             {
                 t => t.FromWarehouse,
                 t => t.ToWarehouse,
-                t => t.Product
+                t => t.ToProduct,
+                t => t.FromProduct
             };
             var transfers = await _unitOfWork.WarehouseTransfers.GetAllAsync(transferIncludes);
 
@@ -87,7 +88,8 @@ namespace Inventory_Management_System.Controllers
             {
                 t => t.FromWarehouse,
                 t => t.ToWarehouse,
-                t => t.Product
+                t => t.ToProduct,
+                t => t.FromProduct
             };
             var (transfers, totalCount) = await _unitOfWork.WarehouseTransfers.GetPagedAsync(pageNumber, pageSize, null, includes);
 
@@ -178,7 +180,7 @@ namespace Inventory_Management_System.Controllers
                     TempData["ErrorMessage"] = ex.Message;
                 }
             }
-            await PopulateViewBagAsync(dto.FromWarehouseId, dto.ProductId, dto.ToWarehouseId, dto.ToProductId);
+            await PopulateViewBagAsync(dto.FromWarehouseId, dto.FromProductId, dto.ToWarehouseId, dto.ToProductId);
             return View(dto);
         }
 

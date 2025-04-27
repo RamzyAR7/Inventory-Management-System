@@ -62,7 +62,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             {
                 t => t.FromWarehouse,
                 t => t.ToWarehouse,
-                t => t.Product
+                t => t.FromProduct,
+                t => t.ToProduct,
             };
 
             return await _unitOfWork.WarehouseTransfers.GetAllAsync(includes);
@@ -74,7 +75,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             {
                 t => t.FromWarehouse,
                 t => t.ToWarehouse,
-                t => t.Product,
+                t => t.ToProduct,
+                t => t.FromProduct,
                 t => t.OutTransaction,
                 t => t.InTransaction
             };
@@ -131,7 +133,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 throw new KeyNotFoundException("Source or destination warehouse not found.");
 
             _logger.LogInformation("Transfer details: FromWarehouseID: {FromWarehouseID}, ToWarehouseID: {ToWarehouseID}, FromProductID: {FromProductID}, ToProductID: {ToProductID}, Quantity: {Quantity}",
-                fromWarehouse.WarehouseID, toWarehouse.WarehouseID, dto.ProductId, dto.ToProductId, dto.Quantity);
+                fromWarehouse.WarehouseID, toWarehouse.WarehouseID, dto.FromProductId, dto.ToProductId, dto.Quantity);
 
             // Prevent transfer to the same warehouse
             if (fromWarehouse.WarehouseID == toWarehouse.WarehouseID)
@@ -152,9 +154,9 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             }
 
             // Validate product existence
-            var fromProduct = await _unitOfWork.Products.GetByIdAsync(dto.ProductId);
+            var fromProduct = await _unitOfWork.Products.GetByIdAsync(dto.FromProductId);
             if (fromProduct == null)
-                throw new KeyNotFoundException($"Source product with ID {dto.ProductId} not found.");
+                throw new KeyNotFoundException($"Source product with ID {dto.FromProductId} not found.");
 
             var toProduct = await _unitOfWork.Products.GetByIdAsync(dto.ToProductId);
             if (toProduct == null)
@@ -165,7 +167,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 throw new InvalidOperationException($"The destination product '{toProduct.ProductName}' does not match the source product '{fromProduct.ProductName}'.");
 
             // Check stock availability in fromWarehouse
-            var fromStock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(dto.FromWarehouseId, dto.ProductId);
+            var fromStock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(dto.FromWarehouseId, dto.FromProductId);
             int availableStock = fromStock?.StockQuantity ?? 0;
             if (availableStock < dto.Quantity)
                 throw new InvalidOperationException($"Insufficient stock in the source warehouse '{fromWarehouse.WarehouseName}' for product '{fromProduct.ProductName}'. Available: {availableStock}, Requested: {dto.Quantity}");
@@ -221,7 +223,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                     TransferDate = DateTime.UtcNow,
                     FromWarehouseID = fromWarehouse.WarehouseID,
                     ToWarehouseID = toWarehouse.WarehouseID,
-                    ProductID = dto.ToProductId,
+                    FromProductID = dto.FromProductId,
+                    ToProductID = dto.ToProductId,
                     Quantity = dto.Quantity,
                     OutTransactionID = outTransaction.TransactionID,
                     InTransactionID = inTransaction.TransactionID
@@ -233,7 +236,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 await _unitOfWork.WarehouseTransfers.AddAsync(warehouseTransfer);
 
                 // Update stock
-                await UpdateWarehouseStockAsync(fromWarehouse.WarehouseID, dto.ProductId, -dto.Quantity);
+                await UpdateWarehouseStockAsync(fromWarehouse.WarehouseID, dto.FromProductId, -dto.Quantity);
                 await UpdateWarehouseStockAsync(toWarehouse.WarehouseID, dto.ToProductId, dto.Quantity);
 
                 // Save changes

@@ -285,7 +285,8 @@ namespace Inventory_Management_System.Migrations
                 columns: table => new
                 {
                     WarehouseTransferID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FromProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ToProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     FromWarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ToWarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OutTransactionID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -309,11 +310,17 @@ namespace Inventory_Management_System.Migrations
                         principalColumn: "TransactionID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_WarehouseTransfers_Products_ProductID",
-                        column: x => x.ProductID,
+                        name: "FK_WarehouseTransfers_Products_FromProductID",
+                        column: x => x.FromProductID,
                         principalTable: "Products",
                         principalColumn: "ProductID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_WarehouseTransfers_Products_ToProductID",
+                        column: x => x.ToProductID,
+                        principalTable: "Products",
+                        principalColumn: "ProductID",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_WarehouseTransfers_Warehouses_FromWarehouseID",
                         column: x => x.FromWarehouseID,
@@ -331,7 +338,7 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("dd34f908-232b-4d13-8aed-50ac57ce649b"), new DateTime(2025, 4, 27, 14, 49, 8, 361, DateTimeKind.Utc).AddTicks(2228), "admin@gmail.com", "$2a$11$D2oz8SzdHtqH2p.XfEHH2.ZFurzkL2Zq0jA2SJ40DYKNYkYrTmHc6", null, "Admin", "Admin" });
+                values: new object[] { new Guid("4e4c8ac8-23b3-4d3b-821d-485d004899db"), new DateTime(2025, 4, 27, 18, 13, 30, 137, DateTimeKind.Utc).AddTicks(402), "admin@gmail.com", "$2a$11$POlZ.Vihf1nFCbvLPcoQxu1en2mlMp66qfhIf/5oZeEqtYXnIk5ma", null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_Email",
@@ -425,6 +432,11 @@ namespace Inventory_Management_System.Migrations
                 column: "ProductID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_WarehouseTransfers_FromProductID",
+                table: "WarehouseTransfers",
+                column: "FromProductID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WarehouseTransfers_FromWarehouseID",
                 table: "WarehouseTransfers",
                 column: "FromWarehouseID");
@@ -440,9 +452,9 @@ namespace Inventory_Management_System.Migrations
                 column: "OutTransactionID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WarehouseTransfers_ProductID",
+                name: "IX_WarehouseTransfers_ToProductID",
                 table: "WarehouseTransfers",
-                column: "ProductID");
+                column: "ToProductID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WarehouseTransfers_ToWarehouseID",

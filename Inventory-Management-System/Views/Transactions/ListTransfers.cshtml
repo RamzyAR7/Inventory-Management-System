@@ -22,9 +22,10 @@
     <thead>
         <tr>
             <th>Transfer ID</th>
-            <th>Product</th>
             <th>From Warehouse</th>
+            <th>From Product</th>
             <th>To Warehouse</th>
+            <th>To Product</th>
             <th>Quantity</th>
             <th>Date</th>
             <th>Actions</th>
@@ -37,9 +38,10 @@
             {
                 <tr>
                     <td>@transfer.WarehouseTransferID</td>
-                    <td>@transfer.Product.ProductName</td>
                     <td>@transfer.FromWarehouse.WarehouseName</td>
+                    <td>@transfer.FromProduct.ProductName</td>
                     <td>@transfer.ToWarehouse.WarehouseName</td>
+                    <td>@transfer.ToProduct.ProductName</td>
                     <td>@transfer.Quantity</td>
                     <td>@transfer.TransferDate.ToString("g")</td>
                     <td>

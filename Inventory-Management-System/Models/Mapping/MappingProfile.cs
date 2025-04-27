@@ -101,7 +101,8 @@ namespace Inventory_Management_System.Models.Mapping
                 .ForMember(dest => dest.TransferDate, opt => opt.Ignore())
                 .ForMember(dest => dest.FromWarehouseID, opt => opt.MapFrom(src => src.FromWarehouseId))
                 .ForMember(dest => dest.ToWarehouseID, opt => opt.MapFrom(src => src.ToWarehouseId))
-                .ForMember(dest => dest.ProductID, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.FromProductID, opt => opt.MapFrom(src => src.FromProductId))
+                .ForMember(dest => dest.ToProductID, opt => opt.MapFrom(src => src.ToProductId))
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
                 .ForMember(dest => dest.OutTransactionID, opt => opt.Ignore())
                 .ForMember(dest => dest.InTransactionID, opt => opt.Ignore());
@@ -110,7 +111,7 @@ namespace Inventory_Management_System.Models.Mapping
                 .ForMember(dest => dest.TransactionID, opt => opt.Ignore())
                 .ForMember(dest => dest.TransactionDate, opt => opt.Ignore())
                 .ForMember(dest => dest.WarehouseID, opt => opt.Ignore())
-                .ForMember(dest => dest.ProductID, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.ProductID, opt => opt.MapFrom(src => src.FromProductId))
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
                 .ForMember(dest => dest.Type, opt => opt.Ignore());
 

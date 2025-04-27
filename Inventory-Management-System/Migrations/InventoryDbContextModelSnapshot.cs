@@ -329,10 +329,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("dd34f908-232b-4d13-8aed-50ac57ce649b"),
-                            CreatedAt = new DateTime(2025, 4, 27, 14, 49, 8, 361, DateTimeKind.Utc).AddTicks(2228),
+                            UserID = new Guid("4e4c8ac8-23b3-4d3b-821d-485d004899db"),
+                            CreatedAt = new DateTime(2025, 4, 27, 18, 13, 30, 137, DateTimeKind.Utc).AddTicks(402),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$D2oz8SzdHtqH2p.XfEHH2.ZFurzkL2Zq0jA2SJ40DYKNYkYrTmHc6",
+                            HashedPassword = "$2a$11$POlZ.Vihf1nFCbvLPcoQxu1en2mlMp66qfhIf/5oZeEqtYXnIk5ma",
                             Role = "Admin",
                             UserName = "Admin"
                         });
@@ -390,6 +390,9 @@ namespace Inventory_Management_System.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("FromProductID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("FromWarehouseID")
                         .HasColumnType("uniqueidentifier");
 
@@ -399,11 +402,11 @@ namespace Inventory_Management_System.Migrations
                     b.Property<Guid>("OutTransactionID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ProductID")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<Guid>("ToProductID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ToWarehouseID")
                         .HasColumnType("uniqueidentifier");
@@ -413,13 +416,15 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasKey("WarehouseTransferID");
 
+                    b.HasIndex("FromProductID");
+
                     b.HasIndex("FromWarehouseID");
 
                     b.HasIndex("InTransactionID");
 
                     b.HasIndex("OutTransactionID");
 
-                    b.HasIndex("ProductID");
+                    b.HasIndex("ToProductID");
 
                     b.HasIndex("ToWarehouseID");
 
@@ -574,6 +579,12 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseTransfers", b =>
                 {
+                    b.HasOne("Inventory_Management_System.Entities.Product", "FromProduct")
+                        .WithMany("FromWarehouseTransfers")
+                        .HasForeignKey("FromProductID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Inventory_Management_System.Entities.Warehouse", "FromWarehouse")
                         .WithMany("FromWarehouseTransfers")
                         .HasForeignKey("FromWarehouseID")
@@ -592,10 +603,10 @@ namespace Inventory_Management_System.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
-                        .WithMany("WarehouseTransfers")
-                        .HasForeignKey("ProductID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("Inventory_Management_System.Entities.Product", "ToProduct")
+                        .WithMany("ToWarehouseTransfers")
+                        .HasForeignKey("ToProductID")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Inventory_Management_System.Entities.Warehouse", "ToWarehouse")
@@ -604,13 +615,15 @@ namespace Inventory_Management_System.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("FromProduct");
+
                     b.Navigation("FromWarehouse");
 
                     b.Navigation("InTransaction");
 
                     b.Navigation("OutTransaction");
 
-                    b.Navigation("Product");
+                    b.Navigation("ToProduct");
 
                     b.Navigation("ToWarehouse");
                 });
@@ -642,15 +655,17 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Product", b =>
                 {
+                    b.Navigation("FromWarehouseTransfers");
+
                     b.Navigation("InventoryTransactions");
 
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Suppliers");
 
-                    b.Navigation("WarehouseStocks");
+                    b.Navigation("ToWarehouseTransfers");
 
-                    b.Navigation("WarehouseTransfers");
+                    b.Navigation("WarehouseStocks");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Supplier", b =>

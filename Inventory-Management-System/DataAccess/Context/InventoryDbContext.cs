@@ -169,9 +169,15 @@ namespace Inventory_Management_System.DataAccess.Context
             {
                 e.HasKey(wt => wt.WarehouseTransferID);
 
-                e.HasOne(wt => wt.Product)
-                 .WithMany(p => p.WarehouseTransfers)
-                 .HasForeignKey(wt => wt.ProductID);
+                e.HasOne(wt => wt.FromProduct)
+                  .WithMany(p => p.FromWarehouseTransfers)
+                  .HasForeignKey(wt => wt.FromProductID)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(wt => wt.ToProduct)
+                  .WithMany(p => p.ToWarehouseTransfers)
+                  .HasForeignKey(wt => wt.ToProductID)
+                  .OnDelete(DeleteBehavior.Restrict);
 
                 e.HasOne(wt => wt.FromWarehouse)
                   .WithMany(w => w.FromWarehouseTransfers)

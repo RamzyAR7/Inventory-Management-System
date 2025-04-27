@@ -16,14 +16,17 @@
             <dt class="col-sm-3">Transfer ID</dt>
             <dd class="col-sm-9">@Model.WarehouseTransferID</dd>
 
-            <dt class="col-sm-3">Product</dt>
-            <dd class="col-sm-9">@Model.Product?.ProductName</dd>
-
             <dt class="col-sm-3">From Warehouse</dt>
             <dd class="col-sm-9">@Model.FromWarehouse?.WarehouseName</dd>
 
+            <dt class="col-sm-3">FromProduct</dt>
+            <dd class="col-sm-9">@Model.FromProduct?.ProductName</dd>
+
             <dt class="col-sm-3">To Warehouse</dt>
             <dd class="col-sm-9">@Model.ToWarehouse?.WarehouseName</dd>
+
+            <dt class="col-sm-3">ToProduct</dt>
+            <dd class="col-sm-9">@Model.ToProduct?.ProductName</dd>
 
             <dt class="col-sm-3">Quantity</dt>
             <dd class="col-sm-9">@Model.Quantity</dd>

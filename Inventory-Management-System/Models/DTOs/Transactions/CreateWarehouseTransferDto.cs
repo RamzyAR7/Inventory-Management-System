@@ -12,7 +12,7 @@ namespace Inventory_Management_System.Models.DTOs.InventoryTransaction
         public Guid ToWarehouseId { get; set; }
 
         [Required(ErrorMessage = "Source product is required.")]
-        public Guid ProductId { get; set; }
+        public Guid FromProductId { get; set; }
 
         [Required(ErrorMessage = "Destination product is required.")]
         public Guid ToProductId { get; set; } // Added

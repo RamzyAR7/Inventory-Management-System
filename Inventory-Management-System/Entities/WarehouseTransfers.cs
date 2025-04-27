@@ -4,8 +4,12 @@
     {
         public Guid WarehouseTransferID { get; set; }
 
-        public Guid ProductID { get; set; }
-        public Product Product { get; set; }
+        public Guid FromProductID { get; set; }
+        public Product FromProduct { get; set; }
+
+        public Guid ToProductID { get; set; }
+
+        public Product ToProduct { get; set; } // Added
 
         public Guid FromWarehouseID { get; set; }
         public Warehouse FromWarehouse { get; set; }
