@@ -7,9 +7,11 @@
 <div class="users-container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Users Management</h1>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="align-middle me-1" data-feather="plus"></i> Create New
+        <a asp-action="Create"
+           class="btn btn-outline-primary rounded-pill d-flex align-items-center gap-2">
+            <i data-feather="plus"></i> Create New
         </a>
+
     </div>
 
     @if (TempData["SuccessMessage"] != null)
@@ -39,35 +41,59 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var user in Model)
+                @if (!Model.Any())
                 {
                     <tr>
-                        <td>@user.UserName</td>
-                        <td>@user.Email</td>
-                        <td>
-                            <span class="badge
-                                @(user.Role == "Admin" ? "bg-danger" :
-                                  user.Role == "Manager" ? "bg-primary" : "bg-secondary")">
-                                @user.Role
-                            </span>
-                        </td>
-                        <td>@(user.ManagerName ?? "None")</td>
-                        <td>
-                            <div class="action-buttons">
-                                <a asp-action="Details" asp-route-id="@user.UserID" class="btn btn-info btn-sm" title="Details">
-                                    <i class="align-middle" data-feather="eye"></i>
-                                </a>
-                                <a asp-action="Edit" asp-route-id="@user.UserID" class="btn btn-warning btn-sm" title="Edit">
-                                    <i class="align-middle" data-feather="edit"></i>
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@user.UserID" class="btn btn-danger btn-sm" title="Delete">
-                                    <i class="align-middle" data-feather="trash-2"></i>
-                                </a>
-                            </div>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i data-feather="user-x" class="mb-2" style="width: 32px; height: 32px;"></i><br />
+                            No users found. Please create a new user.
                         </td>
                     </tr>
                 }
+                else
+                {
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>@user.UserName</td>
+                            <td>@user.Email</td>
+                            <td>
+                                <span class="badge rounded-pill
+                        @(user.Role == "Admin" ? "bg-danger-subtle text-danger-emphasis" :
+                          user.Role == "Manager" ? "bg-primary-subtle text-primary-emphasis" :
+                          "bg-secondary-subtle text-secondary-emphasis")">
+                                    @user.Role
+                                </span>
+                            </td>
+                            <td>@(user.ManagerName ?? "None")</td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a asp-action="Details" asp-route-id="@user.UserID"
+                                       class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-1"
+                                       title="View Details">
+                                        <i data-feather="eye"></i> View
+                                    </a>
+
+                                    <a asp-action="Edit" asp-route-id="@user.UserID"
+                                       class="btn btn-outline-warning btn-sm rounded-pill d-flex align-items-center gap-1"
+                                       title="Edit User">
+                                        <i data-feather="edit"></i> Edit
+                                    </a>
+
+                                    <a asp-action="Delete" asp-route-id="@user.UserID"
+                                       class="btn btn-outline-danger btn-sm rounded-pill d-flex align-items-center gap-1"
+                                       title="Delete User"
+                                       onclick="return confirm('Are you sure you want to delete this user?');">
+                                        <i data-feather="trash-2"></i> Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
             </tbody>
+
+
         </table>
     </div>
 </div>
@@ -79,3 +105,20 @@
         });
     </script>
 }
+<style>
+    .btn-outline-primary:hover,
+    .btn-outline-warning:hover,
+    .btn-outline-danger:hover {
+        transform: scale(1.05);
+        transition: all 0.3s ease;
+    }
+
+    .badge:hover {
+        transform: scale(1.05);
+        transition: all 0.3s ease;
+    }
+
+    td.text-center.text-muted i {
+        opacity: 0.5;
+    }
+</style>

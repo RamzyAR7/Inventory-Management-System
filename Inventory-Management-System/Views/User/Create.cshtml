@@ -4,8 +4,13 @@
     ViewData["Title"] = "Create User";
 }
 
-<div class="user-form">
-    <h1 class="h3 mb-4">Create New User</h1>
+<div class="users-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Create New User</h1>
+        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill d-flex align-items-center gap-2">
+            <i data-feather="arrow-left"></i> Cancel
+        </a>
+    </div>
 
     @if (TempData["ErrorMessage"] != null)
     {
@@ -44,53 +49,52 @@
         </div>
     }
 
-    <form asp-action="Create" method="post">
-        <div class="mb-3">
-            <label asp-for="UserName" class="form-label"></label>
-            <input asp-for="UserName" class="form-control" placeholder="Enter username" />
-            <span asp-validation-for="UserName" class="text-danger"></span>
-        </div>
+    <div class="card shadow-sm border-0 rounded-4 p-4">
+        <form asp-action="Create" method="post">
+            <div class="mb-3">
+                <label asp-for="UserName" class="form-label"></label>
+                <input asp-for="UserName" class="form-control" placeholder="Enter username" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
 
-        <div class="mb-3">
-            <label asp-for="Email" class="form-label"></label>
-            <input asp-for="Email" class="form-control" placeholder="Enter email address" />
-            <span asp-validation-for="Email" class="text-danger"></span>
-        </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" placeholder="Enter email address" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
 
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label"></label>
-            <input asp-for="Password" class="form-control" type="password" placeholder="Enter password" />
-            <span asp-validation-for="Password" class="text-danger"></span>
-        </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" type="password" placeholder="Enter password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
 
-        <div class="mb-3">
-            <label asp-for="Role" class="form-label"></label>
-            <select asp-for="Role" id="Role" class="form-select">
-                <option value="">Select Role</option>
-                <option value="Admin">Admin</option>
-                <option value="Manager">Manager</option>
-                <option value="Employee">Employee</option>
-            </select>
-            <span asp-validation-for="Role" class="text-danger"></span>
-        </div>
+            <div class="mb-3">
+                <label asp-for="Role" class="form-label"></label>
+                <select asp-for="Role" id="Role" class="form-select">
+                    <option value="">Select Role</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Employee">Employee</option>
+                </select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </div>
 
-        <div class="mb-3" id="manager-id-group">
-            <label asp-for="ManagerID" class="form-label">Manager</label>
-            <select asp-for="ManagerID" id="ManagerID" class="form-select" asp-items="ViewBag.Managers">
-                <option value="">Select Manager</option>
-            </select>
-            <span asp-validation-for="ManagerID" class="text-danger"></span>
-        </div>
+            <div class="mb-3" id="manager-id-group">
+                <label asp-for="ManagerID" class="form-label">Manager</label>
+                <select asp-for="ManagerID" id="ManagerID" class="form-select" asp-items="ViewBag.Managers">
+                    <option value="">Select Manager</option>
+                </select>
+                <span asp-validation-for="ManagerID" class="text-danger"></span>
+            </div>
 
-        <div class="d-flex justify-content-between mt-4">
-            <button type="submit" class="btn btn-primary">
-                <i class="align-middle me-1" data-feather="user-plus"></i> Create User
-            </button>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="align-middle me-1" data-feather="arrow-left"></i> Cancel
-            </a>
-        </div>
-    </form>
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-outline-primary rounded-pill d-flex align-items-center gap-2">
+                    <i data-feather="user-plus"></i> Create User
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

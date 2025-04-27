@@ -7,12 +7,14 @@
 <div class="users-container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">User Details</h1>
-        <div>
-            <a asp-action="Edit" asp-route-id="@Model.UserID" class="btn btn-warning">
-                <i class="align-middle me-1" data-feather="edit"></i> Edit
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.UserID"
+               class="btn btn-outline-warning rounded-pill d-flex align-items-center gap-2">
+                <i data-feather="edit"></i> Edit
             </a>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="align-middle me-1" data-feather="arrow-left"></i> Back to List
+            <a asp-action="Index"
+               class="btn btn-outline-secondary rounded-pill d-flex align-items-center gap-2">
+                <i data-feather="arrow-left"></i> Back to List
             </a>
         </div>
     </div>
@@ -25,7 +27,7 @@
         </div>
     }
 
-    <div class="user-details">
+    <div class="card shadow-sm border-0 rounded-4 p-4">
         <dl class="row">
             <dt class="col-sm-3">@Html.DisplayNameFor(model => model.UserName)</dt>
             <dd class="col-sm-9">@Model.UserName</dd>
@@ -35,9 +37,10 @@
 
             <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Role)</dt>
             <dd class="col-sm-9">
-                <span class="badge
-                    @(Model.Role == "Admin" ? "bg-danger" :
-                      Model.Role == "Manager" ? "bg-primary" : "bg-secondary")">
+                <span class="badge rounded-pill
+                    @(Model.Role == "Admin" ? "bg-danger-subtle text-danger-emphasis" :
+                      Model.Role == "Manager" ? "bg-primary-subtle text-primary-emphasis" :
+                      "bg-secondary-subtle text-secondary-emphasis")">
                     @Model.Role
                 </span>
             </dd>
