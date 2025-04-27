@@ -5,31 +5,55 @@
     ViewData["Title"] = "Login";
 }
 
-<div class="auth-card">
-    <div class="text-center mb-4">
-        <h2 class="fw-bold">Inventory System</h2>
-        <p class="text-muted">Please sign in to continue</p>
+<div class="d-flex align-items-center justify-content-center min-vh-100 auth-body">
+    <div class="card shadow-sm border-0 rounded-4 p-4" style="width: 100%; max-width: 400px;">
+        <div class="text-center mb-4">
+            <img src="~/assets/img/logo-transparent (3).png" alt="Inventory System Logo" style="width: 260px;" />
+        </div>
+
+        <div class="mb-4 pb-2" style="border-bottom: 1px solid #ced4da;">
+            <h4 class="text-start text-muted mb-1">Sign In</h4>
+        </div>
+
+
+
+        <form asp-action="Login" method="post">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="text-danger fw-bold text-start small mb-3">
+                    <ul class="mb-0 ps-3">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+
+
+
+
+            <div class="mb-3">
+                <label asp-for="UserName" class="form-label"></label>
+                <input asp-for="UserName" class="form-control" placeholder="Enter username" />
+                <span asp-validation-for="UserName" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+
+            <div class="d-flex justify-content-center">
+                <button type="submit" class="btn btn-outline-primary rounded-pill d-flex align-items-center gap-2 px-4">
+                    <i data-feather="log-in"></i> Sign In
+                </button>
+            </div>
+        </form>
     </div>
-
-    <form asp-action="Login" method="post">
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-
-        <div class="mb-3">
-            <label asp-for="UserName" class="form-label">Username</label>
-            <input asp-for="UserName" class="form-control" placeholder="Enter username" />
-            <span asp-validation-for="UserName" class="text-danger small"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label">Password</label>
-            <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
-            <span asp-validation-for="Password" class="text-danger small"></span>
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100">
-            <i class="fas fa-sign-in-alt me-2"></i>Sign In
-        </button>
-    </form>
 </div>
 
 @section Styles {
@@ -38,15 +62,18 @@
             background-color: #f8f9fa;
         }
 
-        .auth-card {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        .btn-outline-primary:hover {
+            transform: scale(1.03);
+            transition: all 0.3s ease;
         }
     </style>
 }
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+        });
+    </script>
 }
