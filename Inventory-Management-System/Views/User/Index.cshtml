@@ -4,97 +4,121 @@
     ViewData["Title"] = "Users";
 }
 
-<div class="users-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Users Management</h1>
-        <a asp-action="Create"
-           class="btn btn-outline-primary rounded-pill d-flex align-items-center gap-2">
-            <i data-feather="plus"></i> Create New
-        </a>
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
 
-    </div>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-semibold" style="color: #6c707de6; font-size: 1.5rem;">Users Management</h3>
+            <a asp-action="Create" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
+                <i class="align-middle me-2" data-feather="plus"></i> Create New
+            </a>
         </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
 
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>@Html.DisplayNameFor(model => model.UserName)</th>
-                    <th>@Html.DisplayNameFor(model => model.Email)</th>
-                    <th>@Html.DisplayNameFor(model => model.Role)</th>
-                    <th>Manager</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
-                            <i data-feather="user-x" class="mb-2" style="width: 32px; height: 32px;"></i><br />
-                            No users found. Please create a new user.
-                        </td>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="text-success small fw-semibold mb-3">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="text-danger small fw-semibold mb-3">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div class="table-responsive rounded-3 overflow-hidden">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light">
+                    <tr style="color: #6c707de6;">
+                        <th>@Html.DisplayNameFor(model => model.UserName)</th>
+                        <th>@Html.DisplayNameFor(model => model.Email)</th>
+                        <th>@Html.DisplayNameFor(model => model.Role)</th>
+                        <th>Manager</th>
+                        <th class="text-center">Actions</th>
                     </tr>
-                }
-                else
-                {
-                    @foreach (var user in Model)
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
                     {
                         <tr>
-                            <td>@user.UserName</td>
-                            <td>@user.Email</td>
-                            <td>
-                                <span class="badge rounded-pill
-                        @(user.Role == "Admin" ? "bg-danger-subtle text-danger-emphasis" :
-                          user.Role == "Manager" ? "bg-primary-subtle text-primary-emphasis" :
-                          "bg-secondary-subtle text-secondary-emphasis")">
-                                    @user.Role
-                                </span>
-                            </td>
-                            <td>@(user.ManagerName ?? "None")</td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <a asp-action="Details" asp-route-id="@user.UserID"
-                                       class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-1"
-                                       title="View Details">
-                                        <i data-feather="eye"></i> View
-                                    </a>
-
-                                    <a asp-action="Edit" asp-route-id="@user.UserID"
-                                       class="btn btn-outline-warning btn-sm rounded-pill d-flex align-items-center gap-1"
-                                       title="Edit User">
-                                        <i data-feather="edit"></i> Edit
-                                    </a>
-
-                                    <a asp-action="Delete" asp-route-id="@user.UserID"
-                                       class="btn btn-outline-danger btn-sm rounded-pill d-flex align-items-center gap-1"
-                                       title="Delete User"
-                                       onclick="return confirm('Are you sure you want to delete this user?');">
-                                        <i data-feather="trash-2"></i> Delete
-                                    </a>
-                                </div>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i data-feather="user-x" class="mb-2" style="width: 32px; height: 32px;"></i><br />
+                                No users found. Please create a new user.
                             </td>
                         </tr>
                     }
-                }
-            </tbody>
+                    else
+                    {
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>@user.UserName</td>
+                                <td>@user.Email</td>
+                                <td>
+                                    @if (user.Role == "Admin")
+                                    {
+                                        <span class="badge rounded-pill px-3 py-1" style="background-color: #ffe5e5; color: #dc3545;">
+                                            Admin
+                                        </span>
+                                    }
+                                    else if (user.Role == "Manager")
+                                    {
+                                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-1">
+                                            Manager
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary px-3 py-1">
+                                            Employee
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(user.ManagerName))
+                                    {
+                                        <span class="badge rounded-pill px-3 py-1 small" style="background-color: #f2f2f2; color: #6c757d;">
+                                            @user.ManagerName
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill px-3 py-1 small" style="background-color: #f8f9fa; color: #adb5bd;">
+                                            None
+                                        </span>
+                                    }
+                                </td>
 
 
-        </table>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a asp-action="Details" asp-route-id="@user.UserID"
+                                           class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+                                           title="View Details">
+                                            <i data-feather="eye"></i> View
+                                        </a>
+
+                                        <a asp-action="Edit" asp-route-id="@user.UserID"
+                                           class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+                                           title="Edit User">
+                                            <i data-feather="edit"></i> Edit
+                                        </a>
+
+                                        <a asp-action="Delete" asp-route-id="@user.UserID"
+                                           class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+                                           title="Delete User"
+                                           onclick="return confirm('Are you sure you want to delete this user?');">
+                                            <i data-feather="trash-2"></i> Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -105,20 +129,3 @@
         });
     </script>
 }
-<style>
-    .btn-outline-primary:hover,
-    .btn-outline-warning:hover,
-    .btn-outline-danger:hover {
-        transform: scale(1.05);
-        transition: all 0.3s ease;
-    }
-
-    .badge:hover {
-        transform: scale(1.05);
-        transition: all 0.3s ease;
-    }
-
-    td.text-center.text-muted i {
-        opacity: 0.5;
-    }
-</style>

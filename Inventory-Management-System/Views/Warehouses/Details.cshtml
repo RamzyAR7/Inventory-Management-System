@@ -4,43 +4,46 @@
     ViewData["Title"] = "Warehouse Details";
 }
 
-<div class="warehouse-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Warehouse Details</h1>
-        <div>
-            <a asp-action="Edit" asp-route-id="@Model.WarehouseID" class="btn btn-warning">
-                <i class="align-middle me-1" data-feather="edit"></i> Edit
-            </a>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="align-middle me-1" data-feather="arrow-left"></i> Back to List
-            </a>
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn" style="max-width: 700px; margin: 0 auto;">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-semibold mb-0" style="color: #6c707de6;">Warehouse Details</h3>
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.WarehouseID" class="btn btn-warning rounded-pill px-3 fw-semibold">
+                    <i class="align-middle me-1" data-feather="edit"></i> Edit
+                </a>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
+                    <i class="align-middle me-1" data-feather="arrow-left"></i> Back
+                </a>
+            </div>
         </div>
-    </div>
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger small rounded-3 py-2 px-3 mb-4" role="alert">
+                @TempData["ErrorMessage"]
+            </div>
+        }
 
-    <div class="warehouse-details">
-        <dl class="row">
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.WarehouseID)</dt>
-            <dd class="col-sm-9">@Model.WarehouseID</dd>
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-muted">Warehouse ID</dt>
+            <dd class="col-sm-8">@Model.WarehouseID</dd>
 
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.WarehouseName)</dt>
-            <dd class="col-sm-9">@Model.WarehouseName</dd>
+            <dt class="col-sm-4 text-muted">Warehouse Name</dt>
+            <dd class="col-sm-8">@Model.WarehouseName</dd>
 
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Address)</dt>
-            <dd class="col-sm-9">@Model.Address</dd>
+            <dt class="col-sm-4 text-muted">Address</dt>
+            <dd class="col-sm-8">@Model.Address</dd>
 
-            <dt class="col-sm-3">Manager</dt>
-            <dd class="col-sm-9">
+            <dt class="col-sm-4 text-muted">Manager</dt>
+            <dd class="col-sm-8">
                 @if (!string.IsNullOrEmpty(Model.ManagerName))
                 {
-                    <span class="badge bg-primary">@Model.ManagerName</span>
+                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-1">
+                        @Model.ManagerName
+                    </span>
+
                 }
                 else
                 {
