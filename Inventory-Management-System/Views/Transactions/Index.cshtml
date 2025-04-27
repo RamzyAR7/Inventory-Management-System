@@ -106,62 +106,6 @@
     </div>
 </form>
 
-<!-- Rest of the content remains unchanged -->
-<!-- In/Out Transactions -->
-<h3>In/Out Transactions</h3>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Transaction ID</th>
-            <th>Type</th>
-            <th>Product</th>
-            <th>Warehouse</th>
-            <th>Quantity</th>
-            <th>Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Any())
-        {
-            @foreach (var transaction in Model)
-            {
-                <tr>
-                    <td>@transaction.TransactionID</td>
-                    <td>@transaction.Type</td>
-                    <td>@transaction.Product.ProductName</td>
-                    <td>@transaction.Warehouse.WarehouseName</td>
-                    <td>@transaction.Quantity</td>
-                    <td>@transaction.TransactionDate.ToString("g")</td>
-                    <td>
-                        <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-info btn-sm">
-                            <i class="fas fa-info-circle"></i> Details
-                        </a>
-                    </td>
-                </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="7" class="text-center">No transactions found.</td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<!-- Pagination for Transactions -->
-<nav>
-    <ul class="pagination">
-        @for (int i = 1; i <= totalPages; i++)
-        {
-            <li class="page-item @(i == pageNumber ? "active" : "")">
-                <a class="page-link" asp-action="Index" asp-route-warehouseId="@ViewBag.WarehouseId" asp-route-pageNumber="@i">@i</a>
-            </li>
-        }
-    </ul>
-</nav>
-
 <!-- Warehouse Transfers -->
 <h3>Warehouse Transfers</h3>
 <table class="table table-bordered">
@@ -206,6 +150,65 @@
         }
     </tbody>
 </table>
+<!-- Rest of the content remains unchanged -->
+<!-- In/Out Transactions -->
+<h3>In/Out Transactions</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Transaction ID</th>
+            <th>Type</th>
+            <th>Product</th>
+            <th>Warehouse</th>
+            <th>Quantity</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Any())
+        {
+            @foreach (var transaction in Model)
+            {
+                <tr>
+                    <td>@transaction.TransactionID</td>
+                    <td>@transaction.Type</td>
+                    <td>@transaction.Product.ProductName</td>
+                    <td>@transaction.Warehouse.WarehouseName</td>
+                    <td>@transaction.Quantity</td>
+                    <td>@transaction.TransactionDate.ToString("g")</td>
+                    <td>
+                        <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-info btn-sm">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">No transactions found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<!-- Pagination for Transactions -->
+<nav>
+    <ul class="pagination">
+        @for (int i = 1; i <= totalPages; i++)
+        {
+            <li class="page-item @(i == pageNumber ? "active" : "")">
+                <a class="page-link" asp-action="Index" asp-route-warehouseId="@ViewBag.WarehouseId" asp-route-pageNumber="@i">@i</a>
+            </li>
+        }
+    </ul>
+</nav>
 
+<div class="button-group">
+    <a asp-controller="Products" asp-action="Index" class="btn btn-primary me-2">
+        <i class="fas fa-boxes me-2"></i>Go to Inventory
+    </a>
+</div>
 <!-- Add Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
