@@ -2,6 +2,7 @@
 using Inventory_Management_System.BusinessLogic.Encrypt;
 using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs.Category;
+using Inventory_Management_System.Models.DTOs.InventoryTransaction;
 using Inventory_Management_System.Models.DTOs.Order;
 using Inventory_Management_System.Models.DTOs.Products;
 using Inventory_Management_System.Models.DTOs.Supplier;
@@ -85,6 +86,34 @@ namespace Inventory_Management_System.Models.Mapping
                     src.WarehouseStocks.Any() ? src.WarehouseStocks.First().StockQuantity : 0))
                 .ForMember(dest => dest.WarehouseId, opt => opt.MapFrom(src =>
                     src.WarehouseStocks.Any() ? src.WarehouseStocks.First().WarehouseID : Guid.Empty));
+            #endregion
+
+            #region Transactions
+
+            CreateMap<CreateInventoryTransactionDto, InventoryTransaction>()
+                 .ForMember(dest => dest.TransactionID, opt => opt.Ignore())
+                 .ForMember(dest => dest.TransactionDate, opt => opt.Ignore())
+                 .ForMember(dest => dest.WarehouseID, opt => opt.MapFrom(src => src.WarehouseId))
+                 .ForMember(dest => dest.ProductID, opt => opt.MapFrom(src => src.ProductId));
+
+            CreateMap<CreateWarehouseTransferDto, WarehouseTransfers>()
+                .ForMember(dest => dest.WarehouseTransferID, opt => opt.Ignore())
+                .ForMember(dest => dest.TransferDate, opt => opt.Ignore())
+                .ForMember(dest => dest.FromWarehouseID, opt => opt.MapFrom(src => src.FromWarehouseId))
+                .ForMember(dest => dest.ToWarehouseID, opt => opt.MapFrom(src => src.ToWarehouseId))
+                .ForMember(dest => dest.ProductID, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+                .ForMember(dest => dest.OutTransactionID, opt => opt.Ignore())
+                .ForMember(dest => dest.InTransactionID, opt => opt.Ignore());
+
+            CreateMap<CreateWarehouseTransferDto, InventoryTransaction>()
+                .ForMember(dest => dest.TransactionID, opt => opt.Ignore())
+                .ForMember(dest => dest.TransactionDate, opt => opt.Ignore())
+                .ForMember(dest => dest.WarehouseID, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductID, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+                .ForMember(dest => dest.Type, opt => opt.Ignore());
+
             #endregion
 
         }

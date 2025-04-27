@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Inventory_Management_System.DataAccess.Repositories
 {
@@ -61,7 +62,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
             return await GetByIdAsync(lambda, includes);
         }
 
-        // New method for composite keys (e.g., WarehouseStock)
         public async Task<T?> GetByCompositeKeyAsync(Guid key1, Guid key2, params Expression<Func<T, object>>[] includes)
         {
             var entityType = _context.Model.FindEntityType(typeof(T));
@@ -98,11 +98,13 @@ namespace Inventory_Management_System.DataAccess.Repositories
             return await query.Where(predicate).ToListAsync();
         }
 
+        // New method: FirstOrDefaultAsync without includes
         public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
         {
-            return await FirstOrDefaultAsync(predicate, Array.Empty<Expression<Func<T, object>>>());
+            return await _dbSet.FirstOrDefaultAsync(predicate);
         }
 
+        // New method: FirstOrDefaultAsync with includes
         public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
@@ -116,6 +118,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
             return await query.FirstOrDefaultAsync(predicate);
         }
 
+        // New method: GetPagedAsync for pagination
         public async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize,
             Expression<Func<T, bool>> predicate = null, params Expression<Func<T, object>>[] includeProperties)
         {
@@ -156,6 +159,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
             await _dbSet.AddAsync(entity);
         }
 
+        // New method: UpdateAsync with composite key support
         public async Task UpdateAsync(T entity)
         {
             if (entity == null)
@@ -213,7 +217,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
             _dbSet.Remove(entity);
         }
 
-        // New method for deleting entities with composite keys
+        // New method: DeleteAsync for composite keys
         public async Task DeleteAsync(Guid key1, Guid key2)
         {
             var entity = await GetByCompositeKeyAsync(key1, key2);
@@ -223,6 +227,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
             _dbSet.Remove(entity);
         }
 
+        // New method: ExistsAsync
         public async Task<bool> ExistsAsync(Guid id)
         {
             var keyName = _context.Model.FindEntityType(typeof(T))

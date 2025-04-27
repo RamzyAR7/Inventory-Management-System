@@ -25,5 +25,11 @@ namespace Inventory_Management_System.DataAccess.Repositories
 
             _context.WarehouseStocks.Remove(warehouseStock);
         }
+
+        public async Task<WarehouseStock?> GetByCompositeKeyAsync(Guid warehouseId, Guid productId)
+        {
+            return await _context.WarehouseStocks
+                .FirstOrDefaultAsync(ws => ws.WarehouseID == warehouseId && ws.ProductID == productId);
+        }
     }
 }

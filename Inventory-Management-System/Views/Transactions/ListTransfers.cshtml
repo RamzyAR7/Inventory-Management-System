@@ -1,0 +1,75 @@
+﻿@model IEnumerable<Inventory_Management_System.Entities.WarehouseTransfers>
+@{
+    ViewData["Title"] = "Warehouse Transfers";
+    int totalCount = (int)ViewBag.TotalCount;
+    int pageNumber = (int)ViewBag.PageNumber;
+    int pageSize = (int)ViewBag.PageSize;
+    int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+}
+
+<h2>Warehouse Transfers</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Transfer ID</th>
+            <th>Product</th>
+            <th>From Warehouse</th>
+            <th>To Warehouse</th>
+            <th>Quantity</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Any())
+        {
+            @foreach (var transfer in Model)
+            {
+                <tr>
+                    <td>@transfer.WarehouseTransferID</td>
+                    <td>@transfer.Product.ProductName</td>
+                    <td>@transfer.FromWarehouse.WarehouseName</td>
+                    <td>@transfer.ToWarehouse.WarehouseName</td>
+                    <td>@transfer.Quantity</td>
+                    <td>@transfer.TransferDate.ToString("g")</td>
+                    <td>
+                        <a asp-action="TransferDetails" asp-route-id="@transfer.WarehouseTransferID" class="btn btn-info btn-sm">Details</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">No transfers found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Pagination -->
+<nav>
+    <ul class="pagination">
+        @for (int i = 1; i <= totalPages; i++)
+        {
+            <li class="page-item @(i == pageNumber ? "active" : "")">
+                <a class="page-link" asp-action="ListTransfers" asp-route-pageNumber="@i">@i</a>
+            </li>
+        }
+    </ul>
+</nav>
+
+<div class="mt-3">
+    <a asp-action="TransferBetweenWarehouses" class="btn btn-primary">Create Transfer</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to Dashboard</a>
+</div>

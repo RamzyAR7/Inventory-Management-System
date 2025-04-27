@@ -3,7 +3,7 @@
     public class InventoryTransaction
     {
         public Guid TransactionID { get; set; }
-        public string Type { get; set; }
+        public TransactionType Type { get; set; }
         public int Quantity { get; set; }
         public DateTime TransactionDate { get; set; }
         public Guid WarehouseID { get; set; }

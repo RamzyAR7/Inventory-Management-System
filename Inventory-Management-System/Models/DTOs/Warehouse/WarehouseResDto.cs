@@ -14,7 +14,6 @@ namespace Inventory_Management_System.Models.DTOs.Warehouse
 
         public ICollection<WarehouseStock> WarehouseStocks { get; set; } = new List<WarehouseStock>();
         public ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
-
-        public ICollection<InventoryTransaction> InventoryTransactions { get; set; } = new List<InventoryTransaction>();
+        public ICollection<Entities.InventoryTransaction> InventoryTransactions { get; set; }
     }
 }

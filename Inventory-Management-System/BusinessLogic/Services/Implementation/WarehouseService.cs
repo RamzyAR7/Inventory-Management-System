@@ -19,7 +19,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task<IEnumerable<WarehouseResDto>> GetAllAsync()
         {
-            var warehouses = await _unitOfWork.Warehouses.GetAllAsync(w => w.Manager);
+            var warehouses = await _unitOfWork.Warehouses.GetAllAsync(w => w.Manager, w => w.WarehouseStocks);
             var warehouseDtos = _mapper.Map<IEnumerable<WarehouseResDto>>(warehouses);
             return warehouseDtos;
         }

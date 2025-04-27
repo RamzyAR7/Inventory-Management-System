@@ -27,6 +27,7 @@ builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();  
 
 
 // Register the generic repository is optional
@@ -45,6 +46,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
     });
+builder.Services.AddSingleton<ILogger>(sp => sp.GetRequiredService<ILogger<TransactionService>>());
+
 
 var app = builder.Build();
 
