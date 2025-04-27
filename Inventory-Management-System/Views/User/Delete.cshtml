@@ -4,60 +4,87 @@
     ViewData["Title"] = "Delete User";
 }
 
-<div class="users-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Delete User</h1>
-        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill d-flex align-items-center gap-2">
-            <i data-feather="arrow-left"></i> Cancel
-        </a>
-    </div>
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn" style="max-width: 700px; margin: 0 auto;">
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <h3 class="fw-semibold mb-4" style="color: #6c707de6;">Delete User</h3>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger small rounded-3 py-2 px-3 mb-4" role="alert">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div class="alert small rounded-3 py-2 px-3 mb-4" style="background-color: #ffe5e5; color: #dc3545;" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="align-middle me-2" data-feather="alert-triangle"></i>
+                <div>
+                    <strong>Warning:</strong> Are you sure you want to delete this user? This action cannot be undone.
+                </div>
+            </div>
         </div>
-    }
 
-    <div class="alert alert-warning rounded-4">
-        <h4 class="alert-heading d-flex align-items-center gap-2">
-            <i data-feather="alert-triangle"></i> Warning!
-        </h4>
-        <p class="mb-0">Are you sure you want to delete this user? This action cannot be undone.</p>
-    </div>
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-muted">Username</dt>
+            <dd class="col-sm-8">@Model.UserName</dd>
 
-    <div class="card shadow-sm border-0 rounded-4 p-4 mt-4">
-        <dl class="row">
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.UserName)</dt>
-            <dd class="col-sm-9">@Model.UserName</dd>
+            <dt class="col-sm-4 text-muted">Email</dt>
+            <dd class="col-sm-8">@Model.Email</dd>
 
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Email)</dt>
-            <dd class="col-sm-9">@Model.Email</dd>
-
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Role)</dt>
-            <dd class="col-sm-9">
-                <span class="badge rounded-pill
-                    @(Model.Role == "Admin" ? "bg-danger-subtle text-danger-emphasis" :
-                      Model.Role == "Manager" ? "bg-primary-subtle text-primary-emphasis" :
-                      "bg-secondary-subtle text-secondary-emphasis")">
-                    @Model.Role
-                </span>
+            <dt class="col-sm-4 text-muted">Role</dt>
+            <dd class="col-sm-8">
+                @if (Model.Role == "Admin")
+                {
+                    <span class="badge rounded-pill px-3 py-1" style="background-color: #ffe5e5; color: #dc3545;">
+                        Admin
+                    </span>
+                }
+                else if (Model.Role == "Manager")
+                {
+                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-1">
+                        Manager
+                    </span>
+                }
+                else
+                {
+                    <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary px-3 py-1">
+                        Employee
+                    </span>
+                }
             </dd>
 
-            <dt class="col-sm-3">Manager</dt>
-            <dd class="col-sm-9">@(Model.ManagerName ?? "None")</dd>
-        </dl>
-    </div>
+            <dt class="col-sm-4 text-muted">Manager</dt>
+            <dd class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.ManagerName))
+                {
+                    <span class="badge rounded-pill px-3 py-1 small" style="background-color: #f2f2f2; color: #6c757d;">
+                        @Model.ManagerName
+                    </span>
+                }
+                else
+                {
+                    <span class="badge rounded-pill px-3 py-1 small" style="background-color: #f8f9fa; color: #adb5bd;">
+                        None
+                    </span>
+                }
+            </dd>
 
-    <form asp-action="Delete" class="mt-4">
-        <input type="hidden" asp-for="UserID" />
-        <div class="d-flex justify-content-end gap-2">
-            <button type="submit" class="btn btn-outline-danger rounded-pill d-flex align-items-center gap-2">
-                <i data-feather="trash-2"></i> Confirm Delete
-            </button>
-        </div>
-    </form>
+        </dl>
+
+        <form asp-action="Delete" method="post" class="mt-4">
+            <input type="hidden" asp-for="UserID" />
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold">
+                    <i class="align-middle me-1" data-feather="trash-2"></i> Confirm Delete
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+                    <i class="align-middle me-1" data-feather="arrow-left"></i> Cancel
+                </a>
+            </div>
+        </form>
+
+    </div>
 </div>
 
 @section Scripts {
