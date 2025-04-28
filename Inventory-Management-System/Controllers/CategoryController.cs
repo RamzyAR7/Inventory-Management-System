@@ -29,7 +29,7 @@ namespace Inventory_Management_System.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["error"] = ex.Message;
                 return View(new List<CategoryResDto>());
             }
         }
@@ -46,7 +46,7 @@ namespace Inventory_Management_System.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -68,12 +68,12 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _categoryService.CreateCategory(categoryDto);
-                TempData["SuccessMessage"] = "Category created successfully.";
+                TempData["success"] = "Category created successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["error"] = ex.Message;
                 return View(categoryDto);
             }
         }
@@ -91,7 +91,7 @@ namespace Inventory_Management_System.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -107,12 +107,12 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _categoryService.UpdateCategory(id, categoryDto);
-                TempData["SuccessMessage"] = "Category updated successfully.";
+                TempData["success"] = "Category updated successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["error"] = ex.Message;
                 return View(categoryDto);
             }
         }
@@ -129,7 +129,7 @@ namespace Inventory_Management_System.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -141,12 +141,12 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _categoryService.DeleteCategory(id);
-                TempData["SuccessMessage"] = "Category deleted successfully.";
+                TempData["success"] = "Category deleted successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
