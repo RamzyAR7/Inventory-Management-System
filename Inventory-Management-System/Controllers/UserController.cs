@@ -45,12 +45,12 @@ namespace Inventory_Management_System.Controllers
             }
             catch (KeyNotFoundException)
             {
-                TempData["ErrorMessage"] = "No users found.";
+                TempData["error"] = "No users found.";
                 return View(new List<UserResDto>());
             }
             catch (Exception)
             {
-                TempData["ErrorMessage"] = "An unexpected error occurred.";
+                TempData["error"] = "An unexpected error occurred.";
                 return View(new List<UserResDto>());
             }
         }
@@ -65,12 +65,12 @@ namespace Inventory_Management_System.Controllers
             }
             catch (KeyNotFoundException)
             {
-                TempData["ErrorMessage"] = "User not found.";
+                TempData["error"] = "User not found.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception)
             {
-                TempData["ErrorMessage"] = "An unexpected error occurred.";
+                TempData["error"] = "An unexpected error occurred.";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -83,6 +83,7 @@ namespace Inventory_Management_System.Controllers
                 var managers = await _userService.GetManagers();
                 if (!managers.Any())
                 {
+                    // ??
                     TempData["WarningMessage"] = "No managers or admins available. Please create an Admin or Manager first.";
                 }
 
@@ -99,7 +100,7 @@ namespace Inventory_Management_System.Controllers
             }
             catch (Exception)
             {
-                TempData["ErrorMessage"] = "An unexpected error occurred.";
+                TempData["error"] = "An unexpected error occurred.";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -160,7 +161,7 @@ namespace Inventory_Management_System.Controllers
                     return View(model);
                 }
 
-                TempData["SuccessMessage"] = "User created successfully!";
+                TempData["success"] = "User created successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
@@ -212,17 +213,17 @@ namespace Inventory_Management_System.Controllers
             }
             catch (KeyNotFoundException)
             {
-                TempData["ErrorMessage"] = "User not found.";
+                TempData["error"] = "User not found.";
                 return RedirectToAction(nameof(Index));
             }
             catch (AutoMapperMappingException ex)
             {
-                TempData["ErrorMessage"] = $"Mapping error: {ex.Message}";
+                TempData["error"] = $"Mapping error: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"An unexpected error occurred: {ex.Message}";
+                TempData["error"] = $"An unexpected error occurred: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -283,12 +284,12 @@ namespace Inventory_Management_System.Controllers
                     return View(model);
                 }
 
-                TempData["SuccessMessage"] = "User updated successfully!";
+                TempData["success"] = "User updated successfully!";
                 return RedirectToAction("Index");
             }
             catch (KeyNotFoundException)
             {
-                TempData["ErrorMessage"] = "User not found.";
+                TempData["error"] = "User not found.";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
@@ -324,12 +325,12 @@ namespace Inventory_Management_System.Controllers
             }
             catch (KeyNotFoundException)
             {
-                TempData["ErrorMessage"] = "User not found.";
+                TempData["error"] = "User not found.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception)
             {
-                TempData["ErrorMessage"] = "An unexpected error occurred.";
+                TempData["error"] = "An unexpected error occurred.";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -347,17 +348,17 @@ namespace Inventory_Management_System.Controllers
                 }
                 await _userService.DeleteUserbyId(id);
 
-                TempData["SuccessMessage"] = "User deleted successfully!";
+                TempData["success"] = "User deleted successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (KeyNotFoundException)
             {
-                TempData["ErrorMessage"] = "User not found.";
+                TempData["error"] = "User not found.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception)
             {
-                TempData["ErrorMessage"] = "An unexpected error occurred.";
+                TempData["error"] = "An unexpected error occurred.";
                 return RedirectToAction(nameof(Index));
             }
         }
