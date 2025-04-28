@@ -34,13 +34,17 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
                 if (!managerWarehouseIds.Any())
                 {
-                    throw new Exception("No warehouses assigned to this manager.");
+                    // Log a warning and return an empty list instead of throwing an exception
+                    _logger.LogWarning("No warehouses assigned to this manager.");
+                    return Enumerable.Empty<Product>();
                 }
 
                 return await _unitOfWork.Products.GetAllForWarehousesAsync(managerWarehouseIds);
             }
+
             return await _unitOfWork.Products.GetAllAsyncWithNestedIncludes();
         }
+
 
         public async Task<Product?> GetByIdAsync(Guid id)
         {

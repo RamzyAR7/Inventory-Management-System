@@ -37,8 +37,15 @@ namespace Inventory_Management_System.Controllers
         public async Task<IActionResult> Index()
         {
             var products = await _productService.GetAllAsync();
+            if (!products.Any())
+            {
+                TempData["InfoMessage"] = "No products available for the warehouses you manage.";
+            }
             return View(products);
         }
+
+
+
 
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)

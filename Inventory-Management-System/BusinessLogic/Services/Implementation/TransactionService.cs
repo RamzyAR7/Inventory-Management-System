@@ -34,12 +34,101 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 t => t.Product
             };
 
-            if (warehouseId != Guid.Empty)
+            var userRole = await GetCurrentUserRoleAsync();
+            _logger.LogInformation("User role: {UserRole}", userRole);
+
+            if (userRole == "Manager")
             {
-                return await _unitOfWork.InventoryTransactions.FindAsync(t => t.WarehouseID == warehouseId, includes);
+                var userId = GetCurrentUserId();
+                _logger.LogInformation("Manager UserID: {UserID}", userId);
+
+                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
+                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                _logger.LogInformation("Manager Warehouse IDs: {WarehouseIds}", string.Join(", ", managerWarehouseIds));
+
+                if (!managerWarehouseIds.Any())
+                {
+                    _logger.LogWarning("No warehouses assigned to Manager with UserID: {UserID}", userId);
+                    return Enumerable.Empty<InventoryTransaction>();
+                }
+
+                if (warehouseId != Guid.Empty)
+                {
+                    if (!managerWarehouseIds.Contains(warehouseId))
+                    {
+                        _logger.LogWarning("Manager attempted to access transactions for unauthorized WarehouseID: {WarehouseID}", warehouseId);
+                        throw new UnauthorizedAccessException("You can only view transactions for your own warehouses.");
+                    }
+                    var transactions = await _unitOfWork.InventoryTransactions.FindAsync(t => t.WarehouseID == warehouseId, includes);
+                    _logger.LogInformation("Filtered transactions for WarehouseID {WarehouseID}: {TransactionCount}", warehouseId, transactions.Count());
+                    return transactions;
+                }
+
+                var filteredTransactions = await _unitOfWork.InventoryTransactions.FindAsync(t => managerWarehouseIds.Contains(t.WarehouseID), includes);
+                _logger.LogInformation("Filtered transactions for Manager: {TransactionCount}", filteredTransactions.Count());
+                return filteredTransactions;
             }
 
-            return await _unitOfWork.InventoryTransactions.GetAllAsync(includes);
+            if (warehouseId != Guid.Empty)
+            {
+                var transactions = await _unitOfWork.InventoryTransactions.FindAsync(t => t.WarehouseID == warehouseId, includes);
+                _logger.LogInformation("Transactions for WarehouseID {WarehouseID}: {TransactionCount}", warehouseId, transactions.Count());
+                return transactions;
+            }
+
+            var allTransactions = await _unitOfWork.InventoryTransactions.GetAllAsync(includes);
+            _logger.LogInformation("All transactions retrieved: {TransactionCount}", allTransactions.Count());
+            return allTransactions;
+        }
+
+        public async Task<(IEnumerable<InventoryTransaction> Items, int TotalCount)> GetPagedTransactionsAsync(Guid? warehouseId, int pageNumber, int pageSize)
+        {
+            var includes = new Expression<Func<InventoryTransaction, object>>[]
+            {
+                t => t.Warehouse,
+                t => t.Product
+            };
+
+            Expression<Func<InventoryTransaction, bool>> predicate = null;
+
+            var userRole = await GetCurrentUserRoleAsync();
+            _logger.LogInformation("GetPagedTransactionsAsync - User role: {UserRole}", userRole);
+
+            if (userRole == "Manager")
+            {
+                var userId = GetCurrentUserId();
+                _logger.LogInformation("GetPagedTransactionsAsync - Manager UserID: {UserID}", userId);
+
+                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
+                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                _logger.LogInformation("GetPagedTransactionsAsync - Manager Warehouse IDs: {WarehouseIds}", string.Join(", ", managerWarehouseIds));
+
+                if (!managerWarehouseIds.Any())
+                {
+                    _logger.LogWarning("GetPagedTransactionsAsync - No warehouses assigned to Manager with UserID: {UserID}", userId);
+                    return (Enumerable.Empty<InventoryTransaction>(), 0);
+                }
+
+                predicate = t => managerWarehouseIds.Contains(t.WarehouseID);
+
+                if (warehouseId.HasValue)
+                {
+                    if (!managerWarehouseIds.Contains(warehouseId.Value))
+                    {
+                        _logger.LogWarning("GetPagedTransactionsAsync - Manager attempted to access transactions for unauthorized WarehouseID: {WarehouseID}", warehouseId.Value);
+                        throw new UnauthorizedAccessException("You can only view transactions for your own warehouses.");
+                    }
+                    predicate = t => t.WarehouseID == warehouseId.Value;
+                }
+            }
+            else if (warehouseId.HasValue)
+            {
+                predicate = t => t.WarehouseID == warehouseId.Value;
+            }
+
+            var (items, totalCount) = await _unitOfWork.InventoryTransactions.GetPagedAsync(pageNumber, pageSize, predicate, includes);
+            _logger.LogInformation("GetPagedTransactionsAsync - Retrieved {ItemCount} transactions, TotalCount: {TotalCount}", items.Count(), totalCount);
+            return (items, totalCount);
         }
 
         public async Task<InventoryTransaction> GetTransactionByIdAsync(Guid transactionId)
@@ -52,7 +141,25 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
             var transaction = await _unitOfWork.InventoryTransactions.GetByIdAsync(t => t.TransactionID == transactionId, includes);
             if (transaction == null)
+            {
+                _logger.LogWarning("Transaction not found for TransactionID: {TransactionID}", transactionId);
                 throw new Exception("Transaction not found.");
+            }
+
+            var userRole = await GetCurrentUserRoleAsync();
+            if (userRole == "Manager")
+            {
+                var userId = GetCurrentUserId();
+                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
+                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+
+                if (!managerWarehouseIds.Contains(transaction.WarehouseID))
+                {
+                    _logger.LogWarning("Manager with UserID {UserID} attempted to access transaction {TransactionID} in unauthorized warehouse {WarehouseID}", userId, transactionId, transaction.WarehouseID);
+                    throw new UnauthorizedAccessException("You can only view transactions for your own warehouses.");
+                }
+            }
+
             return transaction;
         }
 
@@ -66,7 +173,34 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 t => t.ToProduct,
             };
 
-            return await _unitOfWork.WarehouseTransfers.GetAllAsync(includes);
+            var userRole = await GetCurrentUserRoleAsync();
+            _logger.LogInformation("GetAllTransfersAsync - User role: {UserRole}", userRole);
+
+            if (userRole == "Manager")
+            {
+                var userId = GetCurrentUserId();
+                _logger.LogInformation("GetAllTransfersAsync - Manager UserID: {UserID}", userId);
+
+                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
+                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                _logger.LogInformation("GetAllTransfersAsync - Manager Warehouse IDs: {WarehouseIds}", string.Join(", ", managerWarehouseIds));
+
+                if (!managerWarehouseIds.Any())
+                {
+                    _logger.LogWarning("GetAllTransfersAsync - No warehouses assigned to Manager with UserID: {UserID}", userId);
+                    return Enumerable.Empty<WarehouseTransfers>();
+                }
+
+                var transfers = await _unitOfWork.WarehouseTransfers.FindAsync(
+                    t => managerWarehouseIds.Contains(t.FromWarehouseID) || managerWarehouseIds.Contains(t.ToWarehouseID),
+                    includes);
+                _logger.LogInformation("GetAllTransfersAsync - Filtered transfers for Manager: {TransferCount}", transfers.Count());
+                return transfers;
+            }
+
+            var allTransfers = await _unitOfWork.WarehouseTransfers.GetAllAsync(includes);
+            _logger.LogInformation("GetAllTransfersAsync - All transfers retrieved: {TransferCount}", allTransfers.Count());
+            return allTransfers;
         }
 
         public async Task<WarehouseTransfers> GetTransferByIdAsync(Guid transferId)
@@ -83,7 +217,25 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
             var transfer = await _unitOfWork.WarehouseTransfers.GetByIdAsync(t => t.WarehouseTransferID == transferId, includes);
             if (transfer == null)
+            {
+                _logger.LogWarning("Transfer not found for TransferID: {TransferID}", transferId);
                 throw new Exception("Transfer not found.");
+            }
+
+            var userRole = await GetCurrentUserRoleAsync();
+            if (userRole == "Manager")
+            {
+                var userId = GetCurrentUserId();
+                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
+                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+
+                if (!managerWarehouseIds.Contains(transfer.FromWarehouseID) && !managerWarehouseIds.Contains(transfer.ToWarehouseID))
+                {
+                    _logger.LogWarning("Manager with UserID {UserID} attempted to access transfer {TransferID} involving unauthorized warehouses From: {FromWarehouseID}, To: {ToWarehouseID}", userId, transferId, transfer.FromWarehouseID, transfer.ToWarehouseID);
+                    throw new UnauthorizedAccessException("You can only view transfers involving your own warehouses.");
+                }
+            }
+
             return transfer;
         }
 
@@ -91,24 +243,38 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(dto.WarehouseId);
             if (warehouse == null)
+            {
+                _logger.LogWarning("Warehouse not found for WarehouseID: {WarehouseID}", dto.WarehouseId);
                 throw new Exception("Warehouse not found.");
+            }
 
             var supplier = await _unitOfWork.Suppliers.GetByIdAsync(dto.SupplierID);
             if (supplier == null)
+            {
+                _logger.LogWarning("Supplier not found for SupplierID: {SupplierID}", dto.SupplierID);
                 throw new Exception("Supplier not found.");
+            }
 
             var userRole = await GetCurrentUserRoleAsync();
             if (userRole == "Manager" && warehouse.ManagerID != Guid.Parse(GetCurrentUserId()))
+            {
+                _logger.LogWarning("Manager attempted to create transaction in unauthorized warehouse {WarehouseID}", dto.WarehouseId);
                 throw new UnauthorizedAccessException("You can only make transactions for your own warehouse.");
+            }
 
             var product = await _unitOfWork.Products.GetByIdAsync(dto.ProductId);
             if (product == null)
+            {
+                _logger.LogWarning("Product not found for ProductID: {ProductID}", dto.ProductId);
                 throw new KeyNotFoundException($"Product with ID '{dto.ProductId}' not found.");
+            }
 
             if (dto.ProductId != product.ProductID)
+            {
+                _logger.LogWarning("Product ID mismatch. Provided: {ProvidedID}, Retrieved: {RetrievedID}", dto.ProductId, product.ProductID);
                 throw new InvalidOperationException("The provided ProductId does not match the retrieved ProductId.");
+            }
 
-            // Begin transaction
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
@@ -119,7 +285,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
                 await _unitOfWork.InventoryTransactions.AddAsync(inventoryTransaction);
 
-                // Check if the SupplierProduct entry already exists
                 var existingSupplierProduct = await _unitOfWork.SupplierProducts
                     .FirstOrDefaultAsync(sp => sp.ProductID == dto.ProductId && sp.SupplierID == dto.SupplierID);
 
@@ -154,79 +319,107 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task TransferBetweenWarehousesAsync(CreateWarehouseTransferDto dto)
         {
-            // Validate input
             if (dto == null)
+            {
+                _logger.LogWarning("Transfer DTO is null");
                 throw new ArgumentNullException(nameof(dto));
+            }
             if (dto.Quantity <= 0)
+            {
+                _logger.LogWarning("Invalid transfer quantity: {Quantity}", dto.Quantity);
                 throw new ArgumentException("Transfer quantity must be positive.", nameof(dto.Quantity));
+            }
             if (dto.ToProductId == Guid.Empty)
+            {
+                _logger.LogWarning("Destination ProductID is empty");
                 throw new ArgumentException("Destination product ID is required.", nameof(dto.ToProductId));
+            }
 
-            // Check warehouse existence
             var fromWarehouse = await _unitOfWork.Warehouses.GetByIdAsync(dto.FromWarehouseId);
             var toWarehouse = await _unitOfWork.Warehouses.GetByIdAsync(dto.ToWarehouseId);
             if (fromWarehouse == null || toWarehouse == null)
+            {
+                _logger.LogWarning("Warehouse not found. FromWarehouseID: {FromWarehouseID}, ToWarehouseID: {ToWarehouseID}", dto.FromWarehouseId, dto.ToWarehouseId);
                 throw new KeyNotFoundException("Source or destination warehouse not found.");
+            }
 
             _logger.LogInformation("Transfer details: FromWarehouseID: {FromWarehouseID}, ToWarehouseID: {ToWarehouseID}, FromProductID: {FromProductID}, ToProductID: {ToProductID}, Quantity: {Quantity}",
                 fromWarehouse.WarehouseID, toWarehouse.WarehouseID, dto.FromProductId, dto.ToProductId, dto.Quantity);
 
-            // Prevent transfer to the same warehouse
             if (fromWarehouse.WarehouseID == toWarehouse.WarehouseID)
+            {
+                _logger.LogWarning("Attempted transfer to the same warehouse: {WarehouseID}", fromWarehouse.WarehouseID);
                 throw new InvalidOperationException("Cannot transfer to the same warehouse.");
+            }
 
-            // Validate user permissions
             var userId = GetCurrentUserId();
             if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("User not authenticated for transfer");
                 throw new UnauthorizedAccessException("User not authenticated.");
+            }
 
             var userRole = await GetCurrentUserRoleAsync();
             if (userRole == "Manager")
             {
                 if (fromWarehouse.ManagerID != Guid.Parse(userId))
+                {
+                    _logger.LogWarning("Manager attempted to transfer from unauthorized warehouse {WarehouseID}", fromWarehouse.WarehouseID);
                     throw new UnauthorizedAccessException("You can only transfer from your own warehouse.");
+                }
                 if (toWarehouse.ManagerID != Guid.Parse(userId))
+                {
+                    _logger.LogWarning("Manager attempted to transfer to unauthorized warehouse {WarehouseID}", toWarehouse.WarehouseID);
                     throw new UnauthorizedAccessException("You can only transfer to your own warehouse.");
+                }
             }
 
-            // Validate product existence
             var fromProduct = await _unitOfWork.Products.GetByIdAsync(dto.FromProductId);
             if (fromProduct == null)
+            {
+                _logger.LogWarning("Source product not found for ProductID: {ProductID}", dto.FromProductId);
                 throw new KeyNotFoundException($"Source product with ID {dto.FromProductId} not found.");
+            }
 
             var toProduct = await _unitOfWork.Products.GetByIdAsync(dto.ToProductId);
             if (toProduct == null)
+            {
+                _logger.LogWarning("Destination product not found for ProductID: {ProductID}", dto.ToProductId);
                 throw new KeyNotFoundException($"Destination product with ID {dto.ToProductId} not found.");
+            }
 
-            // Ensure the product names match (as enforced by the UI)
             if (toProduct.ProductName.ToLower() != fromProduct.ProductName.ToLower())
             {
+                _logger.LogWarning("Product name mismatch. Source: {SourceProductName}, Destination: {DestProductName}", fromProduct.ProductName, toProduct.ProductName);
                 throw new InvalidOperationException($"Source and destination products must have the same name. Source: {fromProduct.ProductName}, Destination: {toProduct.ProductName}");
             }
 
-            // Check stock availability in fromWarehouse
             var fromStock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(dto.FromWarehouseId, dto.FromProductId);
             int availableStock = fromStock?.StockQuantity ?? 0;
             if (fromStock == null)
+            {
+                _logger.LogWarning("Source product {ProductName} not assigned to warehouse {WarehouseName}", fromProduct.ProductName, fromWarehouse.WarehouseName);
                 throw new InvalidOperationException($"Source product '{fromProduct.ProductName}' is not assigned to warehouse '{fromWarehouse.WarehouseName}'.");
+            }
             if (availableStock < dto.Quantity)
+            {
+                _logger.LogWarning("Insufficient stock in warehouse {WarehouseName} for product {ProductName}. Available: {Available}, Requested: {Requested}", fromWarehouse.WarehouseName, fromProduct.ProductName, availableStock, dto.Quantity);
                 throw new InvalidOperationException($"Insufficient stock in the source warehouse '{fromWarehouse.WarehouseName}' for product '{fromProduct.ProductName}'. Available: {availableStock}, Requested: {dto.Quantity}");
+            }
 
-            // Verify the destination product exists in the destination warehouse
             var toWarehouseStock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(toWarehouse.WarehouseID, dto.ToProductId);
             if (toWarehouseStock == null)
             {
+                _logger.LogWarning("Destination product {ProductName} not assigned to warehouse {WarehouseName}", toProduct.ProductName, toWarehouse.WarehouseName);
                 throw new InvalidOperationException($"Destination product '{toProduct.ProductName}' is not assigned to warehouse '{toWarehouse.WarehouseName}'.");
             }
 
             _logger.LogInformation("toWarehouseStock exists: {Exists}, ProductID: {ProductID}, StockQuantity: {StockQuantity}",
                 toWarehouseStock != null, dto.ToProductId, toWarehouseStock?.StockQuantity ?? 0);
 
-            // Begin transaction
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
-                // Create out transaction
                 var outTransaction = new InventoryTransaction
                 {
                     TransactionID = Guid.NewGuid(),
@@ -237,7 +430,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                     Quantity = dto.Quantity
                 };
 
-                // Create in transaction
                 var inTransaction = new InventoryTransaction
                 {
                     TransactionID = Guid.NewGuid(),
@@ -248,7 +440,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                     Quantity = dto.Quantity
                 };
 
-                // Create warehouse transfer
                 var warehouseTransfer = new WarehouseTransfers
                 {
                     WarehouseTransferID = Guid.NewGuid(),
@@ -262,16 +453,13 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                     InTransactionID = inTransaction.TransactionID
                 };
 
-                // Add entities
                 await _unitOfWork.InventoryTransactions.AddAsync(outTransaction);
                 await _unitOfWork.InventoryTransactions.AddAsync(inTransaction);
                 await _unitOfWork.WarehouseTransfers.AddAsync(warehouseTransfer);
 
-                // Update stock
                 await UpdateWarehouseStockAsync(fromWarehouse.WarehouseID, dto.FromProductId, -dto.Quantity);
                 await UpdateWarehouseStockAsync(toWarehouse.WarehouseID, dto.ToProductId, dto.Quantity);
 
-                // Save changes
                 await _unitOfWork.SaveAsync();
                 await _unitOfWork.CommitAsync();
                 _logger.LogInformation("Transfer completed successfully for WarehouseTransferID: {WarehouseTransferID}", warehouseTransfer.WarehouseTransferID);
@@ -283,15 +471,22 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 throw;
             }
         }
+
         private async Task UpdateWarehouseStockAsync(Guid warehouseId, Guid productId, int quantityChange)
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(warehouseId);
             if (warehouse == null)
+            {
+                _logger.LogWarning("Warehouse not found for WarehouseID: {WarehouseID}", warehouseId);
                 throw new KeyNotFoundException($"Warehouse with ID {warehouseId} not found.");
+            }
 
             var product = await _unitOfWork.Products.GetByIdAsync(productId);
             if (product == null)
+            {
+                _logger.LogWarning("Product not found for ProductID: {ProductID}", productId);
                 throw new KeyNotFoundException($"Product with ID {productId} not found.");
+            }
 
             var stock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(warehouseId, productId);
             if (stock == null)
@@ -319,7 +514,10 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
             stock.StockQuantity += quantityChange;
             if (stock.StockQuantity < 0)
+            {
+                _logger.LogWarning("Insufficient stock in warehouse {WarehouseID} for product {ProductID}. Available: {Available}, Requested: {Requested}", warehouseId, productId, stock.StockQuantity - quantityChange, -quantityChange);
                 throw new InvalidOperationException($"Insufficient stock in warehouse {warehouseId} for product {productId}. Available: {stock.StockQuantity - quantityChange}, Requested: {-quantityChange}");
+            }
 
             try
             {
@@ -340,12 +538,19 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("User not authenticated - unable to retrieve role");
                 throw new UnauthorizedAccessException("User not authenticated.");
+            }
 
             var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserID == Guid.Parse(userId));
             if (user == null)
+            {
+                _logger.LogWarning("User not found for UserID: {UserID}", userId);
                 throw new KeyNotFoundException("User not found.");
+            }
 
+            _logger.LogInformation("Retrieved role for UserID {UserID}: {Role}", userId, user.Role);
             return user.Role;
         }
 
@@ -353,7 +558,10 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("User not authenticated - unable to retrieve UserID");
                 throw new UnauthorizedAccessException("User not authenticated.");
+            }
             return userId;
         }
     }
