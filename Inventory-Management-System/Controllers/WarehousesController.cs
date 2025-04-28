@@ -80,7 +80,7 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _warehouseService.CreateAsync(warehouseDto);
-                TempData["SuccessMessage"] = "Warehouse created successfully!";
+                TempData["success"] = "Warehouse created successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
@@ -192,7 +192,7 @@ namespace Inventory_Management_System.Controllers
                     return View(warehouse);
                 }
                 await _warehouseService.DeleteAsync(id);
-                TempData["SuccessMessage"] = "Warehouse deleted successfully!";
+                TempData["success"] = "Warehouse deleted successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
