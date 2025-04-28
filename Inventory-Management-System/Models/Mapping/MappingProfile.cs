@@ -76,22 +76,16 @@ namespace Inventory_Management_System.Models.Mapping
 
             #region Product
             CreateMap<ProductReqDto, Product>()
-                .ForMember(dest => dest.ProductID, opt => opt.Ignore())
-                .ForMember(dest => dest.WarehouseStocks, opt => opt.Ignore())
-                .ForMember(dest => dest.Suppliers, opt => opt.Ignore());
-
+                        .ForMember(dest => dest.WarehouseStocks, opt => opt.Ignore()); // Ignore WarehouseStocks during mapping
             CreateMap<Product, ProductReqDto>()
-                .ForMember(dest => dest.SuppliersIDs, opt => opt.MapFrom(src => src.Suppliers.Select(s => s.SupplierID).ToList()))
-                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src =>
-                    src.WarehouseStocks.Any() ? src.WarehouseStocks.First().StockQuantity : 0))
-                .ForMember(dest => dest.WarehouseId, opt => opt.MapFrom(src =>
-                    src.WarehouseStocks.Any() ? src.WarehouseStocks.First().WarehouseID : Guid.Empty));
+                .ForMember(dest => dest.WarehouseIds, opt => opt.MapFrom(src => src.WarehouseStocks.Select(ws => ws.WarehouseID).ToList()));
             #endregion
 
             #region Transactions
 
             CreateMap<CreateInventoryTransactionDto, InventoryTransaction>()
                  .ForMember(dest => dest.TransactionID, opt => opt.Ignore())
+                 .ForMember(dest => dest.SuppliersID, opt => opt.MapFrom(src => src.SupplierID))
                  .ForMember(dest => dest.TransactionDate, opt => opt.Ignore())
                  .ForMember(dest => dest.WarehouseID, opt => opt.MapFrom(src => src.WarehouseId))
                  .ForMember(dest => dest.ProductID, opt => opt.MapFrom(src => src.ProductId));

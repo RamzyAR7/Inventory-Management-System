@@ -1,0 +1,145 @@
+﻿@model Inventory_Management_System.Models.DTOs.InventoryTransaction.CreateInventoryTransactionDto
+@{
+    ViewData["Title"] = "Create In Transaction";
+}
+
+<h2>Create In Transaction</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (ViewData.ModelState.Any(x => x.Value.Errors.Any()))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <ul class="mb-0">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="CreateInTransaction" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group mb-3">
+        <label asp-for="SupplierID" class="form-label">Supplier</label>
+        <select asp-for="SupplierID" asp-items="ViewBag.Suppliers" class="form-select">
+            <option value="">-- Select Supplier --</option>
+        </select>
+        <span asp-validation-for="SupplierID" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="WarehouseId" class="form-label">Warehouse</label>
+        <select asp-for="WarehouseId" asp-items="ViewBag.Warehouses" class="form-select" onchange="updateProducts()">
+            <option value="">-- Select Warehouse --</option>
+        </select>
+        <span asp-validation-for="WarehouseId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="ProductId" class="form-label">Product</label>
+        <select asp-for="ProductId" asp-items="ViewBag.Products" class="form-select">
+            <option value="">-- Select Product --</option>
+        </select>
+        <span asp-validation-for="ProductId" class="text-danger"></span>
+        <div id="productError" class="text-danger" style="display: none;"></div>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Quantity" class="form-label">Quantity</label>
+        <input asp-for="Quantity" class="form-control" type="number" min="1" />
+        <span asp-validation-for="Quantity" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mt-4">
+        <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Styles {
+    <style>
+        .form-select, .form-control {
+            height: 38px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .text-danger {
+            display: block;
+            margin-top: 0.25rem;
+        }
+    </style>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function updateProducts() {
+            var warehouseId = $('#WarehouseId').val();
+            var errorDiv = $('#productError');
+            errorDiv.hide();
+
+            console.log("Updating products for WarehouseID:", warehouseId);
+
+            if (warehouseId) {
+                $.ajax({
+                    url: '@Url.Action("GetProductsByWarehouse", "Transactions")',
+                    type: 'GET',
+                    data: { warehouseId: warehouseId },
+                    success: function (data) {
+                        console.log("Products received:", data);
+                        var productDropdown = $('#ProductId');
+                        productDropdown.empty();
+                        productDropdown.append('<option value="">-- Select Product --</option>');
+                        if (data.length === 0) {
+                            errorDiv.text("No products are assigned to the selected warehouse.");
+                            errorDiv.show();
+                        } else {
+                            $.each(data, function (index, item) {
+                                console.log("Adding product:", item);
+                                productDropdown.append('<option value="' + item.productID + '">' + item.displayText + '</option>');
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error fetching products:", error, xhr.responseText);
+                        errorDiv.text("Error fetching products: " + (xhr.responseJSON?.error || error));
+                        errorDiv.show();
+                        $('#ProductId').empty();
+                        $('#ProductId').append('<option value="">-- Select Product --</option>');
+                    }
+                });
+            } else {
+                $('#ProductId').empty();
+                $('#ProductId').append('<option value="">-- Select Product --</option>');
+                errorDiv.hide();
+            }
+        }
+
+        $(document).ready(function () {
+            updateProducts();
+        });
+    </script>
+}

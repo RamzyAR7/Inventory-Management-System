@@ -12,7 +12,7 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
         Task<InventoryTransaction> GetTransactionByIdAsync(Guid transactionId);
         Task<IEnumerable<WarehouseTransfers>> GetAllTransfersAsync();
         Task<WarehouseTransfers> GetTransferByIdAsync(Guid transferId);
-        Task CreateInOrOutTransactionAsync(CreateInventoryTransactionDto dto);
+        Task CreateInTransactionAsync(CreateInventoryTransactionDto dto);
         Task TransferBetweenWarehousesAsync(CreateWarehouseTransferDto dto); // Updated
     }
 }

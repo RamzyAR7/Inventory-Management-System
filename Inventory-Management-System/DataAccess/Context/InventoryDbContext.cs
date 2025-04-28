@@ -122,6 +122,14 @@ namespace Inventory_Management_System.DataAccess.Context
                 e.HasOne(it => it.Product)
                 .WithMany(p => p.InventoryTransactions)
                 .HasForeignKey(it => it.ProductID);
+
+                e.HasOne(it => it.Suppliers)
+                .WithMany(s => s.InventoryTransactions)
+                .HasForeignKey(it => it.SuppliersID);
+
+                e.HasOne(it => it.Order)
+                .WithMany(o => o.InventoryTransactions)
+                .HasForeignKey(it => it.OrderID);
             });
             modelBuilder.Entity<Supplier>(e => {
                 e.HasKey(s => s.SupplierID);

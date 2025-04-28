@@ -65,54 +65,60 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
         public async Task CreateAsync(ProductReqDto productDto)
         {
             var userRole = GetCurrentUserRole();
-            var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(e => e.WarehouseID == productDto.WarehouseId);
-            if (warehouse == null)
+            var userId = GetCurrentUserId();
+
+            // Validate warehouses
+            var warehouses = await _unitOfWork.Warehouses.FindAsync(w => productDto.WarehouseIds.Contains(w.WarehouseID));
+            if (!warehouses.Any())
             {
-                throw new Exception("Warehouse not found");
+                throw new Exception("No valid warehouses selected.");
             }
 
             if (userRole == "Manager")
             {
-                var userId = GetCurrentUserId();
-                if (warehouse.ManagerID != Guid.Parse(userId))
+                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
+                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                if (productDto.WarehouseIds.Any(wid => !managerWarehouseIds.Contains(wid)))
                 {
-                    throw new Exception("Manager can only create products in their assigned warehouse");
+                    throw new Exception("Manager can only create products in their assigned warehouses.");
                 }
             }
 
+            // Check for existing product with the same name in any of the selected warehouses
             var existingProduct = await _unitOfWork.Products.FindAsyncWithNestedIncludes(e =>
                 e.ProductName == productDto.ProductName &&
-                e.WarehouseStocks.Any(ws => ws.WarehouseID == productDto.WarehouseId));
+                e.WarehouseStocks.Any(ws => productDto.WarehouseIds.Contains(ws.WarehouseID)));
 
             if (existingProduct != null)
             {
-                throw new Exception($"A product with the name '{productDto.ProductName}' already exists in the specified warehouse.");
+                throw new Exception($"A product with the name '{productDto.ProductName}' already exists in one of the selected warehouses.");
             }
 
             var product = _mapper.Map<Product>(productDto);
             product.ProductID = Guid.NewGuid();
             await _unitOfWork.Products.AddAsync(product);
 
-            foreach (var supplierId in productDto.SuppliersIDs)
+            // Create WarehouseStock entries for each selected warehouse
+            foreach (var warehouseId in productDto.WarehouseIds)
             {
-                var supplier = await _unitOfWork.Suppliers.GetByIdAsync(e => e.SupplierID == supplierId);
-                if (supplier != null)
+                var existingStock = await _unitOfWork.WarehouseStocks.GetByIdAsync(ws => ws.ProductID == product.ProductID && ws.WarehouseID == warehouseId);
+                if (existingStock == null)
                 {
-                    await _unitOfWork.SupplierProducts.AddAsync(new SupplierProduct
+                    var warehouseStock = new WarehouseStock
                     {
-                        SupplierID = supplier.SupplierID,
-                        ProductID = product.ProductID
-                    });
+                        ProductID = product.ProductID,
+                        WarehouseID = warehouseId,
+                        StockQuantity = 0
+                    };
+                    await _unitOfWork.WarehouseStocks.AddAsync(warehouseStock);
+                    _logger.LogInformation("Created WarehouseStock for ProductID {ProductID}, WarehouseID {WarehouseID}", product.ProductID, warehouseId);
+                }
+                else
+                {
+                    _logger.LogWarning("WarehouseStock already exists for ProductID {ProductID}, WarehouseID {WarehouseID}", product.ProductID, warehouseId);
                 }
             }
 
-            var warehouseStock = new WarehouseStock
-            {
-                ProductID = product.ProductID,
-                WarehouseID = warehouse.WarehouseID,
-                StockQuantity = productDto.StockQuantity
-            };
-            await _unitOfWork.WarehouseStocks.AddAsync(warehouseStock);
             await _unitOfWork.Save();
         }
 
@@ -128,95 +134,49 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 throw new Exception("Product not found");
             }
 
-            // ... (Previous validation logic for user role, warehouse, and product name remains unchanged)
+            if (userRole == "Manager")
+            {
+                var userId = GetCurrentUserId();
+                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
+                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                if (productDto.WarehouseIds.Any(wid => !managerWarehouseIds.Contains(wid)))
+                {
+                    throw new Exception("Manager can only update products in their assigned warehouses.");
+                }
+            }
 
             // Update Product entity
             _mapper.Map(productDto, existingProduct);
             await _unitOfWork.Products.UpdateAsync(existingProduct);
             _logger.LogInformation("Product updated: {ProductID}", id);
 
-            // Update SupplierProducts
-            var currentSupplierIds = existingProduct.Suppliers.Select(sp => sp.SupplierID).ToList();
-            var newSupplierIds = productDto.SuppliersIDs ?? new List<Guid>();
+            // Get existing WarehouseStocks
+            var existingWarehouseStocks = await _unitOfWork.WarehouseStocks.FindAsync(ws => ws.ProductID == existingProduct.ProductID);
 
-            var suppliersToRemove = existingProduct.Suppliers
-                .Where(sp => !newSupplierIds.Contains(sp.SupplierID))
-                .ToList();
-
-            foreach (var supplierToRemove in suppliersToRemove)
+            // Delete WarehouseStocks that are no longer selected
+            var warehousesToRemove = existingWarehouseStocks.Where(ws => !productDto.WarehouseIds.Contains(ws.WarehouseID)).ToList();
+            foreach (var ws in warehousesToRemove)
             {
-                var supplierProduct = await _unitOfWork.SupplierProducts.FirstOrDefaultAsync(
-                    sp => sp.SupplierID == supplierToRemove.SupplierID && sp.ProductID == existingProduct.ProductID);
-
-                if (supplierProduct != null)
-                {
-                    await _unitOfWork.SupplierProducts.DeleteAsync(supplierProduct.SupplierID, supplierProduct.ProductID);
-                    _logger.LogInformation("Removed SupplierProduct: SupplierID {SupplierID}, ProductID {ProductID}", supplierProduct.SupplierID, supplierProduct.ProductID);
-                }
+                await _unitOfWork.WarehouseStocks.DeleteAsync(ws.WarehouseID, ws.ProductID);
+                _logger.LogInformation("Deleted existing WarehouseStock: ProductID {ProductID}, WarehouseID {WarehouseID}", ws.ProductID, ws.WarehouseID);
             }
 
-            foreach (var supplierId in newSupplierIds)
+            // Add new WarehouseStocks for newly selected warehouses
+            foreach (var warehouseId in productDto.WarehouseIds)
             {
-                if (!currentSupplierIds.Contains(supplierId))
+                var existingStock = existingWarehouseStocks.FirstOrDefault(ws => ws.WarehouseID == warehouseId);
+                if (existingStock == null)
                 {
-                    await _unitOfWork.SupplierProducts.AddAsync(new SupplierProduct
+                    var newWarehouseStock = new WarehouseStock
                     {
-                        SupplierID = supplierId,
-                        ProductID = existingProduct.ProductID
-                    });
-                    _logger.LogInformation("Added SupplierProduct: SupplierID {SupplierID}, ProductID {ProductID}", supplierId, existingProduct.ProductID);
+                        ProductID = existingProduct.ProductID,
+                        WarehouseID = warehouseId,
+                        StockQuantity = 0
+                    };
+                    await _unitOfWork.WarehouseStocks.AddAsync(newWarehouseStock);
+                    _logger.LogInformation("Added WarehouseStock: ProductID {ProductID}, WarehouseID {WarehouseID}, StockQuantity {StockQuantity}",
+                        existingProduct.ProductID, warehouseId, 0);
                 }
-            }
-
-            // Update WarehouseStock
-            var existingWarehouseStocks = await _unitOfWork.WarehouseStocks
-                .FindAsync(ws => ws.ProductID == existingProduct.ProductID);
-
-            // Delete all existing WarehouseStocks if WarehouseId has changed
-            bool warehouseChanged = existingWarehouseStocks.Any(ws => ws.WarehouseID != productDto.WarehouseId);
-            if (warehouseChanged)
-            {
-                foreach (var ws in existingWarehouseStocks)
-                {
-                    await _unitOfWork.WarehouseStocks.DeleteAsync(ws.WarehouseID, ws.ProductID);
-                    _logger.LogInformation("Deleted existing WarehouseStock: ProductID {ProductID}, WarehouseID {WarehouseID}", ws.ProductID, ws.WarehouseID);
-                }
-                await _unitOfWork.Save(); // Commit deletions
-            }
-
-            // Check if a WarehouseStock already exists for the target WarehouseId
-            var existingWarehouseStock = await _unitOfWork.WarehouseStocks
-                .FirstOrDefaultAsync(ws => ws.ProductID == existingProduct.ProductID && ws.WarehouseID == productDto.WarehouseId);
-
-            if (existingWarehouseStock != null)
-            {
-                // Log entity state before modification
-                var entry = _unitOfWork.Context.Entry(existingWarehouseStock);
-                _logger.LogInformation("WarehouseStock state before update: ProductID {ProductID}, WarehouseID {WarehouseID}, StockQuantity {StockQuantity}, EntityState {State}",
-                    existingWarehouseStock.ProductID, existingWarehouseStock.WarehouseID, existingWarehouseStock.StockQuantity, entry.State);
-
-                // Update only StockQuantity
-                existingWarehouseStock.StockQuantity = productDto.StockQuantity;
-
-                // Log modified properties
-                _logger.LogInformation("WarehouseStock modified properties: {ModifiedProperties}",
-                    string.Join(", ", entry.Properties.Where(p => p.IsModified).Select(p => $"{p.Metadata.Name}={p.CurrentValue}")));
-
-                _logger.LogInformation("Updated WarehouseStock: ProductID {ProductID}, WarehouseID {WarehouseID}, StockQuantity {StockQuantity}",
-                    existingProduct.ProductID, existingWarehouseStock.WarehouseID, productDto.StockQuantity);
-            }
-            else
-            {
-                // Create new WarehouseStock
-                var newWarehouseStock = new WarehouseStock
-                {
-                    ProductID = existingProduct.ProductID,
-                    WarehouseID = productDto.WarehouseId,
-                    StockQuantity = productDto.StockQuantity
-                };
-                await _unitOfWork.WarehouseStocks.AddAsync(newWarehouseStock);
-                _logger.LogInformation("Added WarehouseStock: ProductID {ProductID}, WarehouseID {WarehouseID}, StockQuantity {StockQuantity}",
-                    existingProduct.ProductID, productDto.WarehouseId, productDto.StockQuantity);
             }
 
             try
@@ -291,6 +251,49 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
             return _mapper.Map<List<ProductReqDto>>(products);
         }
+        public async Task AssignSupplierFromAnotherProductAsync(Guid sourceProductId, Guid targetProductId)
+        {
+            // Fetch the source product (Elmarg product) to get its SupplierID
+            var sourceProduct = await _unitOfWork.Products
+                .FirstOrDefaultAsync(p => p.ProductID == sourceProductId, p => p.Suppliers);
+
+            if (sourceProduct == null)
+            {
+                throw new KeyNotFoundException($"Source product with ID {sourceProductId} not found.");
+            }
+
+            if (sourceProduct.Suppliers == null || !sourceProduct.Suppliers.Any())
+            {
+                throw new InvalidOperationException($"Source product '{sourceProduct.ProductName}' does not have any suppliers assigned.");
+            }
+
+            // Fetch the target product (Elsherok product)
+            var targetProduct = await _unitOfWork.Products
+                .FirstOrDefaultAsync(p => p.ProductID == targetProductId);
+
+            if (targetProduct == null)
+            {
+                throw new KeyNotFoundException($"Target product with ID {targetProductId} not found.");
+            }
+
+            // Ensure the products have the same name
+            if (!string.Equals(targetProduct.ProductName, sourceProduct.ProductName, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException($"Products must have the same name. Source: {sourceProduct.ProductName}, Target: {targetProduct.ProductName}");
+            }
+
+            // Assign the suppliers from the source product to the target product
+            targetProduct.Suppliers = sourceProduct.Suppliers.Select(s => new SupplierProduct
+            {
+                SupplierID = s.SupplierID,
+                ProductID = targetProduct.ProductID
+            }).ToList();
+
+            await _unitOfWork.Products.UpdateAsync(targetProduct);
+
+            await _unitOfWork.SaveAsync();
+            _logger.LogInformation("Assigned suppliers from ProductID {SourceProductId} to ProductID {TargetProductId}", sourceProductId, targetProductId);
+        }
         private string GetCurrentUserRole()
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -315,5 +318,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             }
             return userId;
         }
+
     }
 }

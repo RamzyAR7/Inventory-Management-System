@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250427181331_init")]
+    [Migration("20250428204054_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -89,11 +89,17 @@ namespace Inventory_Management_System.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("OrderID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("ProductID")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<Guid?>("SuppliersID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
@@ -108,7 +114,11 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasKey("TransactionID");
 
+                    b.HasIndex("OrderID");
+
                     b.HasIndex("ProductID");
+
+                    b.HasIndex("SuppliersID");
 
                     b.HasIndex("WarehouseID");
 
@@ -332,10 +342,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("4e4c8ac8-23b3-4d3b-821d-485d004899db"),
-                            CreatedAt = new DateTime(2025, 4, 27, 18, 13, 30, 137, DateTimeKind.Utc).AddTicks(402),
+                            UserID = new Guid("051184c8-134b-4667-b71b-bc566da6ab7c"),
+                            CreatedAt = new DateTime(2025, 4, 28, 20, 40, 53, 551, DateTimeKind.Utc).AddTicks(2312),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$POlZ.Vihf1nFCbvLPcoQxu1en2mlMp66qfhIf/5oZeEqtYXnIk5ma",
+                            HashedPassword = "$2a$11$VvEXpLiGzmSLI83wDUlzFuZwKgxAiGF/4y93Yb7IOYRLBgI1ZcvSC",
                             Role = "Admin",
                             UserName = "Admin"
                         });
@@ -436,11 +446,19 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
                 {
+                    b.HasOne("Inventory_Management_System.Entities.Order", "Order")
+                        .WithMany("InventoryTransactions")
+                        .HasForeignKey("OrderID");
+
                     b.HasOne("Inventory_Management_System.Entities.Product", "Product")
                         .WithMany("InventoryTransactions")
                         .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Inventory_Management_System.Entities.Supplier", "Suppliers")
+                        .WithMany("InventoryTransactions")
+                        .HasForeignKey("SuppliersID");
 
                     b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
                         .WithMany("InventoryTransactions")
@@ -448,7 +466,11 @@ namespace Inventory_Management_System.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Order");
+
                     b.Navigation("Product");
+
+                    b.Navigation("Suppliers");
 
                     b.Navigation("Warehouse");
                 });
@@ -650,6 +672,8 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
                 {
+                    b.Navigation("InventoryTransactions");
+
                     b.Navigation("OrderDetails");
 
                     b.Navigation("Shipment")
@@ -673,6 +697,8 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Supplier", b =>
                 {
+                    b.Navigation("InventoryTransactions");
+
                     b.Navigation("SupplierProducts");
                 });
 

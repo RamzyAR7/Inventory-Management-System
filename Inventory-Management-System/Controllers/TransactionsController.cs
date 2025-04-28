@@ -21,14 +21,19 @@ namespace Inventory_Management_System.Controllers
         private readonly ITransactionService _transactionService;
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
+        private readonly ISupplierService _supplierService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<TransactionsController> _logger;
 
-        public TransactionsController(ITransactionService transactionService, IWarehouseService warehouseService, IProductService productService, IUnitOfWork unitOfWork)
+
+        public TransactionsController(ITransactionService transactionService, IWarehouseService warehouseService, IProductService productService, ISupplierService supplierService, IUnitOfWork unitOfWork, ILogger<TransactionsController> logger)
         {
             _transactionService = transactionService;
             _warehouseService = warehouseService;
             _productService = productService;
+            _supplierService = supplierService;
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -131,20 +136,20 @@ namespace Inventory_Management_System.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CreateInOrOutTransaction(Guid? warehouseId = null)
+        public async Task<IActionResult> CreateInTransaction(Guid? warehouseId = null)
         {
             await PopulateViewBagAsync(warehouseId);
             return View(new CreateInventoryTransactionDto());
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateInOrOutTransaction(CreateInventoryTransactionDto dto)
+        public async Task<IActionResult> CreateInTransaction(CreateInventoryTransactionDto dto)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    await _transactionService.CreateInOrOutTransactionAsync(dto);
+                    await _transactionService.CreateInTransactionAsync(dto);
                     TempData["SuccessMessage"] = "Transaction completed successfully!";
                     return RedirectToAction("Index");
                 }
@@ -153,14 +158,14 @@ namespace Inventory_Management_System.Controllers
                     TempData["ErrorMessage"] = $"Error: {ex.Message}";
                 }
             }
-            await PopulateViewBagAsync(dto.WarehouseId, dto.ProductId);
+            await PopulateViewBagAsync(dto.SupplierID ,dto.WarehouseId, dto.ProductId);
             return View(dto);
         }
 
         [HttpGet]
-        public async Task<IActionResult> TransferBetweenWarehouses(Guid? fromWarehouseId = null, Guid? toWarehouseId = null, Guid? productId = null, Guid? toProductId = null)
+        public async Task<IActionResult> TransferBetweenWarehouses()
         {
-            await PopulateViewBagAsync(fromWarehouseId, productId, toWarehouseId, toProductId);
+            await PopulateViewBagAsync(requireStockForSource: true);
             return View(new CreateWarehouseTransferDto());
         }
 
@@ -171,23 +176,41 @@ namespace Inventory_Management_System.Controllers
             {
                 try
                 {
+                    var fromProduct = await _unitOfWork.Products.GetByIdAsync(dto.FromProductId);
+                    var toProduct = await _unitOfWork.Products.GetByIdAsync(dto.ToProductId);
+                    if (fromProduct == null || toProduct == null)
+                    {
+                        throw new Exception("Source or destination product not found.");
+                    }
+
+                    if (fromProduct.ProductName.ToLower() != toProduct.ProductName.ToLower())
+                    {
+                        throw new Exception("Source and destination products must have the same name.");
+                    }
+
                     await _transactionService.TransferBetweenWarehousesAsync(dto);
-                    TempData["SuccessMessage"] = "Warehouse transfer completed successfully!";
+                    await _productService.AssignSupplierFromAnotherProductAsync(dto.FromProductId, dto.ToProductId);
+                    TempData["SuccessMessage"] = "Transfer completed successfully!";
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
                     TempData["ErrorMessage"] = ex.Message;
+                    await PopulateViewBagAsync(null, dto.FromWarehouseId, dto.FromProductId, dto.ToWarehouseId, dto.ToProductId, requireStockForSource: true);
                 }
             }
-            await PopulateViewBagAsync(dto.FromWarehouseId, dto.FromProductId, dto.ToWarehouseId, dto.ToProductId);
+            else
+            {
+                await PopulateViewBagAsync(null, dto.FromWarehouseId, dto.FromProductId, dto.ToWarehouseId, dto.ToProductId, requireStockForSource: true);
+            }
+
             return View(dto);
         }
-
-        private async Task PopulateViewBagAsync(Guid? selectedWarehouseId = null, Guid? selectedProductId = null, Guid? selectedToWarehouseId = null, Guid? selectedToProductId = null)
+        private async Task PopulateViewBagAsync(Guid? selectedSupplierId = null, Guid? selectedWarehouseId = null, Guid? selectedProductId = null, Guid? selectedToWarehouseId = null, Guid? selectedToProductId = null, bool requireStockForSource = false)
         {
             var warehouseDtos = await _warehouseService.GetAllAsync();
             var products = await _productService.GetAllAsync();
+            var suppliers = await _supplierService.GetAllAsync();
             IEnumerable<WarehouseResDto> filteredWarehouseDtos = warehouseDtos;
 
             if (User.IsInRole("Manager"))
@@ -208,6 +231,12 @@ namespace Inventory_Management_System.Controllers
                 }
             }
 
+            ViewBag.Suppliers = new SelectList(
+                suppliers.Select(s => new { s.SupplierID, s.SupplierName }),
+                "SupplierID",
+                "SupplierName",
+                selectedSupplierId);
+
             ViewBag.Warehouses = new SelectList(
                 filteredWarehouseDtos.Select(w => new { w.WarehouseID, w.WarehouseName }),
                 "WarehouseID",
@@ -223,41 +252,52 @@ namespace Inventory_Management_System.Controllers
             // Populate Products for source warehouse
             if (selectedWarehouseId.HasValue)
             {
-                var warehouseStocks = await _unitOfWork.WarehouseStocks
-                    .Find(ws => ws.WarehouseID == selectedWarehouseId.Value)
-                    .Include(ws => ws.Product)
-                    .ToListAsync();
-                var availableProductIdsWithStock = warehouseStocks
-                    .Where(ws => ws.StockQuantity > 0)
-                    .Select(ws => new { ws.ProductID, ws.StockQuantity })
-                    .ToList();
-                var availableProducts = products
-                    .Where(p => availableProductIdsWithStock.Select(x => x.ProductID).Contains(p.ProductID))
-                    .Select(p => new
+                var warehouseStocksQuery = _unitOfWork.WarehouseStocks.Find(ws => ws.WarehouseID == selectedWarehouseId.Value);
+                if (requireStockForSource)
+                {
+                    warehouseStocksQuery = warehouseStocksQuery.Where(ws => ws.StockQuantity > 0);
+                }
+                var warehouseStocks = await warehouseStocksQuery.Include(ws => ws.Product).ToListAsync();
+
+                var availableProducts = warehouseStocks
+                    .Select(ws => new
                     {
-                        p.ProductID,
-                        DisplayText = $"{p.ProductName} (Stock: {availableProductIdsWithStock.FirstOrDefault(x => x.ProductID == p.ProductID)?.StockQuantity})"
+                        ws.Product.ProductID,
+                        DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
                     })
+                    .DistinctBy(p => p.ProductID)
+                    .OrderBy(p => p.DisplayText)
                     .ToList();
+
+                if (!availableProducts.Any() && warehouseStocks.Any())
+                {
+                    _logger.LogWarning("Mismatch between WarehouseStock ProductIDs and Products table for WarehouseID {WarehouseID}", selectedWarehouseId.Value);
+                    ModelState.AddModelError("FromProductId", "No products found for the selected warehouse due to a data mismatch.");
+                }
+                else if (!warehouseStocks.Any())
+                {
+                    ModelState.AddModelError("FromProductId", "The selected warehouse has no products assigned.");
+                }
+
                 ViewBag.Products = new SelectList(
                     availableProducts,
                     "ProductID",
                     "DisplayText",
                     selectedProductId);
 
-                if (selectedProductId.HasValue)
+                if (requireStockForSource && selectedProductId.HasValue)
                 {
                     var selectedStock = warehouseStocks.FirstOrDefault(ws => ws.ProductID == selectedProductId.Value);
                     if (selectedStock == null || selectedStock.StockQuantity <= 0)
                     {
-                        ModelState.AddModelError("ProductId", $"The selected product is out of stock in the source warehouse. Available stock: {selectedStock?.StockQuantity ?? 0}");
+                        ModelState.AddModelError("FromProductId", $"The selected product is out of stock in the source warehouse. Available stock: {selectedStock?.StockQuantity ?? 0}");
                     }
                 }
             }
             else
             {
                 ViewBag.Products = new SelectList(
-                    products.Select(p => new { p.ProductID, DisplayText = $"{p.ProductName} (Stock: N/A)" }),
+                    new List<object>(),
                     "ProductID",
                     "DisplayText",
                     selectedProductId);
@@ -273,39 +313,111 @@ namespace Inventory_Management_System.Controllers
                         .Find(ws => ws.WarehouseID == selectedToWarehouseId.Value)
                         .Include(ws => ws.Product)
                         .ToListAsync();
-                    var matchingProductsWithStock = toWarehouseStocks
-                        .Where(ws => ws.Product != null && ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())
+
+                    var matchingProducts = toWarehouseStocks
+                        .Where(ws => ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())
                         .Select(ws => new
                         {
-                            ws.Product.ProductID,
+                            ProductID = ws.Product.ProductID,
                             DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
                         })
-                        .Distinct()
+                        .DistinctBy(p => p.ProductID)
+                        .OrderBy(p => p.DisplayText)
                         .ToList();
+
                     ViewBag.ToProducts = new SelectList(
-                        matchingProductsWithStock,
+                        matchingProducts,
                         "ProductID",
                         "DisplayText",
                         selectedToProductId);
 
-                    if (selectedToProductId.HasValue)
+                    if (selectedToProductId.HasValue && !matchingProducts.Any(p => p.ProductID == selectedToProductId.Value))
                     {
-                        var selectedToProduct = matchingProductsWithStock.FirstOrDefault(p => p.ProductID == selectedToProductId.Value);
-                        if (selectedToProduct == null)
-                        {
-                            ModelState.AddModelError("ToProductId", "The selected destination product does not match the source product.");
-                        }
+                        ModelState.AddModelError("ToProductId", "The selected destination product does not match the source product.");
                     }
                 }
                 else
                 {
-                    ViewBag.ToProducts = new SelectList(Enumerable.Empty<object>(), "ProductID", "DisplayText", selectedToProductId);
+                    ViewBag.ToProducts = new SelectList(new List<object>(), "ProductID", "DisplayText", selectedToProductId);
+                    ModelState.AddModelError("ToProductId", "Source product not found.");
                 }
             }
             else
             {
-                ViewBag.ToProducts = new SelectList(Enumerable.Empty<object>(), "ProductID", "DisplayText", selectedToProductId);
+                ViewBag.ToProducts = new SelectList(new List<object>(), "ProductID", "DisplayText", selectedToProductId);
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GetProductsByWarehouse(Guid warehouseId)
+        {
+            try
+            {
+                var warehouseStocks = await _unitOfWork.WarehouseStocks
+                    .Find(ws => ws.WarehouseID == warehouseId)
+                    .Include(ws => ws.Product)
+                    .ToListAsync();
+
+                var products = warehouseStocks
+                    .GroupBy(ws => ws.Product.ProductName.ToLower())
+                    .Select(g => g.First())
+                    .Select(ws => new
+                    {
+                        ProductID = ws.Product.ProductID,
+                        DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
+                    })
+                    .OrderBy(p => p.DisplayText)
+                    .ToList();
+
+                _logger.LogInformation("Fetched {Count} products for WarehouseID {WarehouseID}", products.Count, warehouseId);
+                return Json(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching products for WarehouseID {WarehouseID}", warehouseId);
+                return StatusCode(500, new { error = "Error fetching products" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMatchingProducts(Guid productId, Guid toWarehouseId)
+        {
+            try
+            {
+                var products = await _productService.GetAllAsync();
+                var fromProduct = products.FirstOrDefault(p => p.ProductID == productId);
+                if (fromProduct == null)
+                {
+                    _logger.LogWarning("Source product not found for ProductID {ProductID}", productId);
+                    return Json(new List<object>());
+                }
+
+                // Get all products in the destination warehouse
+                var toWarehouseStocks = await _unitOfWork.WarehouseStocks
+                    .Find(ws => ws.WarehouseID == toWarehouseId)
+                    .Include(ws => ws.Product)
+                    .ToListAsync();
+
+                // Filter products by name and ensure they are in the destination warehouse
+                var matchingProducts = toWarehouseStocks
+                    .Where(ws => ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())
+                    .Select(ws => new
+                    {
+                        ProductID = ws.Product.ProductID,
+                        DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
+                    })
+                    .DistinctBy(p => p.ProductID) // Ensure no duplicates by ProductID
+                    .OrderBy(p => p.DisplayText)
+                    .ToList();
+
+                _logger.LogInformation("Found {Count} matching products for ProductID {ProductID} in WarehouseID {WarehouseID}", matchingProducts.Count, productId, toWarehouseId);
+                return Json(matchingProducts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching matching products for ProductID {ProductID}, ToWarehouseID {ToWarehouseID}", productId, toWarehouseId);
+                return StatusCode(500, new { error = "Error fetching matching products" });
+            }
+        }
+
     }
 }

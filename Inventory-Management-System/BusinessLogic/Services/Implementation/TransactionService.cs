@@ -87,11 +87,15 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             return transfer;
         }
 
-        public async Task CreateInOrOutTransactionAsync(CreateInventoryTransactionDto dto)
+        public async Task CreateInTransactionAsync(CreateInventoryTransactionDto dto)
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(dto.WarehouseId);
             if (warehouse == null)
                 throw new Exception("Warehouse not found.");
+
+            var supplier = await _unitOfWork.Suppliers.GetByIdAsync(dto.SupplierID);
+            if (supplier == null)
+                throw new Exception("Supplier not found.");
 
             var userRole = await GetCurrentUserRoleAsync();
             if (userRole == "Manager" && warehouse.ManagerID != Guid.Parse(GetCurrentUserId()))
@@ -104,16 +108,48 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             if (dto.ProductId != product.ProductID)
                 throw new InvalidOperationException("The provided ProductId does not match the retrieved ProductId.");
 
-            var transaction = _mapper.Map<InventoryTransaction>(dto);
-            transaction.TransactionID = Guid.NewGuid();
-            transaction.TransactionDate = DateTime.UtcNow;
+            // Begin transaction
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var inventoryTransaction = _mapper.Map<InventoryTransaction>(dto);
+                inventoryTransaction.TransactionID = Guid.NewGuid();
+                inventoryTransaction.TransactionDate = DateTime.UtcNow;
+                inventoryTransaction.Type = TransactionType.In;
 
-            await _unitOfWork.InventoryTransactions.AddAsync(transaction);
+                await _unitOfWork.InventoryTransactions.AddAsync(inventoryTransaction);
 
-            int quantityChange = dto.Type == TransactionType.In ? dto.Quantity : -dto.Quantity;
-            await UpdateWarehouseStockAsync(dto.WarehouseId, dto.ProductId, quantityChange);
+                // Check if the SupplierProduct entry already exists
+                var existingSupplierProduct = await _unitOfWork.SupplierProducts
+                    .FirstOrDefaultAsync(sp => sp.ProductID == dto.ProductId && sp.SupplierID == dto.SupplierID);
 
-            await _unitOfWork.SaveAsync();
+                if (existingSupplierProduct == null)
+                {
+                    await _unitOfWork.SupplierProducts.AddAsync(new SupplierProduct
+                    {
+                        SupplierID = dto.SupplierID,
+                        ProductID = dto.ProductId
+                    });
+                    _logger.LogInformation("New SupplierProduct entry created for ProductID: {ProductID}, SupplierID: {SupplierID}", dto.ProductId, dto.SupplierID);
+                }
+                else
+                {
+                    _logger.LogInformation("SupplierProduct entry already exists for ProductID: {ProductID}, SupplierID: {SupplierID}", dto.ProductId, dto.SupplierID);
+                }
+
+                int quantityChange = dto.Quantity;
+                await UpdateWarehouseStockAsync(dto.WarehouseId, dto.ProductId, quantityChange);
+
+                await _unitOfWork.SaveAsync();
+                await _unitOfWork.CommitAsync();
+                _logger.LogInformation("In transaction completed successfully for TransactionID: {TransactionID}", inventoryTransaction.TransactionID);
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                _logger.LogError(ex, "Error during in transaction: {Message}", ex.Message);
+                throw new Exception("Failed to complete the in transaction. Please try again.", ex);
+            }
         }
 
         public async Task TransferBetweenWarehousesAsync(CreateWarehouseTransferDto dto)
@@ -162,29 +198,25 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             if (toProduct == null)
                 throw new KeyNotFoundException($"Destination product with ID {dto.ToProductId} not found.");
 
-            // Validate product name match
+            // Ensure the product names match (as enforced by the UI)
             if (toProduct.ProductName.ToLower() != fromProduct.ProductName.ToLower())
-                throw new InvalidOperationException($"The destination product '{toProduct.ProductName}' does not match the source product '{fromProduct.ProductName}'.");
+            {
+                throw new InvalidOperationException($"Source and destination products must have the same name. Source: {fromProduct.ProductName}, Destination: {toProduct.ProductName}");
+            }
 
             // Check stock availability in fromWarehouse
             var fromStock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(dto.FromWarehouseId, dto.FromProductId);
             int availableStock = fromStock?.StockQuantity ?? 0;
+            if (fromStock == null)
+                throw new InvalidOperationException($"Source product '{fromProduct.ProductName}' is not assigned to warehouse '{fromWarehouse.WarehouseName}'.");
             if (availableStock < dto.Quantity)
                 throw new InvalidOperationException($"Insufficient stock in the source warehouse '{fromWarehouse.WarehouseName}' for product '{fromProduct.ProductName}'. Available: {availableStock}, Requested: {dto.Quantity}");
 
-            // Check or create WarehouseStock for toWarehouse
+            // Verify the destination product exists in the destination warehouse
             var toWarehouseStock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(toWarehouse.WarehouseID, dto.ToProductId);
             if (toWarehouseStock == null)
             {
-                _logger.LogInformation("Creating new WarehouseStock for toWarehouse. ProductID: {ProductID}", dto.ToProductId);
-                toWarehouseStock = new WarehouseStock
-                {
-                    WarehouseID = toWarehouse.WarehouseID,
-                    ProductID = dto.ToProductId,
-                    StockQuantity = 0
-                };
-                await _unitOfWork.WarehouseStocks.AddAsync(toWarehouseStock);
-                await _unitOfWork.SaveAsync();
+                throw new InvalidOperationException($"Destination product '{toProduct.ProductName}' is not assigned to warehouse '{toWarehouse.WarehouseName}'.");
             }
 
             _logger.LogInformation("toWarehouseStock exists: {Exists}, ProductID: {ProductID}, StockQuantity: {StockQuantity}",
@@ -244,26 +276,13 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 await _unitOfWork.CommitAsync();
                 _logger.LogInformation("Transfer completed successfully for WarehouseTransferID: {WarehouseTransferID}", warehouseTransfer.WarehouseTransferID);
             }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await _unitOfWork.RollbackAsync();
-                _logger.LogError(ex, "Concurrency error during transfer: {Message}", ex.Message);
-                throw new Exception("Concurrency error occurred during transfer. Please try again.", ex);
-            }
-            catch (DbUpdateException ex)
-            {
-                await _unitOfWork.RollbackAsync();
-                _logger.LogError(ex, "Database error during transfer: {Message}", ex.InnerException?.Message ?? ex.Message);
-                throw new Exception($"Database error occurred during transfer: {ex.InnerException?.Message ?? ex.Message}", ex);
-            }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                _logger.LogError(ex, "General error during transfer: {Message}", ex.Message);
+                _logger.LogError(ex, "Error during transfer: {Message}", ex.Message);
                 throw;
             }
         }
-
         private async Task UpdateWarehouseStockAsync(Guid warehouseId, Guid productId, int quantityChange)
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(warehouseId);

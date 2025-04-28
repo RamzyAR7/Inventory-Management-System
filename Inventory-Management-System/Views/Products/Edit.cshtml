@@ -5,12 +5,7 @@
 }
 
 <div class="product-form">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Edit Product</h1>
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="align-middle me-1" data-feather="arrow-left"></i> Back to List
-        </a>
-    </div>
+    <h1 class="h3 mb-4">Edit Product</h1>
 
     @if (TempData["ErrorMessage"] != null)
     {
@@ -20,7 +15,29 @@
         </div>
     }
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (ViewData.ModelState.Any(x => x.Value.Errors.Any()))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="ProductName" value="@Model.ProductName" /> <!-- Preserve ProductName if needed -->
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
@@ -43,11 +60,6 @@
                     <input asp-for="RecoderLevel" class="form-control" placeholder="Enter reorder level" />
                     <span asp-validation-for="RecoderLevel" class="text-danger"></span>
                 </div>
-                <div class="mb-3">
-                    <label asp-for="StockQuantity" class="form-label"></label>
-                    <input asp-for="StockQuantity" class="form-control" placeholder="Enter stock quantity" />
-                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
-                </div>
             </div>
 
             <div class="col-md-6">
@@ -59,16 +71,9 @@
                     <span asp-validation-for="CategoryID" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="WarehouseId" class="form-label">Warehouse Name</label>
-                    <select asp-for="WarehouseId" asp-items="ViewBag.Warehouses" class="form-select">
-                        <option value="">Select Warehouse</option>
-                    </select>
-                    <span asp-validation-for="WarehouseId" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="SuppliersIDs" class="form-label">Suppliers</label>
-                    <select asp-for="SuppliersIDs" asp-items="ViewBag.Suppliers" class="form-select" multiple="multiple"></select>
-                    <span asp-validation-for="SuppliersIDs" class="text-danger"></span>
+                    <label asp-for="WarehouseIds" class="form-label">Warehouses</label>
+                    <select asp-for="WarehouseIds" asp-items="ViewBag.Warehouses" class="form-select" multiple="multiple"></select>
+                    <span asp-validation-for="WarehouseIds" class="text-danger"></span>
                 </div>
             </div>
         </div>
@@ -78,7 +83,7 @@
                 <i class="align-middle me-1" data-feather="save"></i> Save Changes
             </button>
             <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="align-middle me-1" data-feather="arrow-left"></i> Back to List
+                <i class="align-middle me-1" data-feather="arrow-left"></i> Cancel
             </a>
         </div>
     </form>
@@ -93,44 +98,43 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
         }
 
-        /* Ensure consistent input heights and spacing */
         .form-control, .form-select {
-            height: 38px; /* Match Bootstrap's default input height */
+            height: 38px;
             line-height: 1.5;
         }
 
         .form-control[rows] {
-            height: auto; /* Allow textarea to adjust height based on rows */
+            height: auto;
         }
 
         select[multiple] {
-            min-height: 120px; /* Keep the existing height for multiple select */
-            height: auto; /* Ensure it doesn't overflow */
+            height: 120px;
         }
 
         .mb-3 {
-            margin-bottom: 1rem !important; /* Ensure consistent spacing */
+            margin-bottom: 1rem !important;
         }
 
         .text-danger {
             display: block;
-            margin-top: 0.25rem; /* Space below inputs for validation messages */
+            margin-top: 0.25rem;
         }
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 }
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             feather.replace();
-
-            // Initialize select2 for multiple select
-            $('select[multiple]').select2({
-                placeholder: "Select suppliers",
-                allowClear: true
+            
+            // Initialize Select2 for multiple warehouse selection
+            $('#WarehouseIds').select2({
+                placeholder: "Select warehouses",
+                allowClear: true,
+                width: '100%'
             });
         });
     </script>

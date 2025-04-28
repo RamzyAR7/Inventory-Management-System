@@ -11,6 +11,12 @@
         public Guid ProductID { get; set; }
         public Product Product { get; set; }
 
+        public Guid? SuppliersID { get; set; }
+        public Supplier Suppliers { get; set; }
+
+        public Guid? OrderID { get; set; }
+        public Order Order { get; set; }
+
         public ICollection<WarehouseTransfers> InTransfers { get; set; }
         public ICollection<WarehouseTransfers> OutTransfers { get; set; }
     }

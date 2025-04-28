@@ -11,5 +11,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Interface
         Task UpdateAsync(Guid id, ProductReqDto productDto);
         Task<List<ProductReqDto>> GetProductsByWarehouseAsync(Guid warehouseId);
         Task DeleteAsync(Guid id);
+        Task AssignSupplierFromAnotherProductAsync(Guid sourceProductId, Guid targetProductId);
     }
 }

@@ -59,11 +59,6 @@
                     <input asp-for="RecoderLevel" class="form-control" placeholder="Enter reorder level" />
                     <span asp-validation-for="RecoderLevel" class="text-danger"></span>
                 </div>
-                <div class="mb-3">
-                    <label asp-for="StockQuantity" class="form-label"></label>
-                    <input asp-for="StockQuantity" class="form-control" placeholder="Enter stock quantity" />
-                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
-                </div>
             </div>
 
             <div class="col-md-6">
@@ -75,16 +70,9 @@
                     <span asp-validation-for="CategoryID" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="WarehouseId" class="form-label">Warehouse Name</label>
-                    <select asp-for="WarehouseId" asp-items="ViewBag.Warehouses" class="form-select">
-                        <option value="">Select Warehouse</option>
-                    </select>
-                    <span asp-validation-for="WarehouseId" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="SuppliersIDs" class="form-label">Suppliers</label>
-                    <select asp-for="SuppliersIDs" asp-items="ViewBag.Suppliers" class="form-select" multiple="multiple"></select>
-                    <span asp-validation-for="SuppliersIDs" class="text-danger"></span>
+                    <label asp-for="WarehouseIds" class="form-label">Warehouses</label>
+                    <select asp-for="WarehouseIds" asp-items="ViewBag.Warehouses" class="form-select" multiple="multiple"></select>
+                    <span asp-validation-for="WarehouseIds" class="text-danger"></span>
                 </div>
             </div>
         </div>
@@ -109,42 +97,43 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
         }
 
-        /* Ensure consistent input heights and spacing */
         .form-control, .form-select {
-            height: 38px; /* Match Bootstrap's default input height */
+            height: 38px;
             line-height: 1.5;
         }
 
         .form-control[rows] {
-            height: auto; /* Allow textarea to adjust height based on rows */
+            height: auto;
         }
 
         select[multiple] {
-            min-height: 120px; /* Keep the existing height for multiple select */
-            height: auto; /* Ensure it doesn't overflow */
+            height: 120px;
         }
 
         .mb-3 {
-            margin-bottom: 1rem !important; /* Ensure consistent spacing */
+            margin-bottom: 1rem !important;
         }
 
         .text-danger {
             display: block;
-            margin-top: 0.25rem; /* Space below inputs for validation messages */
+            margin-top: 0.25rem;
         }
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 }
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             feather.replace();
             
-            // Initialize select2 for multiple select
-            $('select[multiple]').select2({
-                placeholder: "Select suppliers",
-                allowClear: true
+            // Initialize Select2 for multiple warehouse selection
+            $('#WarehouseIds').select2({
+                placeholder: "Select warehouses",
+                allowClear: true,
+                width: '100%'
             });
         });
     </script>

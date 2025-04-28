@@ -28,6 +28,7 @@ namespace Inventory_Management_System.Entities
         // Navigation properties
 
         public ICollection<OrderDetail> OrderDetails { get; set; }
+        public ICollection<InventoryTransaction> InventoryTransactions { get; set; }
         public Customer Customer { get; set; }
         [Required]
         public Guid CustomerID { get; set; }

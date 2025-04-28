@@ -63,7 +63,7 @@ namespace Inventory_Management_System.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await PopulateViewBagAsync();
+                await PopulateViewBagAsync(product.CategoryID, product.WarehouseIds);
                 return View(product);
             }
 
@@ -76,7 +76,7 @@ namespace Inventory_Management_System.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                await PopulateViewBagAsync();
+                await PopulateViewBagAsync(product.CategoryID, product.WarehouseIds);
                 return View(product);
             }
         }
@@ -89,11 +89,7 @@ namespace Inventory_Management_System.Controllers
                 return NotFound();
 
             var productReq = _mapper.Map<ProductReqDto>(product);
-            await PopulateViewBagAsync(
-                product.CategoryID,
-                product.Suppliers.Any() ? product.Suppliers.First().SupplierID : null,
-                productReq.WarehouseId);
-
+            await PopulateViewBagAsync(product.CategoryID, productReq.WarehouseIds);
             return View(productReq);
         }
 
@@ -103,7 +99,7 @@ namespace Inventory_Management_System.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await PopulateViewBagAsync(product.CategoryID, product.SuppliersIDs?.FirstOrDefault(), product.WarehouseId);
+                await PopulateViewBagAsync(product.CategoryID, product.WarehouseIds);
                 return View(product);
             }
 
@@ -116,7 +112,7 @@ namespace Inventory_Management_System.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                await PopulateViewBagAsync(product.CategoryID, product.SuppliersIDs?.FirstOrDefault(), product.WarehouseId);
+                await PopulateViewBagAsync(product.CategoryID, product.WarehouseIds);
                 return View(product);
             }
         }
@@ -155,12 +151,10 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
-        private async Task PopulateViewBagAsync(Guid? selectedCategoryId = null, Guid? selectedSupplierId = null, Guid? selectedWarehouseId = null)
+        private async Task PopulateViewBagAsync(Guid? selectedCategoryId = null, List<Guid>? selectedWarehouseIds = null)
         {
             var categories = await _categoryService.GetAllCategories();
-            var suppliers = await _supplierService.GetAllAsync();
             var warehouseDtos = await _warehouseService.GetAllAsync();
-
             IEnumerable<WarehouseResDto> filteredWarehouseDtos = warehouseDtos;
 
             if (User.IsInRole("Manager"))
@@ -187,17 +181,12 @@ namespace Inventory_Management_System.Controllers
                 "CategoryName",
                 selectedCategoryId);
 
-            ViewBag.Suppliers = new MultiSelectList(
-                suppliers.Select(s => new { s.SupplierID, s.SupplierName }),
-                "SupplierID",
-                "SupplierName",
-                selectedSupplierId != null ? new List<Guid> { selectedSupplierId.Value } : null);
-
-            ViewBag.Warehouses = new SelectList(
-                filteredWarehouseDtos.Select(w => new { w.WarehouseID, w.WarehouseName }),
-                "WarehouseID",
-                "WarehouseName",
-                selectedWarehouseId);
+            ViewBag.Warehouses = filteredWarehouseDtos.Select(w => new SelectListItem
+            {
+                Value = w.WarehouseID.ToString(),
+                Text = w.WarehouseName,
+                Selected = selectedWarehouseIds != null && selectedWarehouseIds.Contains(w.WarehouseID)
+            }).ToList();
         }
     }
 }

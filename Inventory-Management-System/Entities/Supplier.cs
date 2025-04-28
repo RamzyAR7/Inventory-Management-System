@@ -15,6 +15,7 @@ namespace Inventory_Management_System.Entities
 
         // Navigation properties
         public ICollection<SupplierProduct> SupplierProducts { get; set; }
+        public ICollection<InventoryTransaction> InventoryTransactions { get; set; }
         #endregion
     }
 }

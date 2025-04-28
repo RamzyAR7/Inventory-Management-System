@@ -205,17 +205,29 @@ namespace Inventory_Management_System.Migrations
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     WarehouseID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SuppliersID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_InventoryTransactions", x => x.TransactionID);
+                    table.ForeignKey(
+                        name: "FK_InventoryTransactions_Orders_OrderID",
+                        column: x => x.OrderID,
+                        principalTable: "Orders",
+                        principalColumn: "OrderID");
                     table.ForeignKey(
                         name: "FK_InventoryTransactions_Products_ProductID",
                         column: x => x.ProductID,
                         principalTable: "Products",
                         principalColumn: "ProductID",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_InventoryTransactions_Suppliers_SuppliersID",
+                        column: x => x.SuppliersID,
+                        principalTable: "Suppliers",
+                        principalColumn: "SupplierID");
                     table.ForeignKey(
                         name: "FK_InventoryTransactions_Warehouses_WarehouseID",
                         column: x => x.WarehouseID,
@@ -338,7 +350,7 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("4e4c8ac8-23b3-4d3b-821d-485d004899db"), new DateTime(2025, 4, 27, 18, 13, 30, 137, DateTimeKind.Utc).AddTicks(402), "admin@gmail.com", "$2a$11$POlZ.Vihf1nFCbvLPcoQxu1en2mlMp66qfhIf/5oZeEqtYXnIk5ma", null, "Admin", "Admin" });
+                values: new object[] { new Guid("051184c8-134b-4667-b71b-bc566da6ab7c"), new DateTime(2025, 4, 28, 20, 40, 53, 551, DateTimeKind.Utc).AddTicks(2312), "admin@gmail.com", "$2a$11$VvEXpLiGzmSLI83wDUlzFuZwKgxAiGF/4y93Yb7IOYRLBgI1ZcvSC", null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_Email",
@@ -347,9 +359,19 @@ namespace Inventory_Management_System.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_InventoryTransactions_OrderID",
+                table: "InventoryTransactions",
+                column: "OrderID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_InventoryTransactions_ProductID",
                 table: "InventoryTransactions",
                 column: "ProductID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventoryTransactions_SuppliersID",
+                table: "InventoryTransactions",
+                column: "SuppliersID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_InventoryTransactions_WarehouseID",
@@ -481,22 +503,22 @@ namespace Inventory_Management_System.Migrations
                 name: "WarehouseTransfers");
 
             migrationBuilder.DropTable(
-                name: "Orders");
-
-            migrationBuilder.DropTable(
-                name: "Suppliers");
-
-            migrationBuilder.DropTable(
                 name: "InventoryTransactions");
 
             migrationBuilder.DropTable(
-                name: "Customers");
+                name: "Orders");
 
             migrationBuilder.DropTable(
                 name: "Products");
 
             migrationBuilder.DropTable(
+                name: "Suppliers");
+
+            migrationBuilder.DropTable(
                 name: "Warehouses");
+
+            migrationBuilder.DropTable(
+                name: "Customers");
 
             migrationBuilder.DropTable(
                 name: "Categories");
