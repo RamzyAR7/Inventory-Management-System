@@ -1,61 +1,53 @@
-﻿@model Inventory_Management_System.Entities.Supplier    
+﻿@model Inventory_Management_System.Entities.Supplier
 
 @{
-    Layout = "_Layout";
     ViewData["Title"] = "Delete Supplier";
 }
 
-<div class="supplier-delete">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Delete Supplier</h1>
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to List
-        </a>
-    </div>
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn" style="max-width: 700px; margin: 0 auto;">
 
-    <div class="alert alert-danger">
-        <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Warning!</h4>
-        <p>Are you sure you want to delete this supplier? This action cannot be undone.</p>
-    </div>
+        <h3 class="fw-semibold mb-4" style="color: #6c707de6;">Delete Supplier</h3>
 
-    <div class="card">
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SupplierName)</dt>
-                <dd class="col-sm-9">@Model.SupplierName</dd>
-
-                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.PhoneNumber)</dt>
-                <dd class="col-sm-9">@Model.PhoneNumber</dd>
-
-                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Email)</dt>
-                <dd class="col-sm-9">@Model.Email</dd>
-            </dl>
-
-            <form asp-action="Delete" class="mt-4">
-                <input type="hidden" asp-for="SupplierID" />
-                <button type="submit" class="btn btn-danger me-2">
-                    <i class="fas fa-trash-alt me-2"></i>Confirm Delete
-                </button>
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="fas fa-times me-2"></i>Cancel
-                </a>
-            </form>
+        <div class="alert small rounded-3 py-2 px-3 mb-4" style="background-color: #ffe5e5; color: #dc3545;" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="align-middle me-2" data-feather="alert-triangle"></i>
+                <div>
+                    <strong>Warning:</strong> Are you sure you want to delete this supplier? This action cannot be undone.
+                </div>
+            </div>
         </div>
+
+        <dl class="row mb-4">
+            <dt class="col-sm-4 text-muted">Supplier Name</dt>
+            <dd class="col-sm-8">@Model.SupplierName</dd>
+
+            <dt class="col-sm-4 text-muted">Phone Number</dt>
+            <dd class="col-sm-8">@Model.PhoneNumber</dd>
+
+            <dt class="col-sm-4 text-muted">Email Address</dt>
+            <dd class="col-sm-8">@Model.Email</dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="SupplierID" />
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold">
+                    <i class="align-middle me-1" data-feather="trash-2"></i> Confirm Delete
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+                    <i class="align-middle me-1" data-feather="arrow-left"></i> Cancel
+                </a>
+            </div>
+        </form>
+
     </div>
 </div>
 
-@section Styles {
-<style>
-    .supplier-delete {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        padding: 20px;
-    }
-    
-    .card {
-        border: none;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-</style>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+        });
+    </script>
 }

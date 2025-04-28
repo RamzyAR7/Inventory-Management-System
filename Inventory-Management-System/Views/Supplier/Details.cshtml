@@ -1,77 +1,73 @@
 ﻿@model Inventory_Management_System.Entities.Supplier
 
 @{
-    Layout = "_Layout";
     ViewData["Title"] = "Supplier Details";
 }
 
-<div class="supplier-details">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Supplier Details</h1>
-        <div>
-            <a asp-action="Edit" asp-route-id="@Model.SupplierID" class="btn btn-warning me-2">
-                <i class="fas fa-edit me-2"></i>Edit
-            </a>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Back to List
-            </a>
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn" style="max-width: 800px; margin: 0 auto;">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-semibold mb-0" style="color: #6c707de6;">Supplier Details</h3>
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.SupplierID" class="btn btn-warning rounded-pill px-3 fw-semibold">
+                    <i class="align-middle me-1" data-feather="edit"></i> Edit
+                </a>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
+                    <i class="align-middle me-1" data-feather="arrow-left"></i> Back
+                </a>
+            </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.SupplierName)</dt>
-                <dd class="col-sm-9">@Model.SupplierName</dd>
+        <dl class="row mb-4">
+            <dt class="col-sm-4 text-muted">Supplier Name</dt>
+            <dd class="col-sm-8">@Model.SupplierName</dd>
 
-                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.PhoneNumber)</dt>
-                <dd class="col-sm-9">@Model.PhoneNumber</dd>
+            <dt class="col-sm-4 text-muted">Phone Number</dt>
+            <dd class="col-sm-8">@Model.PhoneNumber</dd>
 
-                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Email)</dt>
-                <dd class="col-sm-9">@Model.Email</dd>
-            </dl>
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Product Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.SupplierProducts?.Any() == true)
-                            {
-                                foreach (var product in Model.SupplierProducts)
-                                {
-                                    <tr>
-                                        <td>@product.Product.ProductName</td>
-                                    </tr>
-                                }
-                            }
-                            else
+            <dt class="col-sm-4 text-muted">Email Address</dt>
+            <dd class="col-sm-8">@Model.Email</dd>
+        </dl>
+
+        <div class="border-top pt-4">
+            <h5 class="fw-semibold mb-3" style="color: #6c707de6;">Supplied Products</h5>
+
+            <div class="table-responsive rounded-3 overflow-hidden">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr style="color: #6c707de6;">
+                            <th>Product Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.SupplierProducts?.Any() == true)
+                        {
+                            foreach (var product in Model.SupplierProducts)
                             {
                                 <tr>
-                                    <td colspan="3" class="text-center">No products available.</td>
+                                    <td>@product.Product.ProductName</td>
                                 </tr>
                             }
-                        </tbody>
-                    </table>
-                </div>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="text-center text-muted py-4">No products available.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </div>
 </div>
 
-@section Styles {
-    <style>
-        .supplier-details {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-        }
-
-        .card {
-            border: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-    </style>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+        });
+    </script>
 }
