@@ -70,7 +70,7 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _productService.CreateAsync(product);
-                TempData["Success"] = "Product created successfully.";
+                TempData["success"] = "Product created successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -110,7 +110,7 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _productService.UpdateAsync(id, product);
-                TempData["Success"] = "Product updated successfully.";
+                TempData["success"] = "Product updated successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -145,12 +145,12 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _productService.DeleteAsync(id);
-                TempData["Success"] = "Product deleted successfully.";
+                TempData["success"] = "Product deleted successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Delete), new { id });
             }
         }

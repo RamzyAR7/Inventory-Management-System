@@ -143,13 +143,14 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _warehouseService.UpdateAsync(id, warehouse);
-                TempData["SuccessMessage"] = "Warehouse updated successfully!";
+                TempData["success"] = "Warehouse updated successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
             }
+            //TempData["error"] = "An error occurred while updating the warehouse.";
             return View(warehouse);
         }
         [HttpGet]
