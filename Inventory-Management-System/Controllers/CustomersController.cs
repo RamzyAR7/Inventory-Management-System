@@ -1,5 +1,7 @@
-﻿using Inventory_Management_System.BusinessLogic.Services.Interface;
+﻿using AutoMapper;
+using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs.Customer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +11,12 @@ namespace Inventory_Management_System.Controllers
     public class CustomersController : Controller
     {
         private readonly ICustomerService _customerService;
+        private readonly IMapper _mapper;
 
-        public CustomersController(ICustomerService customerService)
+        public CustomersController(ICustomerService customerService, IMapper mapper)
         {
             _customerService = customerService;
+            _mapper = mapper;
         }
 
         public async Task<IActionResult> Index()
@@ -24,6 +28,7 @@ namespace Inventory_Management_System.Controllers
 
         public async Task<IActionResult> Details(Guid id)
         {
+    
             var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
                 return NotFound();
@@ -31,6 +36,7 @@ namespace Inventory_Management_System.Controllers
             return View(customer);
         }
 
+        [HttpGet]
         public IActionResult Create()
         {
             return View();
@@ -38,56 +44,107 @@ namespace Inventory_Management_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create([Bind("FullName,Email,PhoneNumber,Address")] Customer customer)
-        public async Task<IActionResult> Create(Customer customer)
+        public async Task<IActionResult> Create(CustomerReqDto customer)
         {
-            if (ModelState.IsValid)
+            try
             {
-                await _customerService.CreateAsync(customer);
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    await _customerService.CreateAsync(customer);
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(customer);
             }
-            return View(customer);
+            catch(InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(customer);
+            }
+
         }
 
+        [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
             var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
                 return NotFound();
+            var customerDto = _mapper.Map<CustomerReqDto>(customer);
 
-            return View(customer);
+            return View(customerDto);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, Customer customer)
+        public async Task<IActionResult> Edit(Guid id, CustomerReqDto customer)
         {
-            if (id != customer.CustomerID)
-                return BadRequest();
-
-            if (ModelState.IsValid)
+            try
             {
-                await _customerService.UpdateAsync(customer);
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    var customerToUpdate = await _customerService.GetByIdAsync(id);
+  
+                    await _customerService.UpdateAsync(id, customer);
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(customer);
             }
-            return View(customer);
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(customer);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(customer);
+            }
         }
 
         public async Task<IActionResult> Delete(Guid id)
         {
-            var customer = await _customerService.GetByIdAsync(id);
-            if (customer == null)
-                return NotFound();
-
-            return View(customer);
+            try
+            {
+                var customer = await _customerService.GetByIdAsync(id);
+                if (customer == null)
+                    return NotFound();
+                return View(customer);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View();
+            }
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            await _customerService.DeleteAsync(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var customer = await _customerService.GetByIdAsync(id);
+                if (customer == null)
+                    return NotFound();
+                await _customerService.DeleteAsync(id);
+                TempData["success"] = "Customer deleted successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View();
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View();
+            }
         }
     }
 }

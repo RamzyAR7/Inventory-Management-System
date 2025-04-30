@@ -9,6 +9,7 @@ namespace Inventory_Management_System.Entities
         public string UserName { get; set; }
         public string Email { get; set; }
         public string HashedPassword { get; set; }
+        public bool IsActive { get; set; } = true;
         public string Role { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

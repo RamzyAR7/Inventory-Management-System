@@ -10,10 +10,11 @@
         public User Manager { get; set; }
 
         public ICollection<WarehouseStock> WarehouseStocks { get; set; }
-        public ICollection<Shipment> Shipments { get; set; }
 
         public ICollection<InventoryTransaction> InventoryTransactions { get; set; }
         public ICollection<WarehouseTransfers> FromWarehouseTransfers { get; set; }
         public ICollection<WarehouseTransfers> ToWarehouseTransfers { get; set; }
+
+        public ICollection<Order> Orders { get; set; }
     }
 }

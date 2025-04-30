@@ -15,6 +15,9 @@ namespace Inventory_Management_System.Entities
         public string Email { get; set; }
         [Required, MaxLength(15)]
         public string Address { get; set; }
+
+        [Required]
+        public bool IsActive { get; set; } = true;
         [Required]
         public DateTime CreatedAt { get; set; }
         // Navigation properties

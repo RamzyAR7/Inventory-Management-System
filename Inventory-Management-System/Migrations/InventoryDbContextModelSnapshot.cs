@@ -67,6 +67,9 @@ namespace Inventory_Management_System.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -142,11 +145,16 @@ namespace Inventory_Management_System.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<Guid>("WarehouseID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("OrderID");
 
                     b.HasIndex("CreatedByUserID");
 
                     b.HasIndex("CustomerID");
+
+                    b.HasIndex("WarehouseID");
 
                     b.ToTable("Orders");
                 });
@@ -183,6 +191,9 @@ namespace Inventory_Management_System.Migrations
 
                     b.Property<Guid>("CategoryID")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
@@ -238,15 +249,10 @@ namespace Inventory_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("WarehouseID")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("ShipmentID");
 
                     b.HasIndex("OrderID")
                         .IsUnique();
-
-                    b.HasIndex("WarehouseID");
 
                     b.ToTable("Shipments");
                 });
@@ -312,6 +318,9 @@ namespace Inventory_Management_System.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<Guid?>("ManagerID")
                         .HasColumnType("uniqueidentifier");
 
@@ -339,10 +348,11 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("051184c8-134b-4667-b71b-bc566da6ab7c"),
-                            CreatedAt = new DateTime(2025, 4, 28, 20, 40, 53, 551, DateTimeKind.Utc).AddTicks(2312),
+                            UserID = new Guid("2c2f832a-5c26-463a-96b0-5c288fd8f932"),
+                            CreatedAt = new DateTime(2025, 4, 30, 13, 20, 50, 175, DateTimeKind.Utc).AddTicks(3288),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$VvEXpLiGzmSLI83wDUlzFuZwKgxAiGF/4y93Yb7IOYRLBgI1ZcvSC",
+                            HashedPassword = "$2a$11$n16/8J/aRkKGuDzXviqRt.X68ZR0SQBj8rEovFTwizJn7Awfxft1u",
+                            IsActive = true,
                             Role = "Admin",
                             UserName = "Admin"
                         });
@@ -486,9 +496,17 @@ namespace Inventory_Management_System.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
+                        .WithMany("Orders")
+                        .HasForeignKey("WarehouseID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("Customer");
+
+                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.OrderDetail", b =>
@@ -529,15 +547,7 @@ namespace Inventory_Management_System.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
-                        .WithMany("Shipments")
-                        .HasForeignKey("WarehouseID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Order");
-
-                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.SupplierProduct", b =>
@@ -712,7 +722,7 @@ namespace Inventory_Management_System.Migrations
 
                     b.Navigation("InventoryTransactions");
 
-                    b.Navigation("Shipments");
+                    b.Navigation("Orders");
 
                     b.Navigation("ToWarehouseTransfers");
 

@@ -18,6 +18,8 @@ namespace Inventory_Management_System.Models.DTOs.User
         [StringLength(100, ErrorMessage = "Password cannot be longer than 100 characters.")]
         [Required(ErrorMessage = "Password is required.")]
         public string Password { get; set; }
+        [Required]
+        public bool IsActive { get; set; } = true;
 
         [Required(ErrorMessage = "Role is required.")]
         [RegularExpression("^(Admin|Manager|Employee)$", ErrorMessage = "Role must be Admin, Manager, or Employee.")]

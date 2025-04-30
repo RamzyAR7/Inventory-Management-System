@@ -2,6 +2,7 @@
 using Inventory_Management_System.BusinessLogic.Encrypt;
 using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs.Category;
+using Inventory_Management_System.Models.DTOs.Customer;
 using Inventory_Management_System.Models.DTOs.InventoryTransaction;
 using Inventory_Management_System.Models.DTOs.Order;
 using Inventory_Management_System.Models.DTOs.Products;
@@ -111,6 +112,12 @@ namespace Inventory_Management_System.Models.Mapping
 
             #endregion
 
+            #region Customer
+            CreateMap<CustomerReqDto, Customer>()
+                .ForMember(dest => dest.CustomerID, opt => opt.Ignore());
+            CreateMap<Customer, CustomerReqDto>();
+            
+            #endregion
         }
     }
 }

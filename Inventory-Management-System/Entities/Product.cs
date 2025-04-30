@@ -14,6 +14,7 @@ namespace Inventory_Management_System.Entities
         public decimal Price { get; set; }
 
         public int RecoderLevel { get; set; }
+        public bool IsActive { get; set; } = true;
 
         // Foreign key to Category
         public Guid CategoryID { get; set; }

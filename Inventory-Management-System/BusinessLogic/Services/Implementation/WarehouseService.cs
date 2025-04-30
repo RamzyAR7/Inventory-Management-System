@@ -26,7 +26,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task<WarehouseResDto?> GetByIdAsync(Guid id)
         {
-            var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(w => w.WarehouseID == id, w => w.Manager, w => w.WarehouseStocks, w => w.Shipments, w => w.InventoryTransactions);
+            var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(w => w.WarehouseID == id, w => w.Manager, w => w.WarehouseStocks, w => w.InventoryTransactions);
             if (warehouse == null)
             {
                 return null;

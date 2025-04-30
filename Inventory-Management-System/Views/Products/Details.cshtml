@@ -56,6 +56,18 @@
                 <span class="badge bg-primary">@Model.Category?.CategoryName</span>
             </dd>
 
+            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.IsActive)</dt>
+            <dd class="col-sm-9">
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success">Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Inactive</span>
+                }
+            </dd>
+
             <dt class="col-sm-3">Suppliers</dt>
             <dd class="col-sm-9">
                 @if (Model.Suppliers?.Any() == true)

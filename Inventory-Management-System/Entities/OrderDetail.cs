@@ -16,7 +16,7 @@ namespace Inventory_Management_System.Entities
         public decimal UnitPrice { get; set; }
 
         [NotMapped]
-        public decimal TotalPrice => Quantity * UnitPrice;
+        public decimal TotalPrice { get; set; }
 
         // Foreign Keys
         [Required]

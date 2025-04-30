@@ -54,6 +54,7 @@
                     <th class="col-stock-quantity">Stock Quantity</th>
                     <th class="col-category">Category</th>
                     <th class="col-suppliers">Suppliers</th>
+                    <th class="col-suppliers">Is Active</th>
                     <th class="col-warehouse">Warehouse Name</th>
                     <th class="col-actions">Actions</th>
                 </tr>
@@ -103,6 +104,10 @@
                                 <span class="text-muted small">None</span>
                             }
                         </td>
+                        <td>
+                            <span class="badge @(product.IsActive ? "bg-success" : "bg-danger")">
+                                @(product.IsActive ? "Yes" : "No")
+                            </span>
                         <td>
                             @if (product.WarehouseStocks.Any())
                             {

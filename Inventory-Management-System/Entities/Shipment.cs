@@ -14,8 +14,5 @@
         // Relationships
         public Guid OrderID { get; set; }
         public Order? Order { get; set; }
-
-        public Guid WarehouseID { get; set; }
-        public Warehouse? Warehouse { get; set; }
     }
 }

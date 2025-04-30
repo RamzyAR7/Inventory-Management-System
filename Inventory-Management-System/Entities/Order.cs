@@ -13,7 +13,7 @@ namespace Inventory_Management_System.Entities
 
         [NotMapped]
         [Column(TypeName = "decimal(10,2)")]
-        public decimal TotalAmount => OrderDetails?.Sum(od => od.TotalPrice) ?? 0;
+        public decimal TotalAmount { get; set; }
 
         [Required]
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
@@ -33,5 +33,8 @@ namespace Inventory_Management_System.Entities
         [Required]
         public Guid CustomerID { get; set; }
         public Shipment Shipment { get; set; }
+
+        public Guid WarehouseID { get; set; }
+        public Warehouse? Warehouse { get; set; }
     }
 }

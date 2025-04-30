@@ -18,6 +18,8 @@ namespace Inventory_Management_System.Models.DTOs.Products
 
         [Required(ErrorMessage = "Reorder Level is required")]
         public int RecoderLevel { get; set; }
+        [Required]
+        public bool IsActive { get; set; } = true;
 
         [Required(ErrorMessage = "Category is required")]
         public Guid CategoryID { get; set; }

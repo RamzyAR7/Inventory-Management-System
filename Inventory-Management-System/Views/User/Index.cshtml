@@ -38,6 +38,7 @@
                     <tr style="color: #6c707de6;">
                         <th>@Html.DisplayNameFor(model => model.UserName)</th>
                         <th>@Html.DisplayNameFor(model => model.Email)</th>
+                        <th>IsActive</th>
                         <th>@Html.DisplayNameFor(model => model.Role)</th>
                         <th>Manager</th>
                         <th class="text-center">Actions</th>
@@ -60,6 +61,19 @@
                             <tr>
                                 <td>@user.UserName</td>
                                 <td>@user.Email</td>
+                                <td>
+                                    @if (user.IsActive)
+                                    {
+                                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
+                                            Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger px-3 py-1">
+                                            Inactive
+                                        </span>
+                                    }
                                 <td>
                                     @if (user.Role == "Admin")
                                     {

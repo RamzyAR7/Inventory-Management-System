@@ -46,6 +46,11 @@ namespace Inventory_Management_System.DataAccess.Context
                 e.Property(o => o.Status)
                 .HasConversion<string>()
                 .HasMaxLength(50);
+
+                e.HasOne(o => o.Warehouse)
+                .WithMany(w => w.Orders)
+                .HasForeignKey(o => o.WarehouseID)
+                .OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<OrderDetail>(e =>
             {
@@ -157,11 +162,6 @@ namespace Inventory_Management_System.DataAccess.Context
                 e.HasOne(s => s.Order)
                 .WithOne(o => o.Shipment)
                 .HasForeignKey<Shipment>(s => s.OrderID);
-
-                e.HasOne(s => s.Warehouse)
-                .WithMany(w => w.Shipments)
-                .HasForeignKey(s => s.WarehouseID)
-                .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Customer>(e => {
