@@ -36,32 +36,14 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new ProductConfigurations());
             modelBuilder.ApplyConfiguration(new WarehouseStockConfigurations());
             modelBuilder.ApplyConfiguration(new InventoryTransactionConfigurations());
+            modelBuilder.ApplyConfiguration(new SupplierConfigurations());
             
           
-            //modelBuilder.Entity<InventoryTransaction>(e => {
-            //    e.HasKey(it => it.TransactionID);
-            //    e.Property(it => it.Type)
-            //    .HasConversion<string>()
-            //    .HasMaxLength(20);
-            //    e.HasOne(it => it.Warehouse)
-            //    .WithMany(w => w.InventoryTransactions)
-            //    .HasForeignKey(it => it.WarehouseID);
-            //    e.HasOne(it => it.Product)
-            //    .WithMany(p => p.InventoryTransactions)
-            //    .HasForeignKey(it => it.ProductID);
-
-            //    e.HasOne(it => it.Suppliers)
-            //    .WithMany(s => s.InventoryTransactions)
-            //    .HasForeignKey(it => it.SuppliersID);
-
-            //    e.HasOne(it => it.Order)
-            //    .WithMany(o => o.InventoryTransactions)
-            //    .HasForeignKey(it => it.OrderID);
+          
+            //modelBuilder.Entity<Supplier>(e => {
+            //    e.HasKey(s => s.SupplierID);
+            //    e.HasIndex(s => s.SupplierName).IsUnique();
             //});
-            modelBuilder.Entity<Supplier>(e => {
-                e.HasKey(s => s.SupplierID);
-                e.HasIndex(s => s.SupplierName).IsUnique();
-            });
 
             modelBuilder.Entity<SupplierProduct>(e => {
                 e.HasKey(sp => new { sp.SupplierID, sp.ProductID });
