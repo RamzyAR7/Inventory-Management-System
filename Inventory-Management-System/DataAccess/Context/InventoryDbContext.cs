@@ -32,18 +32,12 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new OrderConfigurations());
             modelBuilder.ApplyConfiguration(new OrderDetailConfigurations());
             modelBuilder.ApplyConfiguration(new WarehouseConfigurations());
+            modelBuilder.ApplyConfiguration(new CategoryConfigurations());
             
           
 
             
-            modelBuilder.Entity<Category>(e =>
-            {
-                e.HasKey(c => c.CategoryID);
-                e.Property(c => c.CategoryName)
-                .HasMaxLength(100);
-                e.Property(c => c.Description)
-                .HasMaxLength(255);
-            });
+            
             modelBuilder.Entity<Product>(e =>
             {
                 e.HasKey(p => p.ProductID);
