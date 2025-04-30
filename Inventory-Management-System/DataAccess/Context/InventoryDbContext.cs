@@ -32,64 +32,32 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new OrderConfigurations());
             modelBuilder.ApplyConfiguration(new OrderDetailConfigurations());
             modelBuilder.ApplyConfiguration(new WarehouseConfigurations());
+            modelBuilder.ApplyConfiguration(new CategoryConfigurations());
+            modelBuilder.ApplyConfiguration(new ProductConfigurations());
+            modelBuilder.ApplyConfiguration(new WarehouseStockConfigurations());
+            modelBuilder.ApplyConfiguration(new InventoryTransactionConfigurations());
             
           
+            //modelBuilder.Entity<InventoryTransaction>(e => {
+            //    e.HasKey(it => it.TransactionID);
+            //    e.Property(it => it.Type)
+            //    .HasConversion<string>()
+            //    .HasMaxLength(20);
+            //    e.HasOne(it => it.Warehouse)
+            //    .WithMany(w => w.InventoryTransactions)
+            //    .HasForeignKey(it => it.WarehouseID);
+            //    e.HasOne(it => it.Product)
+            //    .WithMany(p => p.InventoryTransactions)
+            //    .HasForeignKey(it => it.ProductID);
 
-            
-            modelBuilder.Entity<Category>(e =>
-            {
-                e.HasKey(c => c.CategoryID);
-                e.Property(c => c.CategoryName)
-                .HasMaxLength(100);
-                e.Property(c => c.Description)
-                .HasMaxLength(255);
-            });
-            modelBuilder.Entity<Product>(e =>
-            {
-                e.HasKey(p => p.ProductID);
-                e.Property(p => p.ProductName)
-                .HasMaxLength(100);
-                e.Property(p => p.ProductDescription)
-                .HasMaxLength(255);
+            //    e.HasOne(it => it.Suppliers)
+            //    .WithMany(s => s.InventoryTransactions)
+            //    .HasForeignKey(it => it.SuppliersID);
 
-                e.HasOne(p => p.Category)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CategoryID);
-            });
-
-            modelBuilder.Entity<WarehouseStock>(e =>
-            {
-                e.HasKey(ws => new { ws.WarehouseID, ws.ProductID });
-
-                e.HasOne(ws => ws.Warehouse)
-                .WithMany(w => w.WarehouseStocks)
-                .HasForeignKey(ws => ws.WarehouseID);
-
-                e.HasOne(ws => ws.Product)
-                .WithMany(p => p.WarehouseStocks)
-                .HasForeignKey(ws => ws.ProductID);
-
-            });
-            modelBuilder.Entity<InventoryTransaction>(e => {
-                e.HasKey(it => it.TransactionID);
-                e.Property(it => it.Type)
-                .HasConversion<string>()
-                .HasMaxLength(20);
-                e.HasOne(it => it.Warehouse)
-                .WithMany(w => w.InventoryTransactions)
-                .HasForeignKey(it => it.WarehouseID);
-                e.HasOne(it => it.Product)
-                .WithMany(p => p.InventoryTransactions)
-                .HasForeignKey(it => it.ProductID);
-
-                e.HasOne(it => it.Suppliers)
-                .WithMany(s => s.InventoryTransactions)
-                .HasForeignKey(it => it.SuppliersID);
-
-                e.HasOne(it => it.Order)
-                .WithMany(o => o.InventoryTransactions)
-                .HasForeignKey(it => it.OrderID);
-            });
+            //    e.HasOne(it => it.Order)
+            //    .WithMany(o => o.InventoryTransactions)
+            //    .HasForeignKey(it => it.OrderID);
+            //});
             modelBuilder.Entity<Supplier>(e => {
                 e.HasKey(s => s.SupplierID);
                 e.HasIndex(s => s.SupplierName).IsUnique();
