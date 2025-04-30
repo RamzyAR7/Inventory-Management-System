@@ -37,24 +37,13 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new WarehouseStockConfigurations());
             modelBuilder.ApplyConfiguration(new InventoryTransactionConfigurations());
             modelBuilder.ApplyConfiguration(new SupplierConfigurations());
+            modelBuilder.ApplyConfiguration(new SupplierProductConfigurations());
             
           
           
-            //modelBuilder.Entity<Supplier>(e => {
-            //    e.HasKey(s => s.SupplierID);
-            //    e.HasIndex(s => s.SupplierName).IsUnique();
-            //});
+            
 
-            modelBuilder.Entity<SupplierProduct>(e => {
-                e.HasKey(sp => new { sp.SupplierID, sp.ProductID });
-                e.HasOne(sp => sp.Supplier)
-                .WithMany(s => s.SupplierProducts)
-                .HasForeignKey(sp => sp.SupplierID);
-
-                e.HasOne(sp => sp.Product)
-                .WithMany(p => p.Suppliers)
-                .HasForeignKey(sp => sp.ProductID);
-            });
+            
 
             modelBuilder.Entity<Shipment>(e =>
             {
