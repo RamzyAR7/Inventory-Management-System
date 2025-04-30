@@ -4,24 +4,29 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Inventory_Management_System.ConfigurationCalsses
 {
-    public class UserConfigurations : IEntityTypeConfiguration<User>
+    public class OrderDetailConfigurations : IEntityTypeConfiguration<OrderDetail>
     {
-        public void Configure(EntityTypeBuilder<User> builder)
+        public void Configure(EntityTypeBuilder<OrderDetail> builder)
         {
-            builder.HasKey(u => u.UserID);
-            builder.Property(u => u.Role)
-            .HasConversion<string>()
-            .HasMaxLength(50);
-            builder.HasIndex(u => u.Email).IsUnique();
-            builder.HasIndex(u => u.UserName).IsUnique();
+            builder.HasKey(od => new { od.OrderID, od.ProductID });
 
-            builder.HasOne(u => u.Manager)
-            .WithMany()
-            .HasForeignKey(u => u.ManagerID)
-            .OnDelete(DeleteBehavior.NoAction);
+            builder.Property(od => od.Quantity)
+            .HasColumnType("int");
+
+            builder.Property(od => od.UnitPrice)
+            .HasColumnType("decimal(10,2)");
+
+            builder.HasOne(od => od.Order)
+            .WithMany(o => o.OrderDetails)
+            .HasForeignKey(od => od.OrderID);
+
+            builder.HasOne(od => od.Product)
+            .WithMany(p => p.OrderDetails)
+            .HasForeignKey(od => od.ProductID);
+
         }
 
-        
+
     }
     
 }

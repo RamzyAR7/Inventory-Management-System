@@ -30,26 +30,9 @@ namespace Inventory_Management_System.DataAccess.Context
         {
             modelBuilder.ApplyConfiguration(new UserConfigurations());
             modelBuilder.ApplyConfiguration(new OrderConfigurations());
+            modelBuilder.ApplyConfiguration(new OrderDetailConfigurations());
             
-           
-            modelBuilder.Entity<OrderDetail>(e =>
-            {
-                e.HasKey(od => new { od.OrderID, od.ProductID });
-
-                e.Property(od => od.Quantity)
-                .HasColumnType("int");
-
-                e.Property(od => od.UnitPrice)
-                .HasColumnType("decimal(10,2)");
-
-                e.HasOne(od => od.Order)
-                .WithMany(o => o.OrderDetails)
-                .HasForeignKey(od => od.OrderID);
-
-                e.HasOne(od => od.Product)
-                .WithMany(p => p.OrderDetails)
-                .HasForeignKey(od => od.ProductID);
-            });
+          
 
             modelBuilder.Entity<Warehouse>(e =>
             {
