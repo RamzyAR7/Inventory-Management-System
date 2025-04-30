@@ -4,15 +4,18 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Inventory_Management_System.ConfigurationCalsses
 {
-    public class CategoryConfigurations : IEntityTypeConfiguration<Category>
+    public class ShipmentConfigurations : IEntityTypeConfiguration<Shipment>
     {
-        public void Configure(EntityTypeBuilder<Category> builder)
+        public void Configure(EntityTypeBuilder<Shipment> builder)
         {
-            builder.HasKey(c => c.CategoryID);
-            builder.Property(c => c.CategoryName)
-            .HasMaxLength(100);
-            builder.Property(c => c.Description)
-            .HasMaxLength(255);
+            builder.HasKey(s => s.ShipmentID);
+            builder.Property(s => s.Status)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+            builder.HasOne(s => s.Order)
+            .WithOne(o => o.Shipment)
+            .HasForeignKey<Shipment>(s => s.OrderID);
 
         }
 

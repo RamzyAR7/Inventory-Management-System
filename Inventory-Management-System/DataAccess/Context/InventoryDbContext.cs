@@ -38,24 +38,10 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new InventoryTransactionConfigurations());
             modelBuilder.ApplyConfiguration(new SupplierConfigurations());
             modelBuilder.ApplyConfiguration(new SupplierProductConfigurations());
+            modelBuilder.ApplyConfiguration(new ShipmentConfigurations());
             
           
           
-            
-
-            
-
-            modelBuilder.Entity<Shipment>(e =>
-            {
-                e.HasKey(s => s.ShipmentID);
-                e.Property(s => s.Status)
-                .HasConversion<string>()
-                .HasMaxLength(50);
-
-                e.HasOne(s => s.Order)
-                .WithOne(o => o.Shipment)
-                .HasForeignKey<Shipment>(s => s.OrderID);
-            });
 
             modelBuilder.Entity<Customer>(e => {
                 e.HasKey(c => c.CustomerID);
