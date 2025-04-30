@@ -31,20 +31,11 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new UserConfigurations());
             modelBuilder.ApplyConfiguration(new OrderConfigurations());
             modelBuilder.ApplyConfiguration(new OrderDetailConfigurations());
+            modelBuilder.ApplyConfiguration(new WarehouseConfigurations());
             
           
 
-            modelBuilder.Entity<Warehouse>(e =>
-            {
-                e.HasKey(w => w.WarehouseID);
-                e.Property(w => w.Address)
-                .HasMaxLength(255);
-                e.HasOne(w => w.Manager)
-                .WithMany( u => u.ManagedWarehouses)
-                .HasForeignKey(w => w.ManagerID);
-
-                e.HasIndex(w => w.WarehouseName).IsUnique();
-            });
+            
             modelBuilder.Entity<Category>(e =>
             {
                 e.HasKey(c => c.CategoryID);

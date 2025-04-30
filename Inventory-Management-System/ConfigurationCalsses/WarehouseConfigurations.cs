@@ -4,24 +4,22 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Inventory_Management_System.ConfigurationCalsses
 {
-    public class UserConfigurations : IEntityTypeConfiguration<User>
+    public class WarehouseConfigurations : IEntityTypeConfiguration<Warehouse>
     {
-        public void Configure(EntityTypeBuilder<User> builder)
+        public void Configure(EntityTypeBuilder<Warehouse> builder)
         {
-            builder.HasKey(u => u.UserID);
-            builder.Property(u => u.Role)
-            .HasConversion<string>()
-            .HasMaxLength(50);
-            builder.HasIndex(u => u.Email).IsUnique();
-            builder.HasIndex(u => u.UserName).IsUnique();
+            builder.HasKey(w => w.WarehouseID);
+            builder.Property(w => w.Address)
+            .HasMaxLength(255);
+            builder.HasOne(w => w.Manager)
+            .WithMany(u => u.ManagedWarehouses)
+            .HasForeignKey(w => w.ManagerID);
 
-            builder.HasOne(u => u.Manager)
-            .WithMany()
-            .HasForeignKey(u => u.ManagerID)
-            .OnDelete(DeleteBehavior.NoAction);
+            builder.HasIndex(w => w.WarehouseName).IsUnique();
+
         }
 
-        
+
     }
     
 }
