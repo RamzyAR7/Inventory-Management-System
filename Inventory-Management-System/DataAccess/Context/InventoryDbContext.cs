@@ -34,26 +34,9 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new WarehouseConfigurations());
             modelBuilder.ApplyConfiguration(new CategoryConfigurations());
             modelBuilder.ApplyConfiguration(new ProductConfigurations());
+            modelBuilder.ApplyConfiguration(new WarehouseStockConfigurations());
             
           
-
-            
-            
-            
-
-            modelBuilder.Entity<WarehouseStock>(e =>
-            {
-                e.HasKey(ws => new { ws.WarehouseID, ws.ProductID });
-
-                e.HasOne(ws => ws.Warehouse)
-                .WithMany(w => w.WarehouseStocks)
-                .HasForeignKey(ws => ws.WarehouseID);
-
-                e.HasOne(ws => ws.Product)
-                .WithMany(p => p.WarehouseStocks)
-                .HasForeignKey(ws => ws.ProductID);
-
-            });
             modelBuilder.Entity<InventoryTransaction>(e => {
                 e.HasKey(it => it.TransactionID);
                 e.Property(it => it.Type)
