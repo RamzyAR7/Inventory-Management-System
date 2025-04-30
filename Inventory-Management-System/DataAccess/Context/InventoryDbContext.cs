@@ -33,23 +33,13 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new OrderDetailConfigurations());
             modelBuilder.ApplyConfiguration(new WarehouseConfigurations());
             modelBuilder.ApplyConfiguration(new CategoryConfigurations());
+            modelBuilder.ApplyConfiguration(new ProductConfigurations());
             
           
 
             
             
-            modelBuilder.Entity<Product>(e =>
-            {
-                e.HasKey(p => p.ProductID);
-                e.Property(p => p.ProductName)
-                .HasMaxLength(100);
-                e.Property(p => p.ProductDescription)
-                .HasMaxLength(255);
-
-                e.HasOne(p => p.Category)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CategoryID);
-            });
+            
 
             modelBuilder.Entity<WarehouseStock>(e =>
             {
