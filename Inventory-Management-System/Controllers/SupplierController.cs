@@ -18,12 +18,14 @@ namespace Inventory_Management_System.Controllers
             _supplierService = supplierService;
             _mapper = mapper;
         }
+        
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             var suppliers = await _supplierService.GetAllAsync();
             return View(suppliers);
         }
+        
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
@@ -33,6 +35,7 @@ namespace Inventory_Management_System.Controllers
 
             return View(supplier);
         }
+        
         [HttpGet]
         public IActionResult Create()
         {
@@ -46,6 +49,7 @@ namespace Inventory_Management_System.Controllers
             if (ModelState.IsValid)
             {
                 await _supplierService.CreateAsync(supplier);
+                TempData["success"] = "Supplier created successfully.";
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);
@@ -68,10 +72,12 @@ namespace Inventory_Management_System.Controllers
             if (ModelState.IsValid)
             {
                 await _supplierService.UpdateAsync(id, supplier);
+                TempData["success"] = "Supplier edited successfully.";
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);
         }
+        
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -87,6 +93,7 @@ namespace Inventory_Management_System.Controllers
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             await _supplierService.DeleteAsync(id);
+            TempData["success"] = "Supplier deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
     }
