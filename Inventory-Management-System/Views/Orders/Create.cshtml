@@ -306,8 +306,13 @@
                 return;
             }
 
-            if (quantity > stock) {
-                showToast(`Only ${stock} available in stock`, 'danger');
+            // Check existing quantity in cart
+            const existingItem = cart.find(item => item.productId === productId);
+            const currentQuantity = existingItem ? existingItem.quantity : 0;
+            const newTotalQuantity = currentQuantity + quantity;
+
+            if (newTotalQuantity > stock) {
+                showToast(`Cannot add ${quantity} more. Only ${stock - currentQuantity} available in stock`, 'danger');
                 quantityInput.focus();
                 return;
             }
@@ -320,17 +325,19 @@
                 data: {
                     warehouseId: warehouseId,
                     productId: productId,
-                    quantity: quantity,
+                    quantity: newTotalQuantity, // Send the total quantity for validation
                     __RequestVerificationToken: token
                 },
                 success: function (response) {
                     if (response.success) {
-                        // Add or update in cart
+                        // Update or add to cart
                         const existingIndex = cart.findIndex(item => item.productId === response.product.productId);
                         if (existingIndex >= 0) {
+                            // Update existing item by adding quantity
                             cart[existingIndex].quantity = response.product.quantity;
                             cart[existingIndex].totalPrice = response.product.totalPrice;
                         } else {
+                            // Add new item
                             cart.push({
                                 productId: response.product.productId,
                                 productName: productName,
@@ -340,7 +347,7 @@
                             });
                         }
                         updateSelectedProducts();
-                        showToast(`${productName} added to order`, 'success');
+                        showToast(`${productName} quantity updated in order`, 'success');
                     } else {
                         showToast(response.message, 'danger');
                     }

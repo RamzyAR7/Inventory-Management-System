@@ -31,107 +31,17 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new UserConfigurations());
             modelBuilder.ApplyConfiguration(new OrderConfigurations());
             modelBuilder.ApplyConfiguration(new OrderDetailConfigurations());
-            modelBuilder.ApplyConfiguration(new WarehouseConfigurations());
+            modelBuilder.ApplyConfiguration(new WarehouseTransfersConfigurations());
             modelBuilder.ApplyConfiguration(new CategoryConfigurations());
             modelBuilder.ApplyConfiguration(new ProductConfigurations());
             modelBuilder.ApplyConfiguration(new WarehouseStockConfigurations());
             modelBuilder.ApplyConfiguration(new InventoryTransactionConfigurations());
-            
-          
-            //modelBuilder.Entity<InventoryTransaction>(e => {
-            //    e.HasKey(it => it.TransactionID);
-            //    e.Property(it => it.Type)
-            //    .HasConversion<string>()
-            //    .HasMaxLength(20);
-            //    e.HasOne(it => it.Warehouse)
-            //    .WithMany(w => w.InventoryTransactions)
-            //    .HasForeignKey(it => it.WarehouseID);
-            //    e.HasOne(it => it.Product)
-            //    .WithMany(p => p.InventoryTransactions)
-            //    .HasForeignKey(it => it.ProductID);
-
-            //    e.HasOne(it => it.Suppliers)
-            //    .WithMany(s => s.InventoryTransactions)
-            //    .HasForeignKey(it => it.SuppliersID);
-
-            //    e.HasOne(it => it.Order)
-            //    .WithMany(o => o.InventoryTransactions)
-            //    .HasForeignKey(it => it.OrderID);
-            //});
-            modelBuilder.Entity<Supplier>(e => {
-                e.HasKey(s => s.SupplierID);
-                e.HasIndex(s => s.SupplierName).IsUnique();
-            });
-
-            modelBuilder.Entity<SupplierProduct>(e => {
-                e.HasKey(sp => new { sp.SupplierID, sp.ProductID });
-                e.HasOne(sp => sp.Supplier)
-                .WithMany(s => s.SupplierProducts)
-                .HasForeignKey(sp => sp.SupplierID);
-
-                e.HasOne(sp => sp.Product)
-                .WithMany(p => p.Suppliers)
-                .HasForeignKey(sp => sp.ProductID);
-            });
-
-            modelBuilder.Entity<Shipment>(e =>
-            {
-                e.HasKey(s => s.ShipmentID);
-                e.Property(s => s.Status)
-                .HasConversion<string>()
-                .HasMaxLength(50);
-
-                e.HasOne(s => s.Order)
-                .WithOne(o => o.Shipment)
-                .HasForeignKey<Shipment>(s => s.OrderID);
-            });
-
-            modelBuilder.Entity<Customer>(e => {
-                e.HasKey(c => c.CustomerID);
-                e.HasIndex(u => u.Email).IsUnique();
-
-                e.HasMany(c => c.Orders)
-                .WithOne(o => o.Customer)
-                .HasForeignKey(o => o.CustomerID);
-                //e.HasIndex(u => u.FullName).IsUnique();
-            });
-            modelBuilder.Entity<WarehouseTransfers>(e =>
-            {
-                e.HasKey(wt => wt.WarehouseTransferID);
-
-                e.HasOne(wt => wt.FromProduct)
-                  .WithMany(p => p.FromWarehouseTransfers)
-                  .HasForeignKey(wt => wt.FromProductID)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.ToProduct)
-                  .WithMany(p => p.ToWarehouseTransfers)
-                  .HasForeignKey(wt => wt.ToProductID)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.FromWarehouse)
-                  .WithMany(w => w.FromWarehouseTransfers)
-                  .HasForeignKey(wt => wt.FromWarehouseID)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.ToWarehouse)
-                 .WithMany(w => w.ToWarehouseTransfers)
-                 .HasForeignKey(wt => wt.ToWarehouseID)
-                 .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.OutTransaction)
-                  .WithMany(t => t.OutTransfers)
-                  .HasForeignKey(wt => wt.OutTransactionID)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.InTransaction)
-                  .WithMany(t => t.InTransfers)
-                  .HasForeignKey(wt => wt.InTransactionID)
-                  .OnDelete(DeleteBehavior.Restrict);
-            });
-
+            modelBuilder.ApplyConfiguration(new SupplierConfigurations());
+            modelBuilder.ApplyConfiguration(new SupplierProductConfigurations());
+            modelBuilder.ApplyConfiguration(new ShipmentConfigurations());
+            modelBuilder.ApplyConfiguration(new CustomerConfigurations());
+            modelBuilder.ApplyConfiguration(new WarehouseConfigurations());
             SeedAdmin(modelBuilder);
-
         }
         public static void SeedAdmin(ModelBuilder modelBuilder)
         {

@@ -12,6 +12,17 @@ namespace Inventory_Management_System.ConfigurationCalsses
             builder.Property(it => it.Type)
             .HasConversion<string>()
             .HasMaxLength(20);
+
+            builder.HasMany(it => it.InTransfers)
+                .WithOne(wt => wt.InTransaction)
+                .HasForeignKey(wt => wt.InTransactionID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(it => it.OutTransfers)
+                .WithOne(wt => wt.OutTransaction)
+                .HasForeignKey(wt => wt.OutTransactionID)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.HasOne(it => it.Warehouse)
             .WithMany(w => w.InventoryTransactions)
             .HasForeignKey(it => it.WarehouseID);

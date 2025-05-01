@@ -355,7 +355,7 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "IsActive", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("b183cbb0-083f-498c-8807-f13ee6e127e7"), new DateTime(2025, 5, 1, 0, 30, 17, 290, DateTimeKind.Utc).AddTicks(2180), "admin@gmail.com", "$2a$11$09qbLNRi8qbiNwcE7LUAneWGEM4KO6.PEjlWFvZWWCz89AF3ncJp2", true, null, "Admin", "Admin" });
+                values: new object[] { new Guid("5156b934-1d38-4517-a294-3220fa487362"), new DateTime(2025, 5, 1, 2, 10, 38, 704, DateTimeKind.Utc).AddTicks(2530), "admin@gmail.com", "$2a$11$95WTi58TcGp7z4SR0Ym28uxVYHLjbirU.JscyHf5GQXB22H9MJnBS", true, null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_Email",
