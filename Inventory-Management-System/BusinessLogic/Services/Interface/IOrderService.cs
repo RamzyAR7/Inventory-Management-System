@@ -10,6 +10,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Interface
     public interface IOrderService
     {
         Task<IEnumerable<OrderResponseDto>> GetAllAsync();
+        Task<(IEnumerable<Order> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize);
         Task<OrderDetailResponseDto?> GetByIdAsync(Guid id);
         Task CreateAsync(OrderReqDto orderDto, Guid userId);
         Task UpdateStatusAsync(Guid orderId, OrderStatus newStatus);

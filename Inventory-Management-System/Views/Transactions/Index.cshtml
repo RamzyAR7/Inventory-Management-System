@@ -1,6 +1,8 @@
-﻿@model IEnumerable<Inventory_Management_System.Entities.InventoryTransaction>
+﻿@model dynamic
 @{
     ViewData["Title"] = "Transactions Dashboard";
+    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<Inventory_Management_System.Entities.InventoryTransaction>;
+    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<Inventory_Management_System.Entities.InventoryTransaction>;
     var transfers = ViewBag.Transfers as IEnumerable<Inventory_Management_System.Entities.WarehouseTransfers>;
     int totalCount = (int)ViewBag.TotalCount;
     int pageNumber = (int)ViewBag.PageNumber;
@@ -9,7 +11,6 @@
 }
 
 <style>
-    /* Button styling for consistent look across the application */
     .btn {
         transition: all 0.3s ease;
         border-radius: 4px;
@@ -18,45 +19,45 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         border: none;
     }
-    
+
     .btn-primary {
         background-color: #4e73df;
         color: white;
     }
-    
-    .btn-primary:hover {
-        background-color: #3a5ec0;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    
+
+        .btn-primary:hover {
+            background-color: #3a5ec0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
     .btn-secondary {
         background-color: #6c757d;
         color: white;
     }
-    
-    .btn-secondary:hover {
-        background-color: #5a6268;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
     .btn-info {
         background-color: #36b9cc;
         color: white;
     }
-    
-    .btn-info:hover {
-        background-color: #2c9faf;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    
+
+        .btn-info:hover {
+            background-color: #2c9faf;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
     .btn-sm {
         padding: 5px 10px;
         font-size: 0.875rem;
     }
-    
+
     .button-group {
         display: flex;
         gap: 10px;
@@ -76,19 +77,16 @@
     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-<!-- All Action Buttons Grouped at Top -->
+<!-- Action Buttons -->
 <div class="button-group">
-    <!-- View Buttons -->
     <a asp-action="ListTransactions" class="btn btn-secondary">
-        <i class="fas fa-list"></i> ALL IN/OUT Transactions
+        <i class="fas fa-list"></i> All In/Out Transactions
     </a>
     <a asp-action="ListTransfers" class="btn btn-secondary">
-        <i class="fas fa-exchange-alt"></i> All From/To Transfers
+        <i class="fas fa-exchange-alt"></i> All Transfers
     </a>
-    
-    <!-- Create Buttons -->
     <a asp-action="CreateInTransaction" class="btn btn-primary">
-        <i class="fas fa-plus-circle"></i> Create In
+        <i class="fas fa-plus-circle"></i> Create In Transaction
     </a>
     <a asp-action="TransferBetweenWarehouses" class="btn btn-primary">
         <i class="fas fa-truck-moving"></i> Create Transfer
@@ -106,6 +104,92 @@
     </div>
 </form>
 
+<!-- In Transactions (From Suppliers) -->
+<h3>In Transactions (From Suppliers)</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Transaction ID</th>
+            <th>Supplier</th>
+            <th>Product</th>
+            <th>Warehouse</th>
+            <th>Quantity</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (supplierInTransactions != null && supplierInTransactions.Any())
+        {
+            @foreach (var transaction in supplierInTransactions)
+            {
+                <tr>
+                    <td>@transaction.TransactionID</td>
+                    <td>@(transaction.Suppliers?.SupplierName ?? "N/A")</td>
+                    <td>@transaction.Product.ProductName</td>
+                    <td>@transaction.Warehouse.WarehouseName</td>
+                    <td>@transaction.Quantity</td>
+                    <td>@transaction.TransactionDate.ToString("g")</td>
+                    <td>
+                        <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-info btn-sm">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">No supplier In transactions found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Out Transactions (To Customers) -->
+<h3>Out Transactions (To Customers)</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Transaction ID</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Warehouse</th>
+            <th>Quantity</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (customerOutTransactions != null && customerOutTransactions.Any())
+        {
+            @foreach (var transaction in customerOutTransactions)
+            {
+                <tr>
+                    <td>@transaction.TransactionID</td>
+                    <td>@(transaction.Order?.Customer?.FullName ?? "N/A")</td>
+                    <td>@transaction.Product.ProductName</td>
+                    <td>@transaction.Warehouse.WarehouseName</td>
+                    <td>@transaction.Quantity</td>
+                    <td>@transaction.TransactionDate.ToString("g")</td>
+                    <td>
+                        <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-info btn-sm">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">No customer Out transactions found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
 <!-- Warehouse Transfers -->
 <h3>Warehouse Transfers</h3>
 <table class="table table-bordered">
@@ -122,7 +206,7 @@
         </tr>
     </thead>
     <tbody>
-        @if (transfers.Any())
+        @if (transfers != null && transfers.Any())
         {
             @foreach (var transfer in transfers)
             {
@@ -150,49 +234,7 @@
         }
     </tbody>
 </table>
-<!-- Rest of the content remains unchanged -->
-<!-- In/Out Transactions -->
-<h3>In/Out Transactions</h3>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Transaction ID</th>
-            <th>Type</th>
-            <th>Product</th>
-            <th>Warehouse</th>
-            <th>Quantity</th>
-            <th>Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Any())
-        {
-            @foreach (var transaction in Model)
-            {
-                <tr>
-                    <td>@transaction.TransactionID</td>
-                    <td>@transaction.Type</td>
-                    <td>@transaction.Product.ProductName</td>
-                    <td>@transaction.Warehouse.WarehouseName</td>
-                    <td>@transaction.Quantity</td>
-                    <td>@transaction.TransactionDate.ToString("g")</td>
-                    <td>
-                        <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-info btn-sm">
-                            <i class="fas fa-info-circle"></i> Details
-                        </a>
-                    </td>
-                </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="7" class="text-center">No transactions found.</td>
-            </tr>
-        }
-    </tbody>
-</table>
+
 <!-- Pagination for Transactions -->
 <nav>
     <ul class="pagination">
@@ -210,5 +252,5 @@
         <i class="fas fa-boxes me-2"></i>Go to Inventory
     </a>
 </div>
-<!-- Add Font Awesome for icons -->
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />

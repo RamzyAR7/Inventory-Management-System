@@ -8,6 +8,7 @@ using Inventory_Management_System.Models.DTOs.Order;
 using Inventory_Management_System.Models.DTOs.Order.Request;
 using Inventory_Management_System.Models.DTOs.Order.Responce;
 using Inventory_Management_System.Models.DTOs.Products;
+using Inventory_Management_System.Models.DTOs.Shipment;
 using Inventory_Management_System.Models.DTOs.Supplier;
 using Inventory_Management_System.Models.DTOs.User;
 using Inventory_Management_System.Models.DTOs.UserDto;
@@ -139,7 +140,30 @@ namespace Inventory_Management_System.Models.Mapping
             CreateMap<CustomerReqDto, Customer>()
                 .ForMember(dest => dest.CustomerID, opt => opt.Ignore());
             CreateMap<Customer, CustomerReqDto>();
-            
+
+            #endregion
+
+            #region Shipment
+            CreateMap<Shipment, ShipmentReqDto>()
+                .ForMember(dest => dest.ShipmentID, opt => opt.MapFrom(src => src.ShipmentID))
+                .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber))
+                .ForMember(dest => dest.Destination, opt => opt.MapFrom(src => src.Destination))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.ItemCount, opt => opt.MapFrom(src => src.ItemCount))
+                .ForMember(dest => dest.ShippedDate, opt => opt.MapFrom(src => src.ShippedDate))
+                .ForMember(dest => dest.DeliveryDate, opt => opt.MapFrom(src => src.DeliveryDate))
+                .ForMember(dest => dest.OrderID, opt => opt.MapFrom(src => src.OrderID));
+
+            CreateMap<ShipmentReqDto, Shipment>()
+                .ForMember(dest => dest.ShipmentID, opt => opt.MapFrom(src => src.ShipmentID))
+                .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber))
+                .ForMember(dest => dest.Destination, opt => opt.MapFrom(src => src.Destination))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.ItemCount, opt => opt.MapFrom(src => src.ItemCount))
+                .ForMember(dest => dest.ShippedDate, opt => opt.MapFrom(src => src.ShippedDate))
+                .ForMember(dest => dest.DeliveryDate, opt => opt.MapFrom(src => src.DeliveryDate))
+                .ForMember(dest => dest.OrderID, opt => opt.MapFrom(src => src.OrderID))
+                .ForMember(dest => dest.Order, opt => opt.Ignore()); // Ignore navigation property
             #endregion
         }
     }

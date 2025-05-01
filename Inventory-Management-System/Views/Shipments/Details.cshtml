@@ -1,0 +1,59 @@
+﻿@model Inventory_Management_System.Entities.Shipment
+@{
+    ViewData["Title"] = "Shipment Details";
+}
+
+<h2>Shipment Details</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Shipment ID</dt>
+            <dd class="col-sm-9">@Model.ShipmentID</dd>
+
+            <dt class="col-sm-3">Order ID</dt>
+            <dd class="col-sm-9">@Model.OrderID</dd>
+
+            <dt class="col-sm-3">Customer</dt>
+            <dd class="col-sm-9">@(Model.Order?.Customer?.FullName ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Warehouse</dt>
+            <dd class="col-sm-9">@(Model.Order?.Warehouse?.WarehouseName ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Tracking Number</dt>
+            <dd class="col-sm-9">@Model.TrackingNumber</dd>
+
+            <dt class="col-sm-3">Destination</dt>
+            <dd class="col-sm-9">@Model.Destination</dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">@Model.Status</dd>
+
+            <dt class="col-sm-3">Item Count</dt>
+            <dd class="col-sm-9">@Model.ItemCount</dd>
+
+            <dt class="col-sm-3">Shipped Date</dt>
+            <dd class="col-sm-9">@(Model.ShippedDate?.ToString("g") ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Delivery Date</dt>
+            <dd class="col-sm-9">@(Model.DeliveryDate?.ToString("g") ?? "N/A")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.ShipmentID" class="btn btn-primary">Edit</a>
+    @if (Model.Status == ShipmentStatus.Cancelled)
+    {
+        <form asp-action="Delete" asp-route-id="@Model.ShipmentID" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this shipment?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Back to Shipments</a>
+</div>

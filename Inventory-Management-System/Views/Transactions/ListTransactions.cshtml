@@ -1,6 +1,8 @@
-﻿@model IEnumerable<Inventory_Management_System.Entities.InventoryTransaction>
+﻿@model dynamic
 @{
     ViewData["Title"] = "In/Out Transactions";
+    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<Inventory_Management_System.Entities.InventoryTransaction>;
+    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<Inventory_Management_System.Entities.InventoryTransaction>;
     int totalCount = (int)ViewBag.TotalCount;
     int pageNumber = (int)ViewBag.PageNumber;
     int pageSize = (int)ViewBag.PageSize;
@@ -28,11 +30,13 @@
     </div>
 </form>
 
+<!-- In Transactions (From Suppliers) -->
+<h3>In Transactions (From Suppliers)</h3>
 <table class="table table-bordered">
     <thead>
         <tr>
             <th>Transaction ID</th>
-            <th>Type</th>
+            <th>Supplier</th>
             <th>Product</th>
             <th>Warehouse</th>
             <th>Quantity</th>
@@ -41,13 +45,13 @@
         </tr>
     </thead>
     <tbody>
-        @if (Model.Any())
+        @if (supplierInTransactions != null && supplierInTransactions.Any())
         {
-            @foreach (var transaction in Model)
+            @foreach (var transaction in supplierInTransactions)
             {
                 <tr>
                     <td>@transaction.TransactionID</td>
-                    <td>@transaction.Type</td>
+                    <td>@(transaction.Suppliers?.SupplierName ?? "N/A")</td>
                     <td>@transaction.Product.ProductName</td>
                     <td>@transaction.Warehouse.WarehouseName</td>
                     <td>@transaction.Quantity</td>
@@ -61,7 +65,48 @@
         else
         {
             <tr>
-                <td colspan="7" class="text-center">No transactions found.</td>
+                <td colspan="7" class="text-center">No supplier In transactions found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Out Transactions (To Customers) -->
+<h3>Out Transactions (To Customers)</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Transaction ID</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Warehouse</th>
+            <th>Quantity</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (customerOutTransactions != null && customerOutTransactions.Any())
+        {
+            @foreach (var transaction in customerOutTransactions)
+            {
+                <tr>
+                    <td>@transaction.TransactionID</td>
+                    <td>@(transaction.Order?.Customer?.FullName ?? "N/A")</td>
+                    <td>@transaction.Product.ProductName</td>
+                    <td>@transaction.Warehouse.WarehouseName</td>
+                    <td>@transaction.Quantity</td>
+                    <td>@transaction.TransactionDate.ToString("g")</td>
+                    <td>
+                        <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-info btn-sm">Details</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">No customer Out transactions found.</td>
             </tr>
         }
     </tbody>
@@ -80,6 +125,6 @@
 </nav>
 
 <div class="mt-3">
-    <a asp-action="CreateInOrOutTransaction" class="btn btn-primary">Create In/Out Transaction</a>
+    <a asp-action="CreateInTransaction" class="btn btn-primary">Create In Transaction</a>
     <a asp-action="Index" class="btn btn-secondary">Back to Dashboard</a>
 </div>

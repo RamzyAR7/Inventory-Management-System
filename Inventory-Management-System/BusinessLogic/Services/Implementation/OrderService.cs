@@ -46,6 +46,26 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             var orders = await _unitOfWork.Orders.GetAllWithDetailsAsync(predicate);
             return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
         }
+        public async Task<(IEnumerable<Order> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize)
+        {
+            try
+            {
+                var includes = new Expression<Func<Order, object>>[]
+                {
+                    o => o.Customer,
+                    o => o.Warehouse
+                };
+
+                var (items, totalCount) = await _unitOfWork.Orders.GetPagedAsync(pageNumber, pageSize, null, includes);
+                _logger.LogInformation("GetPagedOrdersAsync - Retrieved {ItemCount} orders, TotalCount: {TotalCount}", items.Count(), totalCount);
+                return (items, totalCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetPagedOrdersAsync - Error retrieving orders: {Message}", ex.Message);
+                throw;
+            }
+        }
 
         public async Task<OrderDetailResponseDto?> GetByIdAsync(Guid id)
         {
