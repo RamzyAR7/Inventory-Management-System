@@ -39,19 +39,8 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new SupplierConfigurations());
             modelBuilder.ApplyConfiguration(new SupplierProductConfigurations());
             modelBuilder.ApplyConfiguration(new ShipmentConfigurations());
+            modelBuilder.ApplyConfiguration(new CustomerConfigurations());
             
-          
-          
-
-            modelBuilder.Entity<Customer>(e => {
-                e.HasKey(c => c.CustomerID);
-                e.HasIndex(u => u.Email).IsUnique();
-
-                e.HasMany(c => c.Orders)
-                .WithOne(o => o.Customer)
-                .HasForeignKey(o => o.CustomerID);
-                //e.HasIndex(u => u.FullName).IsUnique();
-            });
             modelBuilder.Entity<WarehouseTransfers>(e =>
             {
                 e.HasKey(wt => wt.WarehouseTransferID);
