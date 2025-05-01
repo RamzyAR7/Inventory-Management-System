@@ -51,6 +51,7 @@ namespace Inventory_Management_System.Controllers
                 if (ModelState.IsValid)
                 {
                     await _customerService.CreateAsync(customer);
+                    TempData["success"] = "Customers created successfully.";
                     return RedirectToAction(nameof(Index));
                 }
                 return View(customer);
@@ -85,6 +86,7 @@ namespace Inventory_Management_System.Controllers
                     var customerToUpdate = await _customerService.GetByIdAsync(id);
   
                     await _customerService.UpdateAsync(id, customer);
+                    TempData["success"] = "Customers Edited successfully.";
                     return RedirectToAction(nameof(Index));
                 }
                 return View(customer);
