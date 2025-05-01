@@ -86,6 +86,9 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 var order = _mapper.Map<Order>(orderDto);
                 order.CreatedByUserID = userId;
 
+                // Clear OrderDetails to avoid duplicates from AutoMapper
+                order.OrderDetails = new List<OrderDetail>();
+
                 // Validate warehouse access
                 var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserID == order.CreatedByUserID);
                 if (user == null)
@@ -114,6 +117,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                         throw new InvalidOperationException(errorMessage);
 
                     orderDetail.OrderID = order.OrderID;
+                    orderDetail.OrderDetailID = Guid.NewGuid(); // Ensure unique ID for each OrderDetail
                     order.OrderDetails.Add(orderDetail);
                     totalAmount += orderDetail.TotalPrice;
                 }
