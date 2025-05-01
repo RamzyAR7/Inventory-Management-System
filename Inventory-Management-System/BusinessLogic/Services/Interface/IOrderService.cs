@@ -2,7 +2,7 @@
 using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
-using Inventory_Management_System.Models.DTOs.Order;
+using Inventory_Management_System.Models.DTOs.Order.Request;
 using Inventory_Management_System.Models.DTOs.Order.Responce;
 
 namespace Inventory_Management_System.BusinessLogic.Services.Interface
@@ -11,7 +11,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Interface
     {
         Task<IEnumerable<OrderResponseDto>> GetAllAsync();
         Task<OrderDetailResponseDto?> GetByIdAsync(Guid id);
-        Task CreateAsync(OrderReqDto orderDto);
+        Task CreateAsync(OrderReqDto orderDto, Guid userId);
         Task UpdateStatusAsync(Guid orderId, OrderStatus newStatus);
         Task EditAsync(Guid orderId, OrderReqDto orderDto);
         Task<List<Guid>> GetAccessibleWarehouseIdsAsync(string role, Guid userId);

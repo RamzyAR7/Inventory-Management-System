@@ -17,6 +17,10 @@ namespace Inventory_Management_System.ConfigurationCalsses
             .WithOne(o => o.Shipment)
             .HasForeignKey<Shipment>(s => s.OrderID);
 
+            builder.Property(s => s.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
         }
 
 

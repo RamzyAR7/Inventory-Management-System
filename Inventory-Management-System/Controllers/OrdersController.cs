@@ -2,6 +2,7 @@
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs.Order;
+using Inventory_Management_System.Models.DTOs.Order.Request;
 using Inventory_Management_System.Models.DTOs.Order.Responce;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -105,7 +106,7 @@ namespace Inventory_Management_System.Controllers
             {
                 var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
                 orderDto.CreatedByUserID = userId;
-                await _orderService.CreateAsync(orderDto);
+                await _orderService.CreateAsync(orderDto, userId);
                 TempData["success"] = "Order created successfully.";
                 return RedirectToAction(nameof(Index));
             }

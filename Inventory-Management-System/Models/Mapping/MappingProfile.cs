@@ -5,6 +5,7 @@ using Inventory_Management_System.Models.DTOs.Category;
 using Inventory_Management_System.Models.DTOs.Customer;
 using Inventory_Management_System.Models.DTOs.InventoryTransaction;
 using Inventory_Management_System.Models.DTOs.Order;
+using Inventory_Management_System.Models.DTOs.Order.Request;
 using Inventory_Management_System.Models.DTOs.Order.Responce;
 using Inventory_Management_System.Models.DTOs.Products;
 using Inventory_Management_System.Models.DTOs.Supplier;
@@ -71,7 +72,6 @@ namespace Inventory_Management_System.Models.Mapping
                 .ForMember(dest => dest.WarehouseID, opt => opt.Ignore());
             #endregion
 
-            // need to fix this
             #region Order
             // Order to OrderResponseDto (used in Index)
             CreateMap<Order, OrderResponseDto>()
@@ -92,8 +92,7 @@ namespace Inventory_Management_System.Models.Mapping
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.ProductName : "Unknown"));
 
             // OrderReqDto to Order (for Create and Edit)
-            CreateMap<OrderReqDto, Order>()
-                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore());
+            CreateMap<OrderReqDto, Order>();
 
             // OrderDetailReqDto to OrderDetail
             CreateMap<OrderDetailReqDto, OrderDetail>();

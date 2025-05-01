@@ -8,7 +8,7 @@ namespace Inventory_Management_System.ConfigurationCalsses
     {
         public void Configure(EntityTypeBuilder<OrderDetail> builder)
         {
-            builder.HasKey(od => new { od.OrderID, od.ProductID });
+            builder.HasKey(od => od.OrderDetailID);
 
             builder.Property(od => od.Quantity)
             .HasColumnType("int");

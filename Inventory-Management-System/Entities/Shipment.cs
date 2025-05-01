@@ -6,7 +6,7 @@
         public Guid ShipmentID { get; set; }   // Primary Key
         public string TrackingNumber { get; set; }
         public string Destination { get; set; }
-        public string Status { get; set; }
+        public ShipmentStatus Status { get; set; }
         public int ItemCount { get; set; }
         public DateTime? ShippedDate { get; set; }
         public DateTime? DeliveryDate { get; set; }

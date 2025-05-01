@@ -34,19 +34,19 @@
                         <td>@shipment.Order?.Customer?.FullName</td>
                         <td>@shipment.Destination</td>
                         <td>
-                            @switch (shipment.Status?.ToLower())
+                            @switch (shipment.Status)
                             {
-                                case "delivered":
+                                case ShipmentStatus.Delivered:
                                     <span class="badge bg-success">Delivered</span>
                                     break;
-                                case "in transit":
+                                case ShipmentStatus.InTransit:
                                     <span class="badge bg-primary">In Transit</span>
                                     break;
-                                case "pending":
+                                case ShipmentStatus.Pending:
                                     <span class="badge bg-warning text-dark">Pending</span>
                                     break;
-                                case "returned":
-                                    <span class="badge bg-danger">Returned</span>
+                                case ShipmentStatus.Cancelled:
+                                    <span class="badge bg-danger">Cancelled</span>
                                     break;
                                 default:
                                     <span class="badge bg-secondary">@shipment.Status</span>

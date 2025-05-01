@@ -2,7 +2,7 @@
 using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
-using Inventory_Management_System.Models.DTOs.Order;
+using Inventory_Management_System.Models.DTOs.Order.Request;
 using Inventory_Management_System.Models.DTOs.Order.Responce;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -69,7 +69,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             return _mapper.Map<OrderDetailResponseDto>(order);
         }
 
-        public async Task CreateAsync(OrderReqDto orderDto)
+        public async Task CreateAsync(OrderReqDto orderDto, Guid userId)
         {
             try
             {
@@ -82,16 +82,9 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 if (productIds.Distinct().Count() != productIds.Count)
                     throw new InvalidOperationException("Duplicate products are not allowed in the order.");
 
-                var order = new Order
-                {
-                    OrderID = orderDto.OrderID == Guid.Empty ? Guid.NewGuid() : orderDto.OrderID,
-                    CustomerID = orderDto.CustomerID,
-                    WarehouseID = orderDto.WarehouseID,
-                    CreatedByUserID = orderDto.CreatedByUserID,
-                    OrderDate = DateTime.UtcNow,
-                    Status = OrderStatus.Pending,
-                    OrderDetails = new List<OrderDetail>()
-                };
+                // Mapping OrderReqDto to Order
+                var order = _mapper.Map<Order>(orderDto);
+                order.CreatedByUserID = userId;
 
                 // Validate warehouse access
                 var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserID == order.CreatedByUserID);
@@ -137,20 +130,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 // Add order to context
                 await _unitOfWork.Orders.AddAsync(order);
                 await _unitOfWork.SaveAsync();
-
-                // Update stock quantities
-                foreach (var detail in order.OrderDetails)
-                {
-                    var stock = await _unitOfWork.WarehouseStocks
-                        .FirstOrDefaultAsync(ws => ws.WarehouseID == order.WarehouseID && ws.ProductID == detail.ProductID);
-                    if (stock != null)
-                    {
-                        stock.StockQuantity -= detail.Quantity;
-                        await _unitOfWork.WarehouseStocks.UpdateAsync(stock);
-                    }
-                }
-
-                await _unitOfWork.SaveAsync();
             }
             catch (Exception ex)
             {
@@ -176,7 +155,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 if (newStatus == OrderStatus.Cancelled)
                 {
                     var shipment = await _unitOfWork.Shipments.FirstOrDefaultAsync(s => s.OrderID == orderId);
-                    if (shipment != null && shipment.Status != "Cancelled" && shipment.Status != "Delivered")
+                    if (shipment != null && shipment.Status != ShipmentStatus.Cancelled)
                         throw new InvalidOperationException("Cannot cancel an order with an active shipment.");
                 }
 
@@ -251,13 +230,13 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                             ShipmentID = Guid.NewGuid(),
                             OrderID = orderId,
                             ShippedDate = DateTime.UtcNow,
-                            Status = "In Transit"
+                            Status = ShipmentStatus.Pending
                         };
                         await _unitOfWork.Shipments.AddAsync(newShipment);
                     }
-                    else if (shipment.Status == "Cancelled")
+                    else if (shipment.Status == ShipmentStatus.Cancelled)
                     {
-                        shipment.Status = "In Transit";
+                        shipment.Status = ShipmentStatus.Pending;
                         shipment.ShippedDate = DateTime.UtcNow;
                         await _unitOfWork.Shipments.UpdateAsync(shipment);
                     }
@@ -267,7 +246,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                     var shipment = await _unitOfWork.Shipments.FirstOrDefaultAsync(s => s.OrderID == orderId);
                     if (shipment != null)
                     {
-                        shipment.Status = "Delivered";
+                        shipment.Status = ShipmentStatus.Delivered;
                         shipment.DeliveryDate = DateTime.UtcNow;
                         await _unitOfWork.Shipments.UpdateAsync(shipment);
                     }
@@ -305,6 +284,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
+                
                 order.CustomerID = orderDto.CustomerID;
                 order.WarehouseID = orderDto.WarehouseID;
                 order.CreatedByUserID = orderDto.CreatedByUserID;

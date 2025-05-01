@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Inventory_Management_System.Models.DTOs.Order
+namespace Inventory_Management_System.Models.DTOs.Order.Request
 {
     public class ProductSelectionDto
     {

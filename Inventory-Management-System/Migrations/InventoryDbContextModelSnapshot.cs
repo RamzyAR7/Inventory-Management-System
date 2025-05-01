@@ -164,13 +164,14 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.OrderDetail", b =>
                 {
+                    b.Property<Guid>("OrderDetailID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("OrderID")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ProductID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("OrderDetailID")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Quantity")
@@ -182,7 +183,9 @@ namespace Inventory_Management_System.Migrations
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(10,2)");
 
-                    b.HasKey("OrderID", "ProductID");
+                    b.HasKey("OrderDetailID");
+
+                    b.HasIndex("OrderID");
 
                     b.HasIndex("ProductID");
 
@@ -354,10 +357,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("5156b934-1d38-4517-a294-3220fa487362"),
-                            CreatedAt = new DateTime(2025, 5, 1, 2, 10, 38, 704, DateTimeKind.Utc).AddTicks(2530),
+                            UserID = new Guid("3f060619-91c0-46f1-b594-e2af537f0dd6"),
+                            CreatedAt = new DateTime(2025, 5, 1, 15, 44, 57, 261, DateTimeKind.Utc).AddTicks(8555),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$95WTi58TcGp7z4SR0Ym28uxVYHLjbirU.JscyHf5GQXB22H9MJnBS",
+                            HashedPassword = "$2a$11$KjEt3traeM94XOIIu5yGVuM9qGvlMorBL55QhktfmgvY9yMCVaJEO",
                             IsActive = true,
                             Role = "Admin",
                             UserName = "Admin"
