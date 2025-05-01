@@ -40,41 +40,7 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new SupplierProductConfigurations());
             modelBuilder.ApplyConfiguration(new ShipmentConfigurations());
             modelBuilder.ApplyConfiguration(new CustomerConfigurations());
-            
-            modelBuilder.Entity<WarehouseTransfers>(e =>
-            {
-                e.HasKey(wt => wt.WarehouseTransferID);
-
-                e.HasOne(wt => wt.FromProduct)
-                  .WithMany(p => p.FromWarehouseTransfers)
-                  .HasForeignKey(wt => wt.FromProductID)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.ToProduct)
-                  .WithMany(p => p.ToWarehouseTransfers)
-                  .HasForeignKey(wt => wt.ToProductID)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.FromWarehouse)
-                  .WithMany(w => w.FromWarehouseTransfers)
-                  .HasForeignKey(wt => wt.FromWarehouseID)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.ToWarehouse)
-                 .WithMany(w => w.ToWarehouseTransfers)
-                 .HasForeignKey(wt => wt.ToWarehouseID)
-                 .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.OutTransaction)
-                  .WithMany(t => t.OutTransfers)
-                  .HasForeignKey(wt => wt.OutTransactionID)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(wt => wt.InTransaction)
-                  .WithMany(t => t.InTransfers)
-                  .HasForeignKey(wt => wt.InTransactionID)
-                  .OnDelete(DeleteBehavior.Restrict);
-            });
+            modelBuilder.ApplyConfiguration(new WarehouseConfigurations());
 
             SeedAdmin(modelBuilder);
 
