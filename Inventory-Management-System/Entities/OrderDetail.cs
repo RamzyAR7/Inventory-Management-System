@@ -15,7 +15,6 @@ namespace Inventory_Management_System.Entities
         [Column(TypeName = "decimal(10,2)")]
         public decimal UnitPrice { get; set; }
 
-        [NotMapped]
         public decimal TotalPrice { get; set; }
 
         // Foreign Keys

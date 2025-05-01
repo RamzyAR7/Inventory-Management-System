@@ -1,0 +1,293 @@
+﻿@model IEnumerable<Inventory_Management_System.Models.DTOs.Order.Responce.OrderResponseDto>
+@using Inventory_Management_System.Entities
+
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Orders Management</h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus mr-2"></i>Create New Order
+        </a>
+    </div>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Order List</h6>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                        id="statusFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter mr-1"></i>Filter by Status
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="statusFilterDropdown">
+                    <li><a class="dropdown-item" href="#" data-filter="all">All Orders</a></li>
+                    @if (ViewBag.OrderStatuses is List<OrderStatus> statuses)
+                    {
+                        foreach (var status in statuses)
+                        {
+                            <li><a class="dropdown-item" href="#" data-filter="@status">@status</a></li>
+                        }
+                    }
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="ordersTable" width="100%" cellspacing="0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Warehouse</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Created By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td>@order.OrderID.ToString().Substring(0, 8)...</td>
+                                    <td>@order.CustomerName</td>
+                                    <td>@order.WarehouseName</td>
+                                    <td>@order.TotalAmount.ToString("C")</td>
+                                    <td>
+                                        <span class="badge" data-status="@order.Status">
+                                            @order.Status
+                                        </span>
+                                    </td>
+                                    <td>@order.CreatedByUserName</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-id="@order.OrderID" 
+                                               class="btn btn-info btn-sm" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if (order.Status == OrderStatus.Pending)
+                                            {
+                                                <a asp-action="Edit" asp-route-id="@order.OrderID" 
+                                                   class="btn btn-warning btn-sm" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            }
+                                            <select class="form-select form-select-sm status-select" 
+                                                    data-order-id="@order.OrderID" 
+                                                    aria-label="Change status for order @order.OrderID">
+                                                <option value="" disabled selected>Change Status</option>
+                                                @foreach (var status in ViewBag.OrderStatuses as List<OrderStatus>)
+                                                {
+                                                    <option value="@status">@status</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center">No orders found</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
+    <style>
+        .badge-pending {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .badge-confirmed {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .badge-shipped {
+            background-color: #007bff;
+            color: white;
+        }
+        .badge-delivered {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+        .card-header {
+            background-color: #f8f9fc;
+        }
+        .table thead th {
+            vertical-align: middle;
+        }
+        .btn-sm, .form-select-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .status-select {
+            width: 120px;
+            display: inline-block;
+        }
+        .toast {
+            min-width: 200px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            const table = $('#ordersTable').DataTable({
+                responsive: true,
+                language: {
+                    emptyTable: "No orders found",
+                    info: "Showing _START_ to _END_ of _TOTAL_ orders",
+                    infoEmpty: "Showing 0 to 0 of 0 orders",
+                    infoFiltered: "(filtered from _MAX_ total orders)",
+                    lengthMenu: "Show _MENU_ orders per page",
+                    search: "Search:",
+                    zeroRecords: "No matching orders found"
+                },
+                columnDefs: [
+                    { orderable: false, targets: [6] },
+                    { responsivePriority: 1, targets: [0, 6] },
+                    { responsivePriority: 2, targets: [1, 2] }
+                ],
+                drawCallback: function () {
+                    // Apply badge classes after table draw
+                    $('span.badge').each(function () {
+                        const status = $(this).data('status');
+                        $(this).addClass(getStatusBadgeClass(status));
+                    });
+                }
+            });
+
+            // Handle status filter dropdown
+            $('.dropdown-menu a[data-filter]').on('click', function (e) {
+                e.preventDefault();
+                const filterValue = $(this).data('filter');
+                if (filterValue === 'all') {
+                    table.column(4).search('').draw();
+                } else {
+                    table.column(4).search(filterValue, true, false).draw();
+                }
+                $('#statusFilterDropdown').text('Filter: ' + $(this).text());
+            });
+
+            // Handle status change
+            $('.status-select').on('change', function () {
+                const orderId = $(this).data('order-id');
+                const newStatus = $(this).val();
+                const $badge = $(this).closest('tr').find('.badge');
+                const $select = $(this);
+                const originalStatus = $badge.data('status');
+
+                if (!orderId || !newStatus) {
+                    showToast('Invalid order or status.', 'danger');
+                    return;
+                }
+
+                // Get anti-forgery token
+                const token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("UpdateStatus", "Orders")',
+                    type: 'POST',
+                    data: {
+                        id: orderId,
+                        status: newStatus,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            // Update badge text and class
+                            $badge.text(newStatus).data('status', newStatus);
+                            $badge.removeClass('badge-pending badge-confirmed badge-shipped badge-delivered badge-cancelled')
+                                  .addClass(getStatusBadgeClass(newStatus));
+                            showToast(response.message, 'success');
+
+                            // Update Edit button visibility
+                            const $editButton = $(`a[href*="${orderId}"][title="Edit"]`);
+                            if (newStatus !== 'Pending') {
+                                $editButton.hide();
+                            } else {
+                                $editButton.show();
+                            }
+                        } else {
+                            showToast('Error: ' + response.message, 'danger');
+                            $select.val(''); // Reset dropdown
+                        }
+                    },
+                    error: function (xhr) {
+                        const errorMsg = xhr.responseJSON?.message || xhr.responseText || 'Failed to update status.';
+                        showToast('Error: ' + errorMsg, 'danger');
+                        $select.val(''); // Reset dropdown
+                    }
+                });
+            });
+        });
+
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'Pending': return 'badge-pending';
+                case 'Confirmed': return 'badge-confirmed';
+                case 'Shipped': return 'badge-shipped';
+                case 'Delivered': return 'badge-delivered';
+                case 'Cancelled': return 'badge-cancelled';
+                default: return 'badge-secondary';
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = $(`
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `);
+
+            $('#toastContainer').append(toast);
+            const bsToast = new bootstrap.Toast(toast[0], { delay: 3000 });
+            bsToast.show();
+        }
+    </script>
+}

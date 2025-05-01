@@ -16,7 +16,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
         private IGenericRepository<Warehouse> _warehouses;
         private IProductRepository _products;
         private IWarehouseStockRepository _warehouseStocks;
-        private IGenericRepository<Order> _orders;
+        private IOrderRepository _orders;
         private IGenericRepository<OrderDetail> _orderDetails;
         private IInventoryTransactionRepository _inventoryTransactions;
         private IGenericRepository<Shipment> _shipments;
@@ -40,7 +40,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
         public IProductRepository Products => _products ??= new ProductRepository(_context);
         public IWarehouseStockRepository WarehouseStocks => _warehouseStocks ??= new WarehouseStockRepository(_context);
         public ISupplierProductRepository SupplierProducts => _supplierProduct ??= new SupplierProductRepository(_context);
-        public IGenericRepository<Order> Orders => _orders ??= new GenericRepository<Order>(_context);
+        public IOrderRepository Orders => _orders ??= new OrderRepository(_context);
         public IGenericRepository<OrderDetail> OrderDetails => _orderDetails ??= new GenericRepository<OrderDetail>(_context);
         public IInventoryTransactionRepository InventoryTransactions => _inventoryTransactions ??= new InventoryTransactionRepository(_context);
         public IWarehouseTransfersRepository WarehouseTransfers => _warehouseTransfers ??= new WarehouseTransfersRepository(_context);

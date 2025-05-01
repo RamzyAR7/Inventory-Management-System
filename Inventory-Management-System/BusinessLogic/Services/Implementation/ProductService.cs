@@ -301,15 +301,19 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
         private string GetCurrentUserRole()
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+            if (string.IsNullOrEmpty(userId))
             {
-                throw new Exception("User not found");
+                _logger.LogError("User ID claim is missing.");
+                throw new Exception("User not authenticated.");
             }
+
             var user = _unitOfWork.Users.GetByIdAsync(e => e.UserID == Guid.Parse(userId)).Result;
             if (user == null)
             {
+                _logger.LogError("User not found in the database. UserID: {UserID}", userId);
                 throw new Exception("User not found");
             }
+
             return user.Role;
         }
 

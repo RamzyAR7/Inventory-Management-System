@@ -1,5 +1,4 @@
-﻿using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.DataAccess.Context;
+﻿using Inventory_Management_System.DataAccess.Context;
 using Inventory_Management_System.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -7,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Inventory_Management_System.BusinessLogic.Interfaces;
 
 namespace Inventory_Management_System.DataAccess.Repositories
 {
@@ -21,6 +21,11 @@ namespace Inventory_Management_System.DataAccess.Repositories
             _dbSet = _context.Set<T>();
         }
 
+        public IQueryable<T> GetQueryable() // Add this method
+        {
+            return _dbSet.AsQueryable();
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
@@ -31,7 +36,8 @@ namespace Inventory_Management_System.DataAccess.Repositories
                     query = query.Include(include);
                 }
             }
-            return await query.ToListAsync();
+            var result = await query.ToListAsync();
+            return result ?? Enumerable.Empty<T>();
         }
 
         public async Task<T?> GetByIdAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
@@ -98,13 +104,11 @@ namespace Inventory_Management_System.DataAccess.Repositories
             return await query.Where(predicate).ToListAsync();
         }
 
-        // New method: FirstOrDefaultAsync without includes
         public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.FirstOrDefaultAsync(predicate);
         }
 
-        // New method: FirstOrDefaultAsync with includes
         public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
@@ -118,7 +122,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
             return await query.FirstOrDefaultAsync(predicate);
         }
 
-        // New method: GetPagedAsync for pagination
         public async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize,
             Expression<Func<T, bool>> predicate = null, params Expression<Func<T, object>>[] includeProperties)
         {
@@ -148,7 +151,7 @@ namespace Inventory_Management_System.DataAccess.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return (items, totalCount);
+            return (items ?? Enumerable.Empty<T>(), totalCount);
         }
 
         public async Task AddAsync(T entity)
@@ -159,18 +162,15 @@ namespace Inventory_Management_System.DataAccess.Repositories
             await _dbSet.AddAsync(entity);
         }
 
-        // New method: UpdateAsync with composite key support
         public async Task UpdateAsync(T entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-            // Get the primary key properties
             var entityType = _context.Model.FindEntityType(typeof(T));
             var primaryKey = entityType!.FindPrimaryKey();
             var keyProperties = primaryKey!.Properties;
 
-            // Build a predicate to find the existing entity based on all key properties
             var parameter = Expression.Parameter(typeof(T), "e");
             Expression predicateBody = null;
             var keyValues = new object[keyProperties.Count];
@@ -194,13 +194,11 @@ namespace Inventory_Management_System.DataAccess.Repositories
             if (existing == null)
                 throw new KeyNotFoundException($"Entity with keys {string.Join(", ", keyValues)} not found.");
 
-            // Update non-key properties
             var entry = _context.Entry(existing);
             var values = _context.Entry(entity).CurrentValues;
 
             foreach (var prop in values.Properties)
             {
-                // Skip navigation properties and key properties
                 if (entry.Metadata.FindNavigation(prop.Name) == null && !keyProperties.Any(kp => kp.Name == prop.Name))
                 {
                     entry.CurrentValues[prop.Name] = values[prop.Name];
@@ -217,7 +215,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
             _dbSet.Remove(entity);
         }
 
-        // New method: DeleteAsync for composite keys
         public async Task DeleteAsync(Guid key1, Guid key2)
         {
             var entity = await GetByCompositeKeyAsync(key1, key2);
@@ -227,7 +224,6 @@ namespace Inventory_Management_System.DataAccess.Repositories
             _dbSet.Remove(entity);
         }
 
-        // New method: ExistsAsync
         public async Task<bool> ExistsAsync(Guid id)
         {
             var keyName = _context.Model.FindEntityType(typeof(T))

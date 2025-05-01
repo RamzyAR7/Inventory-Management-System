@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Inventory_Management_System.DataAccess.Repositories
 {
-    public class SupplierProductRepository: GenericRepository<SupplierProduct>, ISupplierProductRepository
+    public class SupplierProductRepository : GenericRepository<SupplierProduct>, ISupplierProductRepository
     {
         private readonly InventoryDbContext _context;
 

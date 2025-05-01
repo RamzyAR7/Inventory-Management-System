@@ -151,6 +151,7 @@ namespace Inventory_Management_System.Migrations
                 {
                     OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     CreatedByUserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CustomerID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -252,7 +253,8 @@ namespace Inventory_Management_System.Migrations
                     ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrderDetailID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false)
+                    UnitPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -353,7 +355,7 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "IsActive", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("2c2f832a-5c26-463a-96b0-5c288fd8f932"), new DateTime(2025, 4, 30, 13, 20, 50, 175, DateTimeKind.Utc).AddTicks(3288), "admin@gmail.com", "$2a$11$n16/8J/aRkKGuDzXviqRt.X68ZR0SQBj8rEovFTwizJn7Awfxft1u", true, null, "Admin", "Admin" });
+                values: new object[] { new Guid("b183cbb0-083f-498c-8807-f13ee6e127e7"), new DateTime(2025, 5, 1, 0, 30, 17, 290, DateTimeKind.Utc).AddTicks(2180), "admin@gmail.com", "$2a$11$09qbLNRi8qbiNwcE7LUAneWGEM4KO6.PEjlWFvZWWCz89AF3ncJp2", true, null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_Email",

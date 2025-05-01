@@ -5,6 +5,7 @@ using Inventory_Management_System.Models.DTOs.Category;
 using Inventory_Management_System.Models.DTOs.Customer;
 using Inventory_Management_System.Models.DTOs.InventoryTransaction;
 using Inventory_Management_System.Models.DTOs.Order;
+using Inventory_Management_System.Models.DTOs.Order.Responce;
 using Inventory_Management_System.Models.DTOs.Products;
 using Inventory_Management_System.Models.DTOs.Supplier;
 using Inventory_Management_System.Models.DTOs.User;
@@ -72,7 +73,30 @@ namespace Inventory_Management_System.Models.Mapping
 
             // need to fix this
             #region Order
+            // Order to OrderResponseDto (used in Index)
+            CreateMap<Order, OrderResponseDto>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.FullName : "Unknown"))
+                .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.WarehouseName : "Unknown"))
+                .ForMember(dest => dest.CreatedByUserName, opt => opt.MapFrom(src => src.CreatedByUser != null ? src.CreatedByUser.UserName : "Unknown"));
 
+            // Order to OrderDetailResponseDto (used in Details, Edit)
+            CreateMap<Order, OrderDetailResponseDto>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.FullName : "Unknown"))
+                .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.WarehouseName : "Unknown"))
+                .ForMember(dest => dest.CreatedByUserName, opt => opt.MapFrom(src => src.CreatedByUser != null ? src.CreatedByUser.UserName : "Unknown"))
+                .ForMember(dest => dest.CreatedByUserID, opt => opt.MapFrom(src => src.CreatedByUserID))
+                .ForMember(dest => dest.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails));
+
+            // OrderDetail to OrderDetailResponseItem
+            CreateMap<OrderDetail, OrderDetailResponseItem>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.ProductName : "Unknown"));
+
+            // OrderReqDto to Order (for Create and Edit)
+            CreateMap<OrderReqDto, Order>()
+                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore());
+
+            // OrderDetailReqDto to OrderDetail
+            CreateMap<OrderDetailReqDto, OrderDetail>();
             #endregion
 
             #region Product

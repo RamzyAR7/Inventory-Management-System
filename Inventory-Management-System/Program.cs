@@ -29,6 +29,7 @@ builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 // Register the generic repository is optional
 // builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

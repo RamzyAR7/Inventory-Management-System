@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250430132051_init")]
+    [Migration("20250501003018_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -148,6 +148,9 @@ namespace Inventory_Management_System.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<Guid>("WarehouseID")
                         .HasColumnType("uniqueidentifier");
 
@@ -175,6 +178,9 @@ namespace Inventory_Management_System.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(10,2)");
@@ -351,10 +357,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("2c2f832a-5c26-463a-96b0-5c288fd8f932"),
-                            CreatedAt = new DateTime(2025, 4, 30, 13, 20, 50, 175, DateTimeKind.Utc).AddTicks(3288),
+                            UserID = new Guid("b183cbb0-083f-498c-8807-f13ee6e127e7"),
+                            CreatedAt = new DateTime(2025, 5, 1, 0, 30, 17, 290, DateTimeKind.Utc).AddTicks(2180),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$n16/8J/aRkKGuDzXviqRt.X68ZR0SQBj8rEovFTwizJn7Awfxft1u",
+                            HashedPassword = "$2a$11$09qbLNRi8qbiNwcE7LUAneWGEM4KO6.PEjlWFvZWWCz89AF3ncJp2",
                             IsActive = true,
                             Role = "Admin",
                             UserName = "Admin"

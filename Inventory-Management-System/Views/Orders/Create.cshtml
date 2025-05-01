@@ -1,0 +1,476 @@
+﻿@model Inventory_Management_System.Models.DTOs.Order.OrderReqDto
+@using Inventory_Management_System.Entities
+
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Create New Order</h1>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Orders
+        </a>
+    </div>
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Order Information</h6>
+        </div>
+        <div class="card-body">
+            <form id="orderForm" asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label asp-for="CustomerID" class="font-weight-bold">Customer</label>
+                        <select asp-for="CustomerID" class="form-control" asp-items="ViewBag.Customers">
+                            <option value="">Select Customer</option>
+                        </select>
+                        <span asp-validation-for="CustomerID" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <label asp-for="WarehouseID" class="font-weight-bold">Warehouse</label>
+                        <select asp-for="WarehouseID" class="form-control" asp-items="ViewBag.Warehouses" onchange="loadCategories()">
+                            <option value="">Select Warehouse</option>
+                        </select>
+                        <span asp-validation-for="WarehouseID" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <label class="font-weight-bold">Selected Products</label>
+                    <button type="button" id="selectProductsBtn" class="btn btn-primary mb-3" disabled>
+                        <i class="fas fa-plus mr-2"></i>Select Products
+                    </button>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="selectedProductsTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total Price</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center">No products selected</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-right mt-3">
+                        <h5>Total Amount: <span id="totalAmount" class="font-weight-bold text-primary">$0.00</span></h5>
+                    </div>
+                </div>
+
+                <div class="form-group text-right mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i>Create Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Product Selection Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="productModalLabel">Select Products</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="categoryFilter" class="font-weight-bold">Filter by Category</label>
+                    <select id="categoryFilter" class="form-control" asp-items="ViewBag.Categories" onchange="loadProducts()">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+
+                <div class="table-responsive mt-3">
+                    <table class="table table-bordered table-hover" id="productsTable">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsModalBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times mr-2"></i>Close
+                </button>
+                <button type="button" class="btn btn-primary" onclick="addSelectedProducts()">
+                    <i class="fas fa-check mr-2"></i>Add Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <style>
+        .toast {
+            min-width: 200px;
+        }
+
+        .quantity-input {
+            width: 80px;
+        }
+
+        .modal-header {
+            padding: 1rem 1.5rem;
+        }
+
+        .table th {
+            white-space: nowrap;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/additional-methods.min.js"></script>
+    <script>
+        let cart = [];
+
+        $(document).ready(function () {
+            // Initialize button reference
+            const $selectProductsBtn = $('#selectProductsBtn');
+
+            // Form validation
+            $("#orderForm").validate({
+                rules: {
+                    CustomerID: { required: true },
+                    WarehouseID: { required: true }
+                },
+                messages: {
+                    CustomerID: "Please select a customer",
+                    WarehouseID: "Please select a warehouse"
+                },
+                errorElement: "span",
+                errorPlacement: function (error, element) {
+                    error.addClass("invalid-feedback");
+                    element.closest(".form-group").append(error);
+                },
+                highlight: function (element) {
+                    $(element).addClass("is-invalid").removeClass("is-valid");
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass("is-invalid").addClass("is-valid");
+                },
+                submitHandler: function (form) {
+                    if (cart.length === 0) {
+                        showToast('Please add at least one product to create an order.', 'danger');
+                        return false;
+                    }
+                    form.submit();
+                }
+            });
+
+            // Enable/disable Select Products button
+            function toggleSelectProductsButton() {
+                const customerId = $('#CustomerID').val();
+                const warehouseId = $('#WarehouseID').val();
+                const isValid = customerId && warehouseId && customerId !== "" && warehouseId !== "";
+                $selectProductsBtn.prop('disabled', !isValid);
+            }
+
+            // Bind change event and check initial state
+            $('#CustomerID, #WarehouseID').on('change', toggleSelectProductsButton);
+            toggleSelectProductsButton();
+
+            // Handle Select Products button click
+            $selectProductsBtn.on('click', function () {
+                if (!$selectProductsBtn.prop('disabled')) {
+                    loadProducts();
+                    $('#productModal').modal('show');
+                }
+            });
+        });
+
+        function loadCategories() {
+            $('#categoryFilter').val('');
+            loadProducts();
+        }
+
+        function loadProducts() {
+            const warehouseId = $('#WarehouseID').val();
+            const categoryId = $('#categoryFilter').val();
+
+            if (!warehouseId) {
+                showToast('Please select a warehouse first.', 'danger');
+                return;
+            }
+
+            $('#productsModalBody').empty();
+            $('#productsModalBody').html('<tr><td colspan="6" class="text-center">Loading products...</td></tr>');
+
+            $.ajax({
+                url: '@Url.Action("GetProductsByWarehouseAndCategory", "Orders")',
+                type: 'GET',
+                data: {
+                    warehouseId: warehouseId,
+                    categoryId: categoryId || null
+                },
+                success: function (response) {
+                    $('#productsModalBody').empty();
+                    if (response.length === 0) {
+                        $('#productsModalBody').html('<tr><td colspan="6" class="text-center">No products available</td></tr>');
+                    } else {
+                        response.forEach(product => {
+                            const existingItem = cart.find(item => item.productId === product.productID);
+                            const row = `
+                                <tr data-product-id="${product.productID}">
+                                    <td>${product.productName}</td>
+                                    <td>${product.categoryName}</td>
+                                    <td>$${product.price.toFixed(2)}</td>
+                                    <td>${product.stockQuantity}</td>
+                                    <td>
+                                        <input type="number" class="form-control product-quantity"
+                                               min="1" max="${product.stockQuantity}"
+                                               value="${existingItem ? existingItem.quantity : 1}">
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary add-product-btn">
+                                            <i class="fas fa-plus"></i> Add
+                                        </button>
+                                    </td>
+                                </tr>`;
+                            $('#productsModalBody').append(row);
+                        });
+
+                        // Add event listeners to the new buttons
+                        $('.add-product-btn').on('click', function() {
+                            const row = $(this).closest('tr');
+                            addProductToCart(row);
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    $('#productsModalBody').html('<tr><td colspan="6" class="text-center text-danger">Error loading products</td></tr>');
+                    showToast('Error loading products: ' + (xhr.responseJSON?.message || xhr.responseText), 'danger');
+                }
+            });
+        }
+
+        function addProductToCart(row) {
+            const productId = row.data('product-id');
+            const productName = row.find('td:eq(0)').text();
+            const price = parseFloat(row.find('td:eq(2)').text().replace('$', ''));
+            const stock = parseInt(row.find('td:eq(3)').text());
+            const quantityInput = row.find('.product-quantity');
+            const quantity = parseInt(quantityInput.val());
+            const warehouseId = $('#WarehouseID').val();
+
+            // Validate quantity
+            if (isNaN(quantity)) {
+                showToast('Please enter a valid quantity', 'danger');
+                quantityInput.focus();
+                return;
+            }
+
+            if (quantity <= 0) {
+                showToast('Quantity must be greater than 0', 'danger');
+                quantityInput.focus();
+                return;
+            }
+
+            if (quantity > stock) {
+                showToast(`Only ${stock} available in stock`, 'danger');
+                quantityInput.focus();
+                return;
+            }
+
+            // Validate with server
+            const token = $('input[name="__RequestVerificationToken"]').val();
+            $.ajax({
+                url: '@Url.Action("ValidateAndAddProduct", "Orders")',
+                type: 'POST',
+                data: {
+                    warehouseId: warehouseId,
+                    productId: productId,
+                    quantity: quantity,
+                    __RequestVerificationToken: token
+                },
+                success: function (response) {
+                    if (response.success) {
+                        // Add or update in cart
+                        const existingIndex = cart.findIndex(item => item.productId === response.product.productId);
+                        if (existingIndex >= 0) {
+                            cart[existingIndex].quantity = response.product.quantity;
+                            cart[existingIndex].totalPrice = response.product.totalPrice;
+                        } else {
+                            cart.push({
+                                productId: response.product.productId,
+                                productName: productName,
+                                quantity: response.product.quantity,
+                                unitPrice: response.product.unitPrice,
+                                totalPrice: response.product.totalPrice
+                            });
+                        }
+                        updateSelectedProducts();
+                        showToast(`${productName} added to order`, 'success');
+                    } else {
+                        showToast(response.message, 'danger');
+                    }
+                },
+                error: function (xhr) {
+                    showToast('Error validating product: ' + (xhr.responseJSON?.message || xhr.responseText), 'danger');
+                }
+            });
+        }
+
+        function addSelectedProducts() {
+            const warehouseId = $('#WarehouseID').val();
+            const token = $('input[name="__RequestVerificationToken"]').val();
+            const productsToAdd = [];
+
+            $('#productsModalBody tr').each(function() {
+                const row = $(this);
+                const productId = row.data('product-id');
+                const quantity = parseInt(row.find('.product-quantity').val());
+                if (!isNaN(quantity) && quantity > 0) {
+                    productsToAdd.push({ productId, quantity });
+                }
+            });
+
+            if (productsToAdd.length === 0) {
+                showToast('No valid products selected.', 'warning');
+                return;
+            }
+
+            let pendingRequests = productsToAdd.length;
+            productsToAdd.forEach(product => {
+                $.ajax({
+                    url: '@Url.Action("ValidateAndAddProduct", "Orders")',
+                    type: 'POST',
+                    data: {
+                        warehouseId: warehouseId,
+                        productId: product.productId,
+                        quantity: product.quantity,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            const productName = $(`tr[data-product-id="${response.product.productId}"] td:eq(0)`).text();
+                            const existingIndex = cart.findIndex(item => item.productId === response.product.productId);
+                            if (existingIndex >= 0) {
+                                cart[existingIndex].quantity = response.product.quantity;
+                                cart[existingIndex].totalPrice = response.product.totalPrice;
+                            } else {
+                                cart.push({
+                                    productId: response.product.productId,
+                                    productName: productName,
+                                    quantity: response.product.quantity,
+                                    unitPrice: response.product.unitPrice,
+                                    totalPrice: response.product.totalPrice
+                                });
+                            }
+                            showToast(`${productName} added to order`, 'success');
+                        } else {
+                            showToast(response.message, 'danger');
+                        }
+                    },
+                    error: function (xhr) {
+                        showToast('Error validating product: ' + (xhr.responseJSON?.message || xhr.responseText), 'danger');
+                    },
+                    complete: function () {
+                        updateSelectedProducts();
+                        if (--pendingRequests === 0) {
+                            $('#productModal').modal('hide');
+                        }
+                    }
+                });
+            });
+        }
+
+        function updateSelectedProducts() {
+            const $tableBody = $('#productsTableBody');
+            $tableBody.empty();
+
+            let totalAmount = 0;
+
+            if (cart.length === 0) {
+                $tableBody.html('<tr><td colspan="5" class="text-center">No products selected</td></tr>');
+            } else {
+                cart.forEach((item, index) => {
+                    totalAmount += item.totalPrice;
+                    const itemHtml = `
+                        <tr>
+                            <td>${item.productName}</td>
+                            <td>${item.quantity}</td>
+                            <td>$${item.unitPrice.toFixed(2)}</td>
+                            <td>$${item.totalPrice.toFixed(2)}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="removeFromCart(${index})">
+                                    <i class="fas fa-trash-alt"></i> Remove
+                                </button>
+                                <input type="hidden" name="OrderDetails[${index}].ProductID" value="${item.productId}" />
+                                <input type="hidden" name="OrderDetails[${index}].Quantity" value="${item.quantity}" />
+                            </td>
+                        </tr>`;
+                    $tableBody.append(itemHtml);
+                });
+            }
+
+            $('#totalAmount').text('$' + totalAmount.toFixed(2));
+        }
+
+        function removeFromCart(index) {
+            const productName = cart[index].productName;
+            cart.splice(index, 1);
+            updateSelectedProducts();
+            showToast(`${productName} removed from order`, 'warning');
+        }
+
+        function showToast(message, type) {
+            const toast = $(`
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `);
+
+            $('#toastContainer').append(toast);
+            const bsToast = new bootstrap.Toast(toast[0], { delay: 3000 });
+            bsToast.show();
+
+            toast.on('hidden.bs.toast', function () {
+                $(this).remove();
+            });
+        }
+    </script>
+}

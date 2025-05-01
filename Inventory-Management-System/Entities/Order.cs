@@ -11,7 +11,6 @@ namespace Inventory_Management_System.Entities
         [Required]
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
-        [NotMapped]
         [Column(TypeName = "decimal(10,2)")]
         public decimal TotalAmount { get; set; }
 
