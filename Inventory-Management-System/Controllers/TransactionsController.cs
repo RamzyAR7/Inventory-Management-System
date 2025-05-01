@@ -42,15 +42,27 @@ namespace Inventory_Management_System.Controllers
             {
                 _logger.LogInformation("Index - Retrieving transactions for WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}", warehouseId, pageNumber, pageSize);
 
-                // Get paginated transactions using TransactionService (which applies Manager-specific filtering)
+                // Get paginated transactions
                 var (transactions, totalCount) = await _transactionService.GetPagedTransactionsAsync(warehouseId, pageNumber, pageSize);
                 _logger.LogInformation("Index - Retrieved {TransactionCount} transactions, TotalCount: {TotalCount}", transactions.Count(), totalCount);
 
-                // Get transfers (already filtered by TransactionService for Managers)
+                // Separate transactions
+                var supplierInTransactions = transactions
+                    .Where(t => t.Type == TransactionType.In && t.SuppliersID != null)
+                    .ToList();
+                var customerOutTransactions = transactions
+                    .Where(t => t.Type == TransactionType.Out && t.OrderID != null)
+                    .ToList();
+
+                // Get transfers
                 var transfers = await _transactionService.GetAllTransfersAsync();
+                if (warehouseId.HasValue)
+                {
+                    transfers = transfers.Where(t => t.FromWarehouseID == warehouseId.Value || t.ToWarehouseID == warehouseId.Value).ToList();
+                }
                 _logger.LogInformation("Index - Retrieved {TransferCount} transfers", transfers.Count());
 
-                // Populate the warehouses dropdown (filtered for Managers)
+                // Populate warehouses dropdown
                 var warehouses = await _warehouseService.GetAllAsync();
                 if (User.IsInRole("Manager"))
                 {
@@ -67,18 +79,20 @@ namespace Inventory_Management_System.Controllers
                 }
 
                 ViewBag.Warehouses = new SelectList(warehouses, "WarehouseID", "WarehouseName", warehouseId);
+                ViewBag.SupplierInTransactions = supplierInTransactions;
+                ViewBag.CustomerOutTransactions = customerOutTransactions;
                 ViewBag.Transfers = transfers;
                 ViewBag.TotalCount = totalCount;
                 ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
 
-                return View(transactions);
+                return View();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Index - Error retrieving transactions: {Message}", ex.Message);
                 TempData["ErrorMessage"] = "An error occurred while retrieving transactions.";
-                return View(new List<InventoryTransaction>());
+                return View();
             }
         }
 
@@ -89,22 +103,32 @@ namespace Inventory_Management_System.Controllers
             {
                 _logger.LogInformation("ListTransactions - Retrieving transactions for WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}", warehouseId, pageNumber, pageSize);
 
-                // Get paginated transactions using TransactionService (which applies Manager-specific filtering)
+                // Get paginated transactions
                 var (transactions, totalCount) = await _transactionService.GetPagedTransactionsAsync(warehouseId, pageNumber, pageSize);
                 _logger.LogInformation("ListTransactions - Retrieved {TransactionCount} transactions, TotalCount: {TotalCount}", transactions.Count(), totalCount);
 
+                // Separate transactions
+                var supplierInTransactions = transactions
+                    .Where(t => t.Type == TransactionType.In && t.SuppliersID != null)
+                    .ToList();
+                var customerOutTransactions = transactions
+                    .Where(t => t.Type == TransactionType.Out && t.OrderID != null)
+                    .ToList();
+
+                ViewBag.SupplierInTransactions = supplierInTransactions;
+                ViewBag.CustomerOutTransactions = customerOutTransactions;
                 ViewBag.TotalCount = totalCount;
                 ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
                 await PopulateViewBagAsync(warehouseId);
 
-                return View(transactions);
+                return View();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "ListTransactions - Error retrieving transactions: {Message}", ex.Message);
                 TempData["ErrorMessage"] = "An error occurred while retrieving transactions.";
-                return View(new List<InventoryTransaction>());
+                return View();
             }
         }
 

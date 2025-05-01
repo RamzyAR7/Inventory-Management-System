@@ -13,7 +13,6 @@ namespace Inventory_Management_System.Models.DTOs.Warehouse
         public UserResDto? Manager { get; set; }
 
         public ICollection<WarehouseStock> WarehouseStocks { get; set; } = new List<WarehouseStock>();
-        public ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
         public ICollection<Entities.InventoryTransaction> InventoryTransactions { get; set; }
     }
 }

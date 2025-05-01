@@ -186,7 +186,7 @@ namespace Inventory_Management_System.Controllers
                 if (warehouse == null)
                     return NotFound();
                 // Check if the warehouse has any associated stocks or shipments
-                if (warehouse.WarehouseStocks.Any() || warehouse.Shipments.Any())
+                if (warehouse.WarehouseStocks.Any())
                 {
                     ModelState.AddModelError(string.Empty, "Cannot delete a warehouse with associated stocks or shipments.");
                     return View(warehouse);

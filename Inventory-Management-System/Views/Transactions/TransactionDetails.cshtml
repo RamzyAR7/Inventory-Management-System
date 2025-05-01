@@ -19,6 +19,33 @@
             <dt class="col-sm-3">Type</dt>
             <dd class="col-sm-9">@Model.Type</dd>
 
+            @if (Model.Type == TransactionType.In)
+            {
+                @if (Model.SuppliersID != null)
+                {
+                    <dt class="col-sm-3">Supplier</dt>
+                    <dd class="col-sm-9">@(Model.Suppliers?.SupplierName ?? "N/A")</dd>
+                }
+                else if (Model.InTransfers != null && Model.InTransfers.Any())
+                {
+                    <dt class="col-sm-3">Source</dt>
+                    <dd class="col-sm-9">Warehouse Transfer from @Model.InTransfers.First().FromWarehouse.WarehouseName</dd>
+                }
+            }
+            else if (Model.Type == TransactionType.Out)
+            {
+                @if (Model.OrderID != null)
+                {
+                    <dt class="col-sm-3">Customer</dt>
+                    <dd class="col-sm-9">@(Model.Order?.Customer?.FullName ?? "N/A")</dd>
+                }
+                else if (Model.OutTransfers != null && Model.OutTransfers.Any())
+                {
+                    <dt class="col-sm-3">Destination</dt>
+                    <dd class="col-sm-9">Warehouse Transfer to @Model.OutTransfers.First().ToWarehouse.WarehouseName</dd>
+                }
+            }
+
             <dt class="col-sm-3">Product</dt>
             <dd class="col-sm-9">@Model.Product?.ProductName</dd>
 
