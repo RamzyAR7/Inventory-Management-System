@@ -20,6 +20,26 @@ namespace Inventory_Management_System.Controllers
             return View(shipments);
         }
 
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Shipment shipment)
+        {
+            if (ModelState.IsValid)
+            {
+                await _shipmentService.CreateAsync(shipment);
+                TempData["success"] = "Shipment created successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(shipment);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
             var shipment = await _shipmentService.GetByIdAsync(id);
@@ -35,11 +55,13 @@ namespace Inventory_Management_System.Controllers
             if (ModelState.IsValid)
             {
                 await _shipmentService.UpdateAsync(shipment);
+                TempData["success"] = "Shipment edited successfully.";
                 return RedirectToAction(nameof(Index));
             }
             return View(shipment);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
             var shipment = await _shipmentService.GetByIdAsync(id);
@@ -52,24 +74,9 @@ namespace Inventory_Management_System.Controllers
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             await _shipmentService.DeleteAsync(id);
+            TempData["success"] = "Shipment Deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Shipment shipment)
-        {
-            if (ModelState.IsValid)
-            {
-                await _shipmentService.CreateAsync(shipment);
-                return RedirectToAction(nameof(Index));
-            }
-            return View(shipment);
-        }
     }
 }
