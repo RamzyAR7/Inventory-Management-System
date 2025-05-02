@@ -257,7 +257,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                             await _unitOfWork.InventoryTransactions.DeleteAsync(trans.TransactionID);
                         }
                     }
-                    order.TotalAmount = 0;
+
+                    //order.TotalAmount = 0;
                 }
 
                 order.Status = newStatus;
@@ -515,6 +516,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 (OrderStatus.Shipped, OrderStatus.Delivered) => true,
                 (OrderStatus.Shipped, OrderStatus.Cancelled) => true,
                 (OrderStatus.Shipped, OrderStatus.Pending) => true,
+                (OrderStatus.Cancelled, OrderStatus.Pending) => true,
                 _ => false
             };
         }

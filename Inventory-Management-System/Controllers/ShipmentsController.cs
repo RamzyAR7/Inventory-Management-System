@@ -134,17 +134,17 @@ namespace Inventory_Management_System.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Shipment shipment)
+        public async Task<IActionResult> DeleteConfirmed(Guid shipmentId)
         {
             try
             {
-                await _shipmentService.DeleteShipmentAsync(shipment.ShipmentID);
+                await _shipmentService.DeleteShipmentAsync(shipmentId);
                 TempData["success"] = "Shipment deleted successfully.";
                 return RedirectToAction("Index");
             }
             catch (KeyNotFoundException)
             {
-                _logger.LogWarning("Delete - Shipment not found for ShipmentID: {ShipmentID}", shipment.ShipmentID);
+                _logger.LogWarning("Delete - Shipment not found for ShipmentID: {ShipmentID}", shipmentId);
                 TempData["error"] = "Shipment not found.";
                 return RedirectToAction("Index");
             }
