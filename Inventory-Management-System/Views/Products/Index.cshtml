@@ -4,220 +4,152 @@
     ViewData["Title"] = "Inventory";
 }
 
-<div class="products-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-primary"><i class="fas fa-boxes me-2"></i>Inventory Management</h1>
-        <div class="d-flex gap-2">
-            @if(User.IsInRole("Admin"))
-            {
-                <a asp-controller="Category" asp-action="Index" class="btn btn-outline-primary">
-                    <i class="fas fa-list me-1"></i> Categories
-                </a>
-            }
-            <a asp-controller="Transactions" asp-action="Index" class="btn btn-outline-primary">
-                <i class="fas fa-exchange-alt me-1"></i> Transactions
-            </a>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> New Product
-            </a>
-        </div>
-    </div>
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    @if (TempData["InfoMessage"] != null)
-    {
-        <div class="alert alert-info">
-            @TempData["InfoMessage"]
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-semibold mb-0 text-primary ">
+                <i class="bi bi-box-seam-fill me-2"></i>Inventory Management
+            </h3>
 
-    <div class="table-responsive bg-white rounded-3 shadow-sm">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th class="col-product-name">@Html.DisplayNameFor(model => model.ProductName)</th>
-                    <th class="col-price">@Html.DisplayNameFor(model => model.Price)</th>
-                    <th class="col-reorder-level">@Html.DisplayNameFor(model => model.RecoderLevel)</th>
-                    <th class="col-stock-quantity">Stock Quantity</th>
-                    <th class="col-category">Category</th>
-                    <th class="col-suppliers">Suppliers</th>
-                    <th class="col-suppliers">Is Active</th>
-                    <th class="col-warehouse">Warehouse Name</th>
-                    <th class="col-actions">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var product in Model)
+            <div class="d-flex gap-2">
+                @if (User.IsInRole("Admin"))
                 {
-                    <tr>
-                        <td class="ps-4 fw-semibold">@product.ProductName</td>
-                        <td>@product.Price.ToString("C")</td>
-                        <td>
-                            <span class="@(product.RecoderLevel <= 10 ? "badge bg-warning" : "badge bg-success")">
-                                @product.RecoderLevel
-                            </span>
-                        </td>
-                        <td>
-                            @if (product.WarehouseStocks.Any())
-                            {
-                                <span class="badge @(product.WarehouseStocks.Sum(w => w.StockQuantity) <= product.RecoderLevel ? "bg-warning" : "bg-success")">
-                                    @product.WarehouseStocks.Sum(w => w.StockQuantity)
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">0</span>
-                            }
-                        </td>
-                        <td>
-                            <span class="badge bg-primary">@product.Category?.CategoryName</span>
-                        </td>
-                        <td>
-                            @if (product.Suppliers?.Any() == true)
-                            {
-                                <div class="d-flex flex-wrap gap-1">
-                                    @foreach (var supplier in product.Suppliers.Take(2))
-                                    {
-                                        <span class="badge bg-info">@supplier.Supplier?.SupplierName</span>
-                                    }
-                                    @if (product.Suppliers.Count > 2)
-                                    {
-                                        <span class="badge bg-secondary">+@(product.Suppliers.Count - 2)</span>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <span class="text-muted small">None</span>
-                            }
-                        </td>
-                        <td>
-                            <span class="badge @(product.IsActive ? "bg-success" : "bg-danger")">
-                                @(product.IsActive ? "Yes" : "No")
-                            </span>
-                        <td>
-                            @if (product.WarehouseStocks.Any())
-                            {
-                                <div class="d-flex flex-wrap gap-1">
-                                    @foreach (var warehouse in product.WarehouseStocks.Take(2))
-                                    {
-                                        <span class="badge bg-secondary">@warehouse.Warehouse.WarehouseName</span>
-                                    }
-                                    @if (product.WarehouseStocks.Count > 2)
-                                    {
-                                        <span class="badge bg-light text-dark">+@(product.WarehouseStocks.Count - 2)</span>
-                                    }
-                                </div>
-                            }
-                        </td>
-                        <td class="text-end pe-4">
-                            <div class="action-buttons">
-                                <a asp-action="Details" asp-route-id="@product.ProductID" class="btn btn-sm btn-outline-info" title="Details">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a asp-action="Edit" asp-route-id="@product.ProductID" class="btn btn-sm btn-outline-warning" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@product.ProductID" class="btn btn-sm btn-outline-danger" title="Delete">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
+                    <a asp-controller="Category" asp-action="Index" class="btn btn-outline-primary rounded-pill px-3 fw-semibold">
+                        <i class="bi bi-list me-1"></i> Categories
+                    </a>
                 }
-            </tbody>
-        </table>
+                <a asp-controller="Transactions" asp-action="Index" class="btn btn-outline-primary rounded-pill px-3 fw-semibold">
+                    <i class="bi bi-arrow-left-right me-1"></i> Transactions
+                </a>
+                <a asp-action="Create" class="btn btn-primary rounded-pill px-3 fw-semibold">
+                    <i class="bi bi-plus-lg me-1"></i> New Product
+                </a>
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success small rounded-3 py-2 px-3" role="alert">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <div class="table-responsive rounded-3 overflow-hidden">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light text-muted">
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Reorder Level</th>
+                        <th>Stock Quantity</th>
+                        <th>Category</th>
+                        <th>Suppliers</th>
+                        <th>Is Active</th>
+                        <th>Warehouse</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in Model)
+                    {
+                        <tr>
+                            <td>@product.ProductName</td>
+                            <td>@product.Price.ToString("C")</td>
+
+                            <td>
+                                <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger px-3 py-1">
+                                    @product.RecoderLevel
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-1">
+                                    @(product.WarehouseStocks.Sum(w => w.StockQuantity))
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-1">
+                                    @product.Category?.CategoryName
+                                </span>
+                            </td>
+
+                            <td>
+                                @if (product.Suppliers?.Any() == true)
+                                {
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach (var supplier in product.Suppliers.Take(2))
+                                        {
+                                            <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-3 py-1">@supplier.Supplier?.SupplierName</span>
+                                        }
+                                        @if (product.Suppliers.Count > 2)
+                                        {
+                                            <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis px-3 py-1">
+                                                +@(product.Suppliers.Count - 2)
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">None</span>
+                                }
+                            </td>
+
+                            <td>
+                                <span class="badge rounded-pill @(product.IsActive ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1">
+                                    @(product.IsActive ? "Yes" : "No")
+                                </span>
+                            </td>
+
+                            <td>
+                                @if (product.WarehouseStocks.Any())
+                                {
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach (var warehouse in product.WarehouseStocks.Take(2))
+                                        {
+                                            <span class="badge rounded-pill bg-dark-subtle text-dark-emphasis px-3 py-1">@warehouse.Warehouse.WarehouseName</span>
+                                        }
+                                        @if (product.WarehouseStocks.Count > 2)
+                                        {
+                                            <span class="badge rounded-pill bg-light text-dark px-3 py-1">
+                                                +@(product.WarehouseStocks.Count - 2)
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a asp-action="Details" asp-route-id="@product.ProductID"
+                                       class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+                                       title="View Details">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+
+                                    <a asp-action="Edit" asp-route-id="@product.ProductID"
+                                       class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+                                       title="Edit">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+
+                                    <a asp-action="Delete" asp-route-id="@product.ProductID"
+                                       class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+                                       title="Delete"
+                                       onclick="return confirm('Are you sure you want to delete this product?');">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
-
-@section Styles {
-    <style>
-        .products-container {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .badge {
-            font-weight: 500;
-            padding: 5px 10px;
-        }
-
-        /* Fix table column alignment */
-        .table th, .table td {
-            vertical-align: middle; /* Vertically center content */
-        }
-
-        /* Define column widths to ensure alignment */
-        .col-product-name {
-            width: 15%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .col-price {
-            width: 10%;
-            white-space: nowrap;
-        }
-
-        .col-reorder-level {
-            width: 10%;
-            white-space: nowrap;
-        }
-
-        .col-stock-quantity {
-            width: 10%;
-            white-space: normal; /* Allow wrapping for multiple values */
-            word-wrap: break-word;
-        }
-
-        .col-category {
-            width: 10%;
-            white-space: nowrap;
-        }
-
-        .col-suppliers {
-            width: 20%;
-            white-space: normal; /* Allow wrapping for multiple suppliers */
-            word-wrap: break-word;
-        }
-
-        .col-warehouse {
-            width: 15%;
-            white-space: normal; /* Allow wrapping for multiple warehouse names */
-            word-wrap: break-word;
-        }
-
-        .col-actions {
-            width: 10%;
-            white-space: nowrap;
-        }
-    </style>
-}
 
 @section Scripts {
     <script>

@@ -1,4 +1,6 @@
-﻿@model Inventory_Management_System.Entities.InventoryTransaction
+﻿@using Inventory_Management_System.Entities
+@model Inventory_Management_System.Entities.InventoryTransaction
+
 @{
     ViewData["Title"] = "Transaction Details";
 }
@@ -21,10 +23,10 @@
 
             @if (Model.Type == TransactionType.In)
             {
-                @if (Model.SuppliersID != null)
+                if (Model.SuppliersID != null)
                 {
                     <dt class="col-sm-3">Supplier</dt>
-                    <dd class="col-sm-9">@(Model.Suppliers?.SupplierName ?? "N/A")</dd>
+                    <dd class="col-sm-9">@Model.Suppliers?.SupplierName ?? "N/A"</dd>
                 }
                 else if (Model.InTransfers != null && Model.InTransfers.Any())
                 {
@@ -34,10 +36,10 @@
             }
             else if (Model.Type == TransactionType.Out)
             {
-                @if (Model.OrderID != null)
+                if (Model.OrderID != null)
                 {
                     <dt class="col-sm-3">Customer</dt>
-                    <dd class="col-sm-9">@(Model.Order?.Customer?.FullName ?? "N/A")</dd>
+                    <dd class="col-sm-9">@Model.Order?.Customer?.FullName ?? "N/A"</dd>
                 }
                 else if (Model.OutTransfers != null && Model.OutTransfers.Any())
                 {

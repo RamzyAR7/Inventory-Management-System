@@ -40,7 +40,7 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasKey("CategoryID");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Customer", b =>
@@ -80,7 +80,7 @@ namespace Inventory_Management_System.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
@@ -122,7 +122,7 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasIndex("WarehouseID");
 
-                    b.ToTable("InventoryTransactions");
+                    b.ToTable("InventoryTransactions", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
@@ -159,7 +159,7 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasIndex("WarehouseID");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.OrderDetail", b =>
@@ -189,7 +189,7 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasIndex("ProductID");
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetails", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Product", b =>
@@ -224,7 +224,7 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasIndex("CategoryID");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Shipment", b =>
@@ -263,7 +263,7 @@ namespace Inventory_Management_System.Migrations
                     b.HasIndex("OrderID")
                         .IsUnique();
 
-                    b.ToTable("Shipments");
+                    b.ToTable("Shipments", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Supplier", b =>
@@ -292,7 +292,7 @@ namespace Inventory_Management_System.Migrations
                     b.HasIndex("SupplierName")
                         .IsUnique();
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.SupplierProduct", b =>
@@ -307,7 +307,7 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasIndex("ProductID");
 
-                    b.ToTable("SupplierProducts");
+                    b.ToTable("SupplierProducts", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
@@ -352,7 +352,7 @@ namespace Inventory_Management_System.Migrations
                     b.HasIndex("UserName")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new
@@ -392,7 +392,7 @@ namespace Inventory_Management_System.Migrations
                     b.HasIndex("WarehouseName")
                         .IsUnique();
 
-                    b.ToTable("Warehouses");
+                    b.ToTable("Warehouses", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseStock", b =>
@@ -410,7 +410,7 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasIndex("ProductID");
 
-                    b.ToTable("WarehouseStocks");
+                    b.ToTable("WarehouseStocks", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseTransfers", b =>
@@ -457,7 +457,7 @@ namespace Inventory_Management_System.Migrations
 
                     b.HasIndex("ToWarehouseID");
 
-                    b.ToTable("WarehouseTransfers");
+                    b.ToTable("WarehouseTransfers", (string)null);
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
