@@ -10,10 +10,8 @@
         public Warehouse Warehouse { get; set; }
         public Guid ProductID { get; set; }
         public Product Product { get; set; }
-
         public Guid? SuppliersID { get; set; }
         public Supplier Suppliers { get; set; }
-
         public Guid? OrderID { get; set; }
         public Order Order { get; set; }
 

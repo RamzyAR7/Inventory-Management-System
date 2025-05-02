@@ -249,16 +249,16 @@ namespace Inventory_Management_System.Migrations
                 name: "OrderDetails",
                 columns: table => new
                 {
-                    OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrderDetailID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProductID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderDetails", x => new { x.OrderID, x.ProductID });
+                    table.PrimaryKey("PK_OrderDetails", x => x.OrderDetailID);
                     table.ForeignKey(
                         name: "FK_OrderDetails_Orders_OrderID",
                         column: x => x.OrderID,
@@ -355,7 +355,7 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "IsActive", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("5156b934-1d38-4517-a294-3220fa487362"), new DateTime(2025, 5, 1, 2, 10, 38, 704, DateTimeKind.Utc).AddTicks(2530), "admin@gmail.com", "$2a$11$95WTi58TcGp7z4SR0Ym28uxVYHLjbirU.JscyHf5GQXB22H9MJnBS", true, null, "Admin", "Admin" });
+                values: new object[] { new Guid("3f060619-91c0-46f1-b594-e2af537f0dd6"), new DateTime(2025, 5, 1, 15, 44, 57, 261, DateTimeKind.Utc).AddTicks(8555), "admin@gmail.com", "$2a$11$KjEt3traeM94XOIIu5yGVuM9qGvlMorBL55QhktfmgvY9yMCVaJEO", true, null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_Email",
@@ -382,6 +382,11 @@ namespace Inventory_Management_System.Migrations
                 name: "IX_InventoryTransactions_WarehouseID",
                 table: "InventoryTransactions",
                 column: "WarehouseID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderDetails_OrderID",
+                table: "OrderDetails",
+                column: "OrderID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_ProductID",

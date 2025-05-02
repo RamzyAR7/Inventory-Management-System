@@ -80,13 +80,17 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             _logger.LogInformation("All transactions retrieved: {TransactionCount}", allTransactions.Count());
             return allTransactions;
         }
-
         public async Task<(IEnumerable<InventoryTransaction> Items, int TotalCount)> GetPagedTransactionsAsync(Guid? warehouseId, int pageNumber, int pageSize)
         {
             var includes = new Expression<Func<InventoryTransaction, object>>[]
             {
-                t => t.Warehouse,
-                t => t.Product
+        t => t.Warehouse,
+        t => t.Product,
+        t => t.Suppliers, // For supplier-related In transactions
+        t => t.Order, // For customer-related Out transactions
+        t => t.Order.Customer, // Include Customer for Out transactions
+        t => t.InTransfers, // For In transactions from transfers
+        t => t.OutTransfers // For Out transactions from transfers
             };
 
             Expression<Func<InventoryTransaction, bool>> predicate = null;
@@ -97,11 +101,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             if (userRole == "Manager")
             {
                 var userId = GetCurrentUserId();
-                _logger.LogInformation("GetPagedTransactionsAsync - Manager UserID: {UserID}", userId);
-
                 var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
                 var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
-                _logger.LogInformation("GetPagedTransactionsAsync - Manager Warehouse IDs: {WarehouseIds}", string.Join(", ", managerWarehouseIds));
 
                 if (!managerWarehouseIds.Any())
                 {

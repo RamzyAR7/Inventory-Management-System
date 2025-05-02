@@ -69,6 +69,11 @@
                                     <i class="align-middle" data-feather="box"></i> <span class="align-middle">Inventory</span>
                                 </a>
                             </li>
+                            <li class="sidebar-item @IsActive("Transactions")">
+                                <a class="sidebar-link" href="@Url.Action("Index", "Transactions")">
+                                    <i class="align-middle" data-feather="repeat"></i> <span class="align-middle">Transactions</span>
+                                </a>
+                            </li>
                         }
                         <li class="sidebar-item @IsActive("Orders")">
                             <a class="sidebar-link" href="@Url.Action("Index", "Orders")">

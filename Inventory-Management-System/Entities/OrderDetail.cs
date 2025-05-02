@@ -16,7 +16,6 @@ namespace Inventory_Management_System.Entities
         public decimal UnitPrice { get; set; }
 
         public decimal TotalPrice { get; set; }
-
         // Foreign Keys
         [Required]
         public Guid OrderID { get; set; }
@@ -26,6 +25,7 @@ namespace Inventory_Management_System.Entities
 
         // Navigation Properties
         public Order Order { get; set; }
+
         public Product Product { get; set; }
     }
 }

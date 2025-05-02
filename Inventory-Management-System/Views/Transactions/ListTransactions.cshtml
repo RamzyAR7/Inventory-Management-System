@@ -1,7 +1,10 @@
-﻿@model IEnumerable<Inventory_Management_System.Entities.InventoryTransaction>
-@using System.ComponentModel.DataAnnotations
+@using Inventory_Management_System.Entities
+@model IEnumerable<InventoryTransaction>
+
 @{
     ViewData["Title"] = "In/Out Transactions";
+    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<InventoryTransaction>;
+    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<InventoryTransaction>;
     int totalCount = (int)ViewBag.TotalCount;
     int pageNumber = (int)ViewBag.PageNumber;
     int pageSize = (int)ViewBag.PageSize;
@@ -26,6 +29,7 @@
     {
         <div class="alert alert-danger rounded-3 small py-2 px-3 mb-3">@TempData["ErrorMessage"]</div>
     }
+
     <form asp-action="ListTransactions" method="get" class="mb-4">
         <label class="form-label fw-semibold d-flex align-items-center gap-2" for="warehouseId">
             <i data-feather="filter"></i> Filter by Warehouse
@@ -36,7 +40,6 @@
         </select>
         <input type="hidden" name="pageNumber" value="1" />
     </form>
-
 
     <div class="table-responsive">
         <table class="table table-hover align-middle text-center">
@@ -52,19 +55,19 @@
                 </tr>
             </thead>
             <tbody>
-                @if (Model.Any())
+                @if (Model != null && Model.Any())
                 {
                     @foreach (var t in Model)
                     {
                         <tr>
                             <td>@t.TransactionID</td>
                             <td>
-                                <span class="badge @(t.Type.ToString() == "IN" ? "bg-success-subtle text-success-emphasis" : "bg-danger-subtle text-danger-emphasis")">
+                                <span class="badge @(t.Type == TransactionType.In ? "bg-success-subtle text-success-emphasis" : "bg-danger-subtle text-danger-emphasis")">
                                     @t.Type
                                 </span>
                             </td>
-                            <td>@t.Product.ProductName</td>
-                            <td>@t.Warehouse.WarehouseName</td>
+                            <td>@t.Product?.ProductName</td>
+                            <td>@t.Warehouse?.WarehouseName</td>
                             <td>@t.Quantity</td>
                             <td>@t.TransactionDate.ToString("g")</td>
                             <td>
@@ -77,8 +80,9 @@
                 }
                 else
                 {
+                   
                     <tr>
-                        <td colspan="7" class="text-muted">No transactions found.</td>
+                        <td colspan="7" class="text-center text-muted">No transactions found.</td>
                     </tr>
                 }
             </tbody>
@@ -96,9 +100,12 @@
         </ul>
     </nav>
 
-    <div class="d-flex justify-content-between mt-4">
-        <a asp-action="CreateInOrOutTransaction" class="btn btn-primary rounded-pill px-4 fw-semibold">
-            <i data-feather="plus"></i> Create In/Out Transaction
+    <div class="d-flex justify-content-start mt-4">
+        <a asp-action="CreateInTransaction" class="btn btn-outline-primary rounded-pill px-4 fw-semibold me-2">
+            <i data-feather="plus-circle" class="me-1"></i> Create In
+        </a>
+        <a asp-action="CreateOutTransaction" class="btn btn-outline-primary rounded-pill px-4 fw-semibold">
+            <i data-feather="corner-down-right" class="me-1"></i> Create Out
         </a>
     </div>
 </div>

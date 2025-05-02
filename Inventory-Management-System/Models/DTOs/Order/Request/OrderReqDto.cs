@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Inventory_Management_System.Entities;
 
-namespace Inventory_Management_System.Models.DTOs.Order
+namespace Inventory_Management_System.Models.DTOs.Order.Request
 {
     public class OrderReqDto
     {

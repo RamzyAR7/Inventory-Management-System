@@ -5,8 +5,10 @@ using Inventory_Management_System.Models.DTOs.Category;
 using Inventory_Management_System.Models.DTOs.Customer;
 using Inventory_Management_System.Models.DTOs.InventoryTransaction;
 using Inventory_Management_System.Models.DTOs.Order;
+using Inventory_Management_System.Models.DTOs.Order.Request;
 using Inventory_Management_System.Models.DTOs.Order.Responce;
 using Inventory_Management_System.Models.DTOs.Products;
+using Inventory_Management_System.Models.DTOs.Shipment;
 using Inventory_Management_System.Models.DTOs.Supplier;
 using Inventory_Management_System.Models.DTOs.User;
 using Inventory_Management_System.Models.DTOs.UserDto;
@@ -71,7 +73,6 @@ namespace Inventory_Management_System.Models.Mapping
                 .ForMember(dest => dest.WarehouseID, opt => opt.Ignore());
             #endregion
 
-            // need to fix this
             #region Order
             // Order to OrderResponseDto (used in Index)
             CreateMap<Order, OrderResponseDto>()
@@ -87,13 +88,15 @@ namespace Inventory_Management_System.Models.Mapping
                 .ForMember(dest => dest.CreatedByUserID, opt => opt.MapFrom(src => src.CreatedByUserID))
                 .ForMember(dest => dest.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails));
 
+            // fix when delete
+            CreateMap<OrderDetailResponseDto, OrderResponseDto>();
+
             // OrderDetail to OrderDetailResponseItem
             CreateMap<OrderDetail, OrderDetailResponseItem>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.ProductName : "Unknown"));
 
             // OrderReqDto to Order (for Create and Edit)
-            CreateMap<OrderReqDto, Order>()
-                .ForMember(dest => dest.OrderDetails, opt => opt.Ignore());
+            CreateMap<OrderReqDto, Order>();
 
             // OrderDetailReqDto to OrderDetail
             CreateMap<OrderDetailReqDto, OrderDetail>();
@@ -140,7 +143,30 @@ namespace Inventory_Management_System.Models.Mapping
             CreateMap<CustomerReqDto, Customer>()
                 .ForMember(dest => dest.CustomerID, opt => opt.Ignore());
             CreateMap<Customer, CustomerReqDto>();
-            
+
+            #endregion
+
+            #region Shipment
+            CreateMap<Shipment, ShipmentReqDto>()
+                .ForMember(dest => dest.ShipmentID, opt => opt.MapFrom(src => src.ShipmentID))
+                .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber))
+                .ForMember(dest => dest.Destination, opt => opt.MapFrom(src => src.Destination))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.ItemCount, opt => opt.MapFrom(src => src.ItemCount))
+                .ForMember(dest => dest.ShippedDate, opt => opt.MapFrom(src => src.ShippedDate))
+                .ForMember(dest => dest.DeliveryDate, opt => opt.MapFrom(src => src.DeliveryDate))
+                .ForMember(dest => dest.OrderID, opt => opt.MapFrom(src => src.OrderID));
+
+            CreateMap<ShipmentReqDto, Shipment>()
+                .ForMember(dest => dest.ShipmentID, opt => opt.MapFrom(src => src.ShipmentID))
+                .ForMember(dest => dest.TrackingNumber, opt => opt.MapFrom(src => src.TrackingNumber))
+                .ForMember(dest => dest.Destination, opt => opt.MapFrom(src => src.Destination))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.ItemCount, opt => opt.MapFrom(src => src.ItemCount))
+                .ForMember(dest => dest.ShippedDate, opt => opt.MapFrom(src => src.ShippedDate))
+                .ForMember(dest => dest.DeliveryDate, opt => opt.MapFrom(src => src.DeliveryDate))
+                .ForMember(dest => dest.OrderID, opt => opt.MapFrom(src => src.OrderID))
+                .ForMember(dest => dest.Order, opt => opt.Ignore()); // Ignore navigation property
             #endregion
         }
     }
