@@ -8,207 +8,167 @@
     int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 }
 
-<style>
-    /* Button styling for consistent look across the application */
-    .btn {
-        transition: all 0.3s ease;
-        border-radius: 4px;
-        font-weight: 500;
-        padding: 8px 16px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border: none;
-    }
-    
-    .btn-primary {
-        background-color: #4e73df;
-        color: white;
-    }
-    
-    .btn-primary:hover {
-        background-color: #3a5ec0;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    
-    .btn-secondary {
-        background-color: #6c757d;
-        color: white;
-    }
-    
-    .btn-secondary:hover {
-        background-color: #5a6268;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    
-    .btn-info {
-        background-color: #36b9cc;
-        color: white;
-    }
-    
-    .btn-info:hover {
-        background-color: #2c9faf;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    
-    .btn-sm {
-        padding: 5px 10px;
-        font-size: 0.875rem;
-    }
-    
-    .button-group {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-    }
-</style>
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-semibold mb-0 text-primary">
+                <i class="align-middle me-2" data-feather="shuffle"></i> Transactions Dashboard
+            </h2>
+            <a asp-controller="Products" asp-action="Index" class= "btn btn-primary rounded-pill">
+                <i class="align-middle me-2" data-feather="package"></i> Go to Inventory
+            </a>
+        </div>
 
-<h2>Transactions Dashboard</h2>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success small rounded-3 py-2 px-3 mb-3">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger small rounded-3 py-2 px-3 mb-3">@TempData["ErrorMessage"]</div>
+        }
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-}
+        <div class="d-flex flex-wrap gap-2 mb-4">
+           
+            <a asp-action="ListTransactions" class="btn btn-secondary rounded-pill">
+                <i data-feather="list"></i> View In/Out
+            </a>
+            <a asp-action="ListTransfers" class="btn btn-secondary rounded-pill">
+                <i data-feather="repeat"></i> View Transfers
+            </a>
 
-<!-- All Action Buttons Grouped at Top -->
-<div class="button-group">
-    <!-- View Buttons -->
-    <a asp-action="ListTransactions" class="btn btn-secondary">
-        <i class="fas fa-list"></i> ALL IN/OUT Transactions
-    </a>
-    <a asp-action="ListTransfers" class="btn btn-secondary">
-        <i class="fas fa-exchange-alt"></i> All From/To Transfers
-    </a>
-    
-    <!-- Create Buttons -->
-    <a asp-action="CreateInTransaction" class="btn btn-primary">
-        <i class="fas fa-plus-circle"></i> Create In
-    </a>
-    <a asp-action="TransferBetweenWarehouses" class="btn btn-primary">
-        <i class="fas fa-truck-moving"></i> Create Transfer
-    </a>
-</div>
 
-<!-- Filter by Warehouse -->
-<form asp-action="Index" method="get" class="mb-4">
-    <div class="form-group">
-        <label for="warehouseId">Filter by Warehouse</label>
-        <select name="warehouseId" id="warehouseId" asp-items="ViewBag.Warehouses" class="form-control" onchange="this.form.submit()">
-            <option value="">All Warehouses</option>
-        </select>
-        <input type="hidden" name="pageNumber" value="1" />
+          
+            <div class="vr mx-2 d-none d-md-block"></div> 
+            <a asp-action="CreateInTransaction" class="btn btn-primary rounded-pill">
+                <i data-feather="plus-circle"></i> New In
+            </a>
+            <a asp-action="TransferBetweenWarehouses" class="btn btn-primary rounded-pill">
+                <i data-feather="truck"></i> New Transfer
+            </a>
+        </div>
+        <hr class="my-4" />
+        <form asp-action="ListTransactions" method="get" class="mb-4">
+            <label class="form-label fw-semibold d-flex align-items-center gap-2" for="warehouseId">
+                <i data-feather="filter"></i> Filter by Warehouse
+            </label>
+            <select name="warehouseId" id="warehouseId" asp-items="ViewBag.Warehouses"
+                    class="form-select w-auto d-inline-block" onchange="this.form.submit()">
+                <option value="">All Warehouses</option>
+            </select>
+            <input type="hidden" name="pageNumber" value="1" />
+        </form>
+
+
+
+        <h5 class="text-muted fw-semibold mb-3">Warehouse Transfers</h5>
+        <div class="table-responsive mb-5">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Transfer ID</th>
+                        <th>From Warehouse</th>
+                        <th>From Product</th>
+                        <th>To Warehouse</th>
+                        <th>To Product</th>
+                        <th>Quantity</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (transfers.Any())
+                    {
+                        foreach (var transfer in transfers)
+                        {
+                            <tr>
+                                <td>@transfer.WarehouseTransferID</td>
+                                <td>@transfer.FromWarehouse.WarehouseName</td>
+                                <td>@transfer.FromProduct.ProductName</td>
+                                <td>@transfer.ToWarehouse.WarehouseName</td>
+                                <td>@transfer.ToProduct.ProductName</td>
+                                <td>@transfer.Quantity</td>
+                                <td>@transfer.TransferDate.ToString("g")</td>
+                                <td>
+                                    <a asp-action="TransferDetails" asp-route-id="@transfer.WarehouseTransferID" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                                        <i data-feather="info"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">No transfers found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <h5 class="text-muted fw-semibold mb-3">In/Out Transactions</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Type</th>
+                        <th>Product</th>
+                        <th>Warehouse</th>
+                        <th>Quantity</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var transaction in Model)
+                        {
+                            <tr>
+                                <td>@transaction.TransactionID</td>
+                                <td>@transaction.Type</td>
+                                <td>@transaction.Product.ProductName</td>
+                                <td>@transaction.Warehouse.WarehouseName</td>
+                                <td>@transaction.Quantity</td>
+                                <td>@transaction.TransactionDate.ToString("g")</td>
+                                <td>
+                                    <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                                        <i data-feather="info"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">No transactions found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == pageNumber ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-warehouseId="@ViewBag.WarehouseId" asp-route-pageNumber="@i">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
     </div>
-</form>
-
-<!-- Warehouse Transfers -->
-<h3>Warehouse Transfers</h3>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Transfer ID</th>
-            <th>From Warehouse</th>
-            <th>From Product</th>
-            <th>To Warehouse</th>
-            <th>To Product</th>
-            <th>Quantity</th>
-            <th>Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (transfers.Any())
-        {
-            @foreach (var transfer in transfers)
-            {
-                <tr>
-                    <td>@transfer.WarehouseTransferID</td>
-                    <td>@transfer.FromWarehouse.WarehouseName</td>
-                    <td>@transfer.FromProduct.ProductName</td>
-                    <td>@transfer.ToWarehouse.WarehouseName</td>
-                    <td>@transfer.ToProduct.ProductName</td>
-                    <td>@transfer.Quantity</td>
-                    <td>@transfer.TransferDate.ToString("g")</td>
-                    <td>
-                        <a asp-action="TransferDetails" asp-route-id="@transfer.WarehouseTransferID" class="btn btn-info btn-sm">
-                            <i class="fas fa-info-circle"></i> Details
-                        </a>
-                    </td>
-                </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="8" class="text-center">No transfers found.</td>
-            </tr>
-        }
-    </tbody>
-</table>
-<!-- Rest of the content remains unchanged -->
-<!-- In/Out Transactions -->
-<h3>In/Out Transactions</h3>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Transaction ID</th>
-            <th>Type</th>
-            <th>Product</th>
-            <th>Warehouse</th>
-            <th>Quantity</th>
-            <th>Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Any())
-        {
-            @foreach (var transaction in Model)
-            {
-                <tr>
-                    <td>@transaction.TransactionID</td>
-                    <td>@transaction.Type</td>
-                    <td>@transaction.Product.ProductName</td>
-                    <td>@transaction.Warehouse.WarehouseName</td>
-                    <td>@transaction.Quantity</td>
-                    <td>@transaction.TransactionDate.ToString("g")</td>
-                    <td>
-                        <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-info btn-sm">
-                            <i class="fas fa-info-circle"></i> Details
-                        </a>
-                    </td>
-                </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="7" class="text-center">No transactions found.</td>
-            </tr>
-        }
-    </tbody>
-</table>
-<!-- Pagination for Transactions -->
-<nav>
-    <ul class="pagination">
-        @for (int i = 1; i <= totalPages; i++)
-        {
-            <li class="page-item @(i == pageNumber ? "active" : "")">
-                <a class="page-link" asp-action="Index" asp-route-warehouseId="@ViewBag.WarehouseId" asp-route-pageNumber="@i">@i</a>
-            </li>
-        }
-    </ul>
-</nav>
-
-<div class="button-group">
-    <a asp-controller="Products" asp-action="Index" class="btn btn-primary me-2">
-        <i class="fas fa-boxes me-2"></i>Go to Inventory
-    </a>
 </div>
-<!-- Add Font Awesome for icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+        });
+    </script>
+}

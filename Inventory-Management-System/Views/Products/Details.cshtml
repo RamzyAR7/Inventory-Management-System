@@ -4,46 +4,43 @@
     ViewData["Title"] = "Product Details";
 }
 
-<div class="product-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Product Details</h1>
-        <div>
-            <a asp-action="Edit" asp-route-id="@Model.ProductID" class="btn btn-warning">
-                <i class="align-middle me-1" data-feather="edit"></i> Edit
-            </a>
-            <a asp-action="Index" class="btn btn-outline-secondary">
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn" style="max-width: 900px; margin: 0 auto;">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-semibold mb-0 text-primary">
+                <i class="align-middle me-2" data-feather="info"></i> Product Details
+            </h3>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill fw-semibold px-4">
                 <i class="align-middle me-1" data-feather="arrow-left"></i> Back to List
             </a>
         </div>
-    </div>
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger rounded-3 small py-2 px-3 mb-3">@TempData["ErrorMessage"]</div>
+        }
 
-    <div class="product-details">
-        <dl class="row">
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductName)</dt>
-            <dd class="col-sm-9">@Model.ProductName</dd>
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-muted">Product Name</dt>
+            <dd class="col-sm-8">@Model.ProductName</dd>
 
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.ProductDescription)</dt>
-            <dd class="col-sm-9">@Model.ProductDescription</dd>
+            <dt class="col-sm-4 text-muted">Description</dt>
+            <dd class="col-sm-8">@Model.ProductDescription</dd>
 
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Price)</dt>
-            <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
+            <dt class="col-sm-4 text-muted">Price</dt>
+            <dd class="col-sm-8">@Model.Price.ToString("C")</dd>
 
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.RecoderLevel)</dt>
-            <dd class="col-sm-9">@Model.RecoderLevel</dd>
+            <dt class="col-sm-4 text-muted">Reorder Level</dt>
+            <dd class="col-sm-8">@Model.RecoderLevel</dd>
 
-            <dt class="col-sm-3">Stock Quantity</dt>
-            <dd class="col-sm-9">
+            <dt class="col-sm-4 text-muted">Stock Quantity</dt>
+            <dd class="col-sm-8">
                 @if (Model.WarehouseStocks?.Any() == true)
                 {
-                    @string.Join(", ", Model.WarehouseStocks.Select(w => w.StockQuantity))
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1">
+                        @Model.WarehouseStocks.Sum(w => w.StockQuantity)
+                    </span>
                 }
                 else
                 {
@@ -51,31 +48,28 @@
                 }
             </dd>
 
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Category)</dt>
-            <dd class="col-sm-9">
-                <span class="badge bg-primary">@Model.Category?.CategoryName</span>
+            <dt class="col-sm-4 text-muted">Category</dt>
+            <dd class="col-sm-8">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1">@Model.Category?.CategoryName</span>
             </dd>
 
-            <dt class="col-sm-3">@Html.DisplayNameFor(model => model.IsActive)</dt>
-            <dd class="col-sm-9">
-                @if (Model.IsActive)
-                {
-                    <span class="badge bg-success">Active</span>
-                }
-                else
-                {
-                    <span class="badge bg-danger">Inactive</span>
-                }
+            <dt class="col-sm-4 text-muted">Is Active</dt>
+            <dd class="col-sm-8">
+                <span class="badge @(Model.IsActive ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1">
+                    @(Model.IsActive ? "Active" : "Inactive")
+                </span>
             </dd>
 
-            <dt class="col-sm-3">Suppliers</dt>
-            <dd class="col-sm-9">
+            <dt class="col-sm-4 text-muted">Suppliers</dt>
+            <dd class="col-sm-8">
                 @if (Model.Suppliers?.Any() == true)
                 {
-                    foreach (var supplier in Model.Suppliers)
-                    {
-                        <span class="badge bg-info me-1">@supplier.Supplier?.SupplierName</span>
-                    }
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach (var supplier in Model.Suppliers)
+                        {
+                            <span class="badge bg-info bg-opacity-10 text-info px-3 py-1">@supplier.Supplier?.SupplierName</span>
+                        }
+                    </div>
                 }
                 else
                 {
@@ -83,11 +77,16 @@
                 }
             </dd>
 
-            <dt class="col-sm-3">Warehouse Name</dt>
-            <dd class="col-sm-9">
+            <dt class="col-sm-4 text-muted">Warehouses</dt>
+            <dd class="col-sm-8">
                 @if (Model.WarehouseStocks?.Any() == true)
                 {
-                    @string.Join(", ", Model.WarehouseStocks.Select(w => w.Warehouse.WarehouseName))
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach (var warehouse in Model.WarehouseStocks)
+                        {
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1">@warehouse.Warehouse.WarehouseName</span>
+                        }
+                    </div>
                 }
                 else
                 {
@@ -95,39 +94,14 @@
                 }
             </dd>
         </dl>
+
+        <div class="d-flex justify-content-start mt-4">
+            <a asp-action="Edit" asp-route-id="@Model.ProductID" class="btn btn-warning rounded-pill px-4 fw-semibold">
+                <i class="align-middle me-1" data-feather="edit"></i> Edit
+            </a>
+        </div>
     </div>
 </div>
-
-@section Styles {
-    <style>
-        .product-container {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .badge {
-            font-weight: 500;
-            padding: 5px 10px;
-        }
-
-        /* Fix description list layout */
-        .product-details dl dt {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .product-details dl dd {
-            margin-bottom: 1rem;
-            word-wrap: break-word; /* Ensure long text wraps properly */
-        }
-
-        .product-details dl dd.text-muted {
-            font-style: italic;
-        }
-    </style>
-}
 
 @section Scripts {
     <script>

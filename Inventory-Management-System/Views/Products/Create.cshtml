@@ -4,140 +4,120 @@
     ViewData["Title"] = "Create Product";
 }
 
-<div class="product-form">
-    <h1 class="h3 mb-4">Create New Product</h1>
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn" style="max-width: 850px; margin: 0 auto;">
+        <div class="mb-4">
+            <h3 class="fw-semibold mb-0 text-primary">
+                <i class="align-middle me-2" data-feather="plus-circle"></i> Create Product
+            </h3>
         </div>
-    }
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
 
-    @if (ViewData.ModelState.Any(x => x.Value.Errors.Any()))
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <ul class="mb-0">
-                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    <li>@error.ErrorMessage</li>
-                }
-            </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+        @* Messages *@
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger rounded-3 small py-2 px-3 mb-3">@TempData["ErrorMessage"]</div>
+        }
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success rounded-3 small py-2 px-3 mb-3">@TempData["SuccessMessage"]</div>
+        }
+        @if (ViewData.ModelState.Any(x => x.Value.Errors.Any()))
+        {
+            <div class="alert alert-danger rounded-3 small py-2 px-3 mb-3">
+                <ul class="mb-0 ps-3">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
 
-    <form asp-action="Create" method="post">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label asp-for="ProductName" class="form-label"></label>
-                    <input asp-for="ProductName" class="form-control" placeholder="Enter product name" />
-                    <span asp-validation-for="ProductName" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="ProductDescription" class="form-label"></label>
-                    <textarea asp-for="ProductDescription" class="form-control" placeholder="Enter product description" rows="3"></textarea>
-                    <span asp-validation-for="ProductDescription" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="Price" class="form-label"></label>
-                    <input asp-for="Price" class="form-control" placeholder="0.00" />
-                    <span asp-validation-for="Price" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="RecoderLevel" class="form-label"></label>
-                    <input asp-for="RecoderLevel" class="form-control" placeholder="Enter reorder level" />
-                    <span asp-validation-for="RecoderLevel" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <div class="form-check">
+        <form asp-action="Create" method="post">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="ProductName" class="form-label">Product Name</label>
+                        <input asp-for="ProductName" class="form-control rounded-3" placeholder="Enter product name" />
+                        <span asp-validation-for="ProductName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ProductDescription" class="form-label">Description</label>
+                        <textarea asp-for="ProductDescription" class="form-control rounded-3" rows="3" placeholder="Enter product description"></textarea>
+                        <span asp-validation-for="ProductDescription" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Price" class="form-label">Price</label>
+                        <input asp-for="Price" class="form-control rounded-3" placeholder="0.00" />
+                        <span asp-validation-for="Price" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="RecoderLevel" class="form-label">Reorder Level</label>
+                        <input asp-for="RecoderLevel" class="form-control rounded-3" />
+                        <span asp-validation-for="RecoderLevel" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mt-2 mb-3">
                         <input asp-for="IsActive" class="form-check-input" type="checkbox" id="IsActive" />
                         <label asp-for="IsActive" class="form-check-label">Is Active</label>
                     </div>
-                    <span asp-validation-for="IsActive" class="text-danger small"></span>
                 </div>
 
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="CategoryID" class="form-label">Category</label>
+                        <select asp-for="CategoryID" class="form-select rounded-3" asp-items="ViewBag.Categories">
+                            <option value="">Select Category</option>
+                        </select>
+                        <span asp-validation-for="CategoryID" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="WarehouseIds" class="form-label">Warehouses</label>
+                        <select asp-for="WarehouseIds" class="form-select rounded-3" asp-items="ViewBag.Warehouses" multiple></select>
+                        <span asp-validation-for="WarehouseIds" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label asp-for="CategoryID" class="form-label">Category</label>
-                    <select asp-for="CategoryID" asp-items="ViewBag.Categories" class="form-select">
-                        <option value="">Select Category</option>
-                    </select>
-                    <span asp-validation-for="CategoryID" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="WarehouseIds" class="form-label">Warehouses</label>
-                    <select asp-for="WarehouseIds" asp-items="ViewBag.Warehouses" class="form-select" multiple="multiple"></select>
-                    <span asp-validation-for="WarehouseIds" class="text-danger"></span>
-                </div>
+            <div class="d-flex justify-content-between mt-4">
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                    <i class="align-middle me-1" data-feather="plus"></i> Create Product
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+                    <i class="align-middle me-1" data-feather="x"></i> Cancel
+                </a>
             </div>
-        </div>
 
-        <div class="d-flex justify-content-between mt-4">
-            <button type="submit" class="btn btn-primary">
-                <i class="align-middle me-1" data-feather="plus"></i> Create Product
-            </button>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="align-middle me-1" data-feather="arrow-left"></i> Cancel
-            </a>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
 @section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
-        .product-form {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-control, .form-select {
-            height: 38px;
-            line-height: 1.5;
-        }
-
-        .form-control[rows] {
-            height: auto;
-        }
-
         select[multiple] {
-            height: 120px;
+            height: auto !important;
         }
 
-        .mb-3 {
-            margin-bottom: 1rem !important;
-        }
-
-        .text-danger {
-            display: block;
-            margin-top: 0.25rem;
+        .select2-container--default .select2-selection--multiple {
+            border-radius: 8px;
+            padding: 0.375rem 0.5rem;
+            min-height: 38px;
         }
     </style>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 }
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             feather.replace();
-            
-            // Initialize Select2 for multiple warehouse selection
             $('#WarehouseIds').select2({
                 placeholder: "Select warehouses",
                 allowClear: true,
