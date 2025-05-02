@@ -33,19 +33,36 @@ namespace Inventory_Management_System.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, OrderStatus? statusFilter = null)
         {
             try
             {
-                var orders = await _orderService.GetAllAsync();
+                _logger.LogInformation("Index - Retrieving orders for PageNumber: {PageNumber}, PageSize: {PageSize}, StatusFilter: {StatusFilter}",
+                    pageNumber, pageSize, statusFilter);
+
+                var (orders, totalCount) = await _orderService.GetPagedOrdersAsync(pageNumber, pageSize, statusFilter);
+                _logger.LogInformation("Index - Retrieved {OrderCount} orders, TotalCount: {TotalCount}", orders.Count(), totalCount);
+
                 ViewBag.OrderStatuses = Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToList();
-                return View(orders);
+                ViewBag.Orders = orders;
+                ViewBag.TotalCount = totalCount;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.StatusFilter = statusFilter;
+
+                return View();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving orders.");
                 TempData["error"] = "Failed to load orders: " + ex.Message;
-                return View(new List<OrderResponseDto>());
+                ViewBag.Orders = new List<OrderResponseDto>();
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = 1;
+                ViewBag.PageSize = pageSize;
+                ViewBag.StatusFilter = statusFilter;
+                ViewBag.OrderStatuses = Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToList();
+                return View();
             }
         }
 

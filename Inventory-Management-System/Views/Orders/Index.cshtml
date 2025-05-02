@@ -1,9 +1,20 @@
-﻿@model IEnumerable<Inventory_Management_System.Models.DTOs.Order.Responce.OrderResponseDto>
+﻿@model dynamic
 @using Inventory_Management_System.Entities
 
 @{
     ViewData["Title"] = "Orders";
+    var orders = ViewBag.Orders as IEnumerable<Inventory_Management_System.Models.DTOs.Order.Responce.OrderResponseDto>;
+    int totalCount = (int)ViewBag.TotalCount;
+    int pageNumber = (int)ViewBag.PageNumber;
+    int pageSize = (int)ViewBag.PageSize;
+    int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+    OrderStatus? statusFilter = ViewBag.StatusFilter;
 }
+
+<!-- Add Anti-Forgery Token Form -->
+<form id="antiForgeryForm">
+    @Html.AntiForgeryToken()
+</form>
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -33,7 +44,7 @@
             <h6 class="m-0 font-weight-bold">Order List</h6>
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" 
-                id="statusFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        id="statusFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-filter mr-1"></i>Filter by Status
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="statusFilterDropdown">
@@ -64,10 +75,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model.Any())
+                        @if (orders != null && orders.Any())
                         {
-                            int i = 1;
-                            @foreach (var order in Model)
+                            int i = 1 + (pageNumber - 1) * pageSize;
+                            @foreach (var order in orders)
                             {
                                 <tr data-order-id="@order.OrderID">
                                     <td>@i</td>
@@ -105,7 +116,7 @@
                                                     <option value="" disabled selected>Change Status</option>
                                                     @foreach (var status in ViewBag.OrderStatuses as List<OrderStatus>)
                                                     {
-                                                        if (status != OrderStatus.Delivered)
+                                                        if (status != order.Status && status != OrderStatus.Delivered)
                                                         {
                                                             <option value="@status">@status</option>
                                                         }
@@ -121,12 +132,50 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="text-center text-muted">No orders found</td>
+                                <td colspan="8" class="text-center text-muted">No orders found@(statusFilter.HasValue ? $" for status {statusFilter}" : "")</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+
+            @if (totalPages > 1)
+            {
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(pageNumber == 1 ? "disabled" : "")">
+                            <a class="page-link" 
+                               asp-action="Index" 
+                               asp-route-pageNumber="@(pageNumber - 1)" 
+                               asp-route-pageSize="@pageSize"
+                               asp-route-statusFilter="@statusFilter">
+                                Previous
+                            </a>
+                        </li>
+                        
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == pageNumber ? "active" : "")">
+                                <a class="page-link" 
+                                   asp-action="Index" 
+                                   asp-route-pageNumber="@i" 
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-statusFilter="@statusFilter">@i</a>
+                            </li>
+                        }
+                        
+                        <li class="page-item @(pageNumber == totalPages ? "disabled" : "")">
+                            <a class="page-link" 
+                               asp-action="Index" 
+                               asp-route-pageNumber="@(pageNumber + 1)" 
+                               asp-route-pageSize="@pageSize"
+                               asp-route-statusFilter="@statusFilter">
+                                Next
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
         </div>
     </div>
 </div>
@@ -330,6 +379,9 @@
                     search: "Search:",
                     zeroRecords: "No matching orders found"
                 },
+                paging: false,
+                searching: false,
+                info: false,
                 columnDefs: [
                     { orderable: false, targets: [7] }, // Actions column
                     { responsivePriority: 1, targets: [0, 7] },
@@ -349,9 +401,9 @@
                 e.preventDefault();
                 const filterValue = $(this).data('filter');
                 if (filterValue === 'all') {
-                    table.column(5).search('').draw();
+                    window.location.href = '@Url.Action("Index", new { pageNumber = 1, pageSize = 10 })';
                 } else {
-                    table.column(5).search(filterValue, true, false).draw();
+                    window.location.href = '@Url.Action("Index", new { pageNumber = 1, pageSize = 10 })' + `&statusFilter=${filterValue}`;
                 }
                 $('#statusFilterDropdown').text('Filter: ' + $(this).text());
             });
@@ -371,7 +423,11 @@
                 }
 
                 // Get anti-forgery token
-                const token = $('input[name="__RequestVerificationToken"]').val();
+                const token = $('#antiForgeryForm input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    showToast('Error: Anti-forgery token not found.', 'danger');
+                    return;
+                }
 
                 $.ajax({
                     url: '@Url.Action("UpdateStatus", "Orders")',
@@ -414,13 +470,13 @@
                             $select.val('');
                         } else {
                             showToast('Error: ' + response.message, 'danger');
-                            $select.val(''); // Reset dropdown
+                            $select.val('');
                         }
                     },
                     error: function (xhr) {
                         const errorMsg = xhr.responseJSON?.message || xhr.responseText || 'Failed to update status.';
                         showToast('Error: ' + errorMsg, 'danger');
-                        $select.val(''); // Reset dropdown
+                        $select.val('');
                     }
                 });
             });

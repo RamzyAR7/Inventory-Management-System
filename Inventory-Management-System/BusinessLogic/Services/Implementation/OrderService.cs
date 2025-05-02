@@ -30,42 +30,63 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             _logger = logger;
         }
 
-        public async Task<IEnumerable<OrderResponseDto>> GetAllAsync()
-        {
-            var userRole = GetCurrentUserRole();
-            var userId = GetCurrentUserId();
-            var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
-
-            if (!managerWarehouseIds.Any() && userRole != "Admin")
-            {
-                _logger.LogWarning("No warehouses accessible for user {UserID} with role {Role}.", userId, userRole);
-                return Enumerable.Empty<OrderResponseDto>();
-            }
-
-            var predicate = userRole == "Admin" ? null : (Expression<Func<Order, bool>>)(o => managerWarehouseIds.Contains(o.WarehouseID));
-            var orders = await _unitOfWork.Orders.GetAllWithDetailsAsync(predicate);
-            return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
-        }
-        //public async Task<(IEnumerable<Order> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize)
+        //public async Task<IEnumerable<OrderResponseDto>> GetAllAsync()
         //{
-        //    try
-        //    {
-        //        var includes = new Expression<Func<Order, object>>[]
-        //        {
-        //            o => o.Customer,
-        //            o => o.Warehouse
-        //        };
+        //    var userRole = GetCurrentUserRole();
+        //    var userId = GetCurrentUserId();
+        //    var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
-        //        var (items, totalCount) = await _unitOfWork.Orders.GetPagedAsync(pageNumber, pageSize, null, includes);
-        //        _logger.LogInformation("GetPagedOrdersAsync - Retrieved {ItemCount} orders, TotalCount: {TotalCount}", items.Count(), totalCount);
-        //        return (items, totalCount);
-        //    }
-        //    catch (Exception ex)
+        //    if (!managerWarehouseIds.Any() && userRole != "Admin")
         //    {
-        //        _logger.LogError(ex, "GetPagedOrdersAsync - Error retrieving orders: {Message}", ex.Message);
-        //        throw;
+        //        _logger.LogWarning("No warehouses accessible for user {UserID} with role {Role}.", userId, userRole);
+        //        return Enumerable.Empty<OrderResponseDto>();
         //    }
+
+        //    var predicate = userRole == "Admin" ? null : (Expression<Func<Order, bool>>)(o => managerWarehouseIds.Contains(o.WarehouseID));
+        //    var orders = await _unitOfWork.Orders.GetAllWithDetailsAsync(predicate);
+        //    return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
         //}
+        public async Task<(IEnumerable<OrderResponseDto> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize, OrderStatus? statusFilter = null)
+        {
+            try
+            {
+                var userRole = GetCurrentUserRole();
+                var userId = GetCurrentUserId();
+                var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
+
+                if (!managerWarehouseIds.Any() && userRole != "Admin")
+                {
+                    _logger.LogWarning("No warehouses accessible for user {UserId} with role {Role}.", userId, userRole);
+                    return (Enumerable.Empty<OrderResponseDto>(), 0);
+                }
+
+                var includes = new Expression<Func<Order, object>>[]
+                {
+            o => o.Customer,
+            o => o.Warehouse
+                };
+
+                Expression<Func<Order, bool>> predicate = null;
+                if (statusFilter.HasValue)
+                {
+                    predicate = o => o.Status == statusFilter.Value;
+                }
+                else if (userRole != "Admin")
+                {
+                    predicate = o => managerWarehouseIds.Contains(o.WarehouseID);
+                }
+
+                var (orders, totalCount) = await _unitOfWork.Orders.GetPagedAsync(pageNumber, pageSize, predicate, includes);
+                var orderDtos = _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
+                _logger.LogInformation("GetPagedOrdersAsync - Retrieved {ItemCount} orders, TotalCount: {TotalCount}", orders.Count(), totalCount);
+                return (orderDtos, totalCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetPagedOrdersAsync - Error retrieving orders: {Message}", ex.Message);
+                throw;
+            }
+        }
 
         public async Task<OrderDetailResponseDto?> GetByIdAsync(Guid id)
         {
