@@ -98,15 +98,26 @@ namespace Inventory_Management_System.Services
                 switch (newStatus)
                 {
                     case ShipmentStatus.InTransit:
-                        // Just update the status, no other changes needed
                         shipment.Status = newStatus;
                         shipment.ShippedDate = DateTime.UtcNow;
                         break;
+
 
                     case ShipmentStatus.Cancelled:
                         shipment.Status = newStatus;
                         if (shipment.Order != null)
                         {
+                            var transactions = await _unitOfWork.InventoryTransactions.FindAsync(t => t.OrderID == shipment.OrderID && t.Type == TransactionType.Out);
+                            foreach (var trans in transactions)
+                            {
+                                var stock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(shipment.Order.WarehouseID, trans.ProductID);
+                                if (stock != null)
+                                {
+                                    stock.StockQuantity += trans.Quantity;
+                                    await _unitOfWork.WarehouseStocks.UpdateAsync(stock);
+                                }
+                                await _unitOfWork.InventoryTransactions.DeleteAsync(trans.TransactionID);
+                            }
                             shipment.Order.Status = OrderStatus.Pending;
                             await _unitOfWork.Orders.UpdateAsync(shipment.Order);
                         }

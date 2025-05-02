@@ -410,7 +410,8 @@
             $('.status-select').on('change', function () {
                 const shipmentId = $(this).data('shipment-id');
                 const newStatus = $(this).val();
-                const $badge = $(this).closest('tr').find('.badge');
+                const $row = $(this).closest('tr');
+                const $badge = $row.find('.badge');
                 const $select = $(this);
                 const originalStatus = $badge.data('status');
 
@@ -444,26 +445,32 @@
                     success: function (response) {
                         console.log('AJAX success:', response);
                         if (response.success) {
-                            // Update badge text and class
-                            $badge.text(newStatus).data('status', newStatus);
-                            $badge.removeClass('badge-Pending badge-InTransit badge-Delivered badge-Cancelled')
-                                  .addClass(getStatusBadgeClass(newStatus));
-                            showToast(response.message, 'success');
-
-                            // Update Delete button visibility
-                            const $deleteButton = $(`a[href*="${shipmentId}"][title="Delete"]`);
-                            if (newStatus !== 'Cancelled') {
-                                $deleteButton.hide();
+                            if (response.isDeleted) {
+                                // Remove the row from the DataTable if the shipment is deleted
+                                table.row($row).remove().draw();
+                                showToast(response.message, 'success');
                             } else {
-                                $deleteButton.show();
-                            }
+                                // Update badge text and class
+                                $badge.text(newStatus).data('status', newStatus);
+                                $badge.removeClass('badge-Pending badge-InTransit badge-Delivered badge-Cancelled')
+                                      .addClass(getStatusBadgeClass(newStatus));
+                                showToast(response.message, 'success');
 
-                            // If status is Delivered, remove the dropdown
-                            if (newStatus === 'Delivered') {
-                                $select.remove();
-                            }
+                                // Update Delete button visibility
+                                const $deleteButton = $row.find('a[title="Delete"]');
+                                if (newStatus !== 'Cancelled') {
+                                    $deleteButton.hide();
+                                } else {
+                                    $deleteButton.show();
+                                }
 
-                            $select.val('');
+                                // If status is Delivered, remove the dropdown
+                                if (newStatus === 'Delivered') {
+                                    $select.remove();
+                                }
+
+                                $select.val('');
+                            }
                         } else {
                             showToast('Error: ' + response.message, 'danger');
                             $select.val('');

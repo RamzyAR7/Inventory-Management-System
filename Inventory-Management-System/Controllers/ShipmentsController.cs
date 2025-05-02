@@ -68,7 +68,43 @@ namespace Inventory_Management_System.Controllers
                 return RedirectToAction("Index");
             }
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus(Guid shipmentId, string newStatus)
+        {
+            try
+            {
+                if (!Enum.TryParse<ShipmentStatus>(newStatus, true, out var parsedStatus))
+                {
+                    return Json(new { success = false, message = $"Invalid status value: {newStatus}" });
+                }
 
+                // Check if the shipment exists before updating
+                var shipment = await _shipmentService.GetShipmentByIdAsync(shipmentId);
+                if (shipment == null)
+                {
+                    return Json(new { success = false, message = "Shipment not found." });
+                }
+
+                await _shipmentService.UpdateShipmentStatusAsync(shipmentId, parsedStatus);
+
+                // Check if the shipment still exists after the update (e.g., deleted due to order cancellation)
+                shipment = await _shipmentService.GetShipmentByIdAsync(shipmentId);
+                bool isDeleted = shipment == null;
+
+                return Json(new
+                {
+                    success = true,
+                    message = isDeleted ? "Shipment was deleted due to order cancellation." : $"Shipment status updated to {parsedStatus} successfully.",
+                    isDeleted = isDeleted
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating shipment status for ID: {shipmentId}");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -96,9 +132,9 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(Shipment shipment)
+        public async Task<IActionResult> DeleteConfirmed(Shipment shipment)
         {
             try
             {
@@ -126,25 +162,6 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateStatus(Guid shipmentId, string newStatus)
-        {
-            try
-            {
-                if (!Enum.TryParse<ShipmentStatus>(newStatus, true, out var parsedStatus))
-                {
-                    return Json(new { success = false, message = $"Invalid status value: {newStatus}" });
-                }
 
-                await _shipmentService.UpdateShipmentStatusAsync(shipmentId, parsedStatus);
-                return Json(new { success = true, message = $"Shipment status updated to {parsedStatus} successfully." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error updating shipment status for ID: {shipmentId}");
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
     }
 }
