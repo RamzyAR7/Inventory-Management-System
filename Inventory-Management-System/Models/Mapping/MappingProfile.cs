@@ -88,6 +88,9 @@ namespace Inventory_Management_System.Models.Mapping
                 .ForMember(dest => dest.CreatedByUserID, opt => opt.MapFrom(src => src.CreatedByUserID))
                 .ForMember(dest => dest.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails));
 
+            // fix when delete
+            CreateMap<OrderDetailResponseDto, OrderResponseDto>();
+
             // OrderDetail to OrderDetailResponseItem
             CreateMap<OrderDetail, OrderDetailResponseItem>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.ProductName : "Unknown"));

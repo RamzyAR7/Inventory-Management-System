@@ -1,4 +1,5 @@
-﻿using Inventory_Management_System.BusinessLogic.Interfaces;
+﻿using AutoMapper;
+using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Entities;
 using Inventory_Management_System.Models.DTOs.Order;
@@ -21,12 +22,14 @@ namespace Inventory_Management_System.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
         private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(IOrderService orderService, IUnitOfWork unitOfWork, ILogger<OrdersController> logger)
+        public OrdersController(IOrderService orderService, IUnitOfWork unitOfWork,IMapper mapper, ILogger<OrdersController> logger)
         {
             _orderService = orderService;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
             _logger = logger;
         }
 
@@ -336,6 +339,48 @@ namespace Inventory_Management_System.Controllers
             {
                 _logger.LogError(ex, "Error populating ViewBag.");
                 return (false, "Failed to populate dropdowns: " + ex.Message);
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var orderRes = await _orderService.GetByIdAsync(id);
+                if (orderRes == null)
+                {
+                    TempData["error"] = "Order not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Map OrderDetailResponseDto to OrderResponseDto
+                var orderResponse = _mapper.Map<OrderResponseDto>(orderRes);
+
+                return View(orderResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading delete order page: {OrderID}.", id);
+                TempData["error"] = "Failed to load delete order page: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        {
+            try
+            {
+                await _orderService.DeleteAsync(id);
+                TempData["success"] = "Order deleted successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting order: {OrderID}.", id);
+                TempData["error"] = "Failed to delete order: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
         }
     }

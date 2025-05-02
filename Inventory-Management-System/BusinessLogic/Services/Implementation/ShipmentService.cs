@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.Models.DTOs.Shipment;
+using Microsoft.EntityFrameworkCore;
 
 namespace Inventory_Management_System.Services
 {
@@ -23,7 +24,7 @@ namespace Inventory_Management_System.Services
             _logger = logger;
         }
 
-        public async Task<(IEnumerable<Shipment> Items, int TotalCount)> GetPagedShipmentsAsync(int pageNumber, int pageSize)
+        public async Task<(IEnumerable<Shipment> Items, int TotalCount)> GetPagedShipmentsAsync(int pageNumber, int pageSize, ShipmentStatus? statusFilter = null)
         {
             try
             {
@@ -34,7 +35,12 @@ namespace Inventory_Management_System.Services
                     s => s.Order.Warehouse
                 };
 
-                Expression<Func<Shipment, bool>> predicate = s => s.Order.Status == OrderStatus.Shipped;
+                // Remove the OrderStatus.Shipped filter and add optional status filter
+                Expression<Func<Shipment, bool>> predicate = null;
+                if (statusFilter.HasValue)
+                {
+                    predicate = s => s.Status == statusFilter.Value;
+                }
 
                 var (items, totalCount) = await _unitOfWork.Shipments.GetPagedAsync(pageNumber, pageSize, predicate, includes);
                 _logger.LogInformation("GetPagedShipmentsAsync - Retrieved {ItemCount} shipments, TotalCount: {TotalCount}", items.Count(), totalCount);
@@ -46,6 +52,7 @@ namespace Inventory_Management_System.Services
                 throw;
             }
         }
+        // In your ShipmentService class
 
         public async Task<Shipment> GetShipmentByIdAsync(Guid shipmentId)
         {
@@ -118,7 +125,6 @@ namespace Inventory_Management_System.Services
                 throw;
             }
         }
-
         public async Task DeleteShipmentAsync(Guid shipmentId)
         {
             try

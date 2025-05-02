@@ -46,26 +46,26 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             var orders = await _unitOfWork.Orders.GetAllWithDetailsAsync(predicate);
             return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
         }
-        public async Task<(IEnumerable<Order> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize)
-        {
-            try
-            {
-                var includes = new Expression<Func<Order, object>>[]
-                {
-                    o => o.Customer,
-                    o => o.Warehouse
-                };
+        //public async Task<(IEnumerable<Order> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize)
+        //{
+        //    try
+        //    {
+        //        var includes = new Expression<Func<Order, object>>[]
+        //        {
+        //            o => o.Customer,
+        //            o => o.Warehouse
+        //        };
 
-                var (items, totalCount) = await _unitOfWork.Orders.GetPagedAsync(pageNumber, pageSize, null, includes);
-                _logger.LogInformation("GetPagedOrdersAsync - Retrieved {ItemCount} orders, TotalCount: {TotalCount}", items.Count(), totalCount);
-                return (items, totalCount);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "GetPagedOrdersAsync - Error retrieving orders: {Message}", ex.Message);
-                throw;
-            }
-        }
+        //        var (items, totalCount) = await _unitOfWork.Orders.GetPagedAsync(pageNumber, pageSize, null, includes);
+        //        _logger.LogInformation("GetPagedOrdersAsync - Retrieved {ItemCount} orders, TotalCount: {TotalCount}", items.Count(), totalCount);
+        //        return (items, totalCount);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "GetPagedOrdersAsync - Error retrieving orders: {Message}", ex.Message);
+        //        throw;
+        //    }
+        //}
 
         public async Task<OrderDetailResponseDto?> GetByIdAsync(Guid id)
         {
@@ -164,7 +164,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
         public async Task UpdateStatusAsync(Guid orderId, OrderStatus newStatus)
         {
-            var order = await _unitOfWork.Orders.GetByIdAsync(o => o.OrderID == orderId, o => o.OrderDetails);
+            var order = await _unitOfWork.Orders.GetByIdAsync(o => o.OrderID == orderId, o => o.OrderDetails, o => o.Customer);
             if (order == null)
                 throw new InvalidOperationException("Order not found.");
 
@@ -212,24 +212,39 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                         await _unitOfWork.InventoryTransactions.AddAsync(inventoryTransaction);
                     }
                 }
-                else if ((order.Status == OrderStatus.Confirmed || order.Status == OrderStatus.Shipped) && newStatus == OrderStatus.Pending)
+                else if (order.Status == OrderStatus.Confirmed && newStatus == OrderStatus.Shipped)
                 {
-                    var transactions = await _unitOfWork.InventoryTransactions.FindAsync(t => t.OrderID == orderId && t.Type == TransactionType.Out);
-                    foreach (var trans in transactions)
+                    var shipment = await _unitOfWork.Shipments.FirstOrDefaultAsync(s => s.OrderID == orderId);
+                    if (shipment == null)
                     {
-                        var stock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(order.WarehouseID, trans.ProductID);
-                        if (stock != null)
+                        var newShipment = new Shipment
                         {
-                            stock.StockQuantity += trans.Quantity;
-                            await _unitOfWork.WarehouseStocks.UpdateAsync(stock);
-                        }
-                        await _unitOfWork.InventoryTransactions.DeleteAsync(trans.TransactionID);
+                            ShipmentID = Guid.NewGuid(),
+                            OrderID = orderId,
+                            ShippedDate = DateTime.UtcNow,
+                            Status = ShipmentStatus.Pending,
+                            ItemCount = order.OrderDetails.Count,
+                            TrackingNumber = order.Customer?.PhoneNumber,
+                            Destination = order.Customer?.Address ?? "Default Address"
+                        };
+                        await _unitOfWork.Shipments.AddAsync(newShipment);
+                    }
+                    else if (shipment.Status == ShipmentStatus.Cancelled)
+                    {
+                        shipment.Status = ShipmentStatus.Pending;
+                        shipment.ShippedDate = DateTime.UtcNow;
+                        await _unitOfWork.Shipments.UpdateAsync(shipment);
                     }
                 }
-                else if (newStatus == OrderStatus.Cancelled && order.Status != OrderStatus.Delivered)
+                else if (newStatus == OrderStatus.Cancelled || newStatus == OrderStatus.Pending && order.Status != OrderStatus.Delivered)
                 {
                     if (order.Status == OrderStatus.Confirmed || order.Status == OrderStatus.Shipped)
                     {
+                        var shipment = await _unitOfWork.Shipments.GetByIdAsync(s => s.OrderID == orderId);
+                        if (shipment != null)
+                        {
+                            await _unitOfWork.Shipments.DeleteAsync(shipment.ShipmentID);
+                        }
                         var transactions = await _unitOfWork.InventoryTransactions.FindAsync(t => t.OrderID == orderId && t.Type == TransactionType.Out);
                         foreach (var trans in transactions)
                         {
@@ -243,37 +258,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                         }
                     }
                     order.TotalAmount = 0;
-                }
-                else if (order.Status == OrderStatus.Confirmed && newStatus == OrderStatus.Shipped)
-                {
-                    var shipment = await _unitOfWork.Shipments.FirstOrDefaultAsync(s => s.OrderID == orderId);
-                    if (shipment == null)
-                    {
-                        var newShipment = new Shipment
-                        {
-                            ShipmentID = Guid.NewGuid(),
-                            OrderID = orderId,
-                            ShippedDate = DateTime.UtcNow,
-                            Status = ShipmentStatus.Pending
-                        };
-                        await _unitOfWork.Shipments.AddAsync(newShipment);
-                    }
-                    else if (shipment.Status == ShipmentStatus.Cancelled)
-                    {
-                        shipment.Status = ShipmentStatus.Pending;
-                        shipment.ShippedDate = DateTime.UtcNow;
-                        await _unitOfWork.Shipments.UpdateAsync(shipment);
-                    }
-                }
-                else if (order.Status == OrderStatus.Shipped && newStatus == OrderStatus.Delivered)
-                {
-                    var shipment = await _unitOfWork.Shipments.FirstOrDefaultAsync(s => s.OrderID == orderId);
-                    if (shipment != null)
-                    {
-                        shipment.Status = ShipmentStatus.Delivered;
-                        shipment.DeliveryDate = DateTime.UtcNow;
-                        await _unitOfWork.Shipments.UpdateAsync(shipment);
-                    }
                 }
 
                 order.Status = newStatus;
@@ -354,6 +338,32 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             }
         }
 
+        public async Task DeleteAsync(Guid id)
+        {
+            var order = await _unitOfWork.Orders.GetByIdWithDetailsAsync(id);
+            if (order == null)
+                throw new InvalidOperationException("Order not found.");
+            if (order.Status != OrderStatus.Cancelled)
+                throw new InvalidOperationException("Only cancelled orders can be deleted.");
+
+
+            var userRole = GetCurrentUserRole();
+            var userId = GetCurrentUserId();
+            var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
+
+            if (userRole != "Admin" && !managerWarehouseIds.Contains(order.WarehouseID))
+            {
+                _logger.LogWarning("Unauthorized access to order {OrderID} by user {UserID}.", id, userId);
+                throw new UnauthorizedAccessException("You can only view orders for accessible warehouses.");
+            }
+
+            foreach (var detail in order.OrderDetails)
+            {
+                await _unitOfWork.OrderDetails.DeleteAsync(detail.OrderDetailID);
+            }
+            await _unitOfWork.Orders.DeleteAsync(id);
+            await _unitOfWork.SaveAsync();
+        }
         public async Task<(bool isValid, string errorMessage, OrderDetail orderDetail)> ValidateAndAddProductAsync(Guid warehouseId, Guid productId, int quantity, Guid userId)
         {
             try
@@ -504,6 +514,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 (OrderStatus.Confirmed, OrderStatus.Cancelled) => true,
                 (OrderStatus.Shipped, OrderStatus.Delivered) => true,
                 (OrderStatus.Shipped, OrderStatus.Cancelled) => true,
+                (OrderStatus.Shipped, OrderStatus.Pending) => true,
                 _ => false
             };
         }

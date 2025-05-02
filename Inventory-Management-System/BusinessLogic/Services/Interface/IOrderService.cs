@@ -10,11 +10,12 @@ namespace Inventory_Management_System.BusinessLogic.Services.Interface
     public interface IOrderService
     {
         Task<IEnumerable<OrderResponseDto>> GetAllAsync();
-        Task<(IEnumerable<Order> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize);
+        //Task<(IEnumerable<Order> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize);
         Task<OrderDetailResponseDto?> GetByIdAsync(Guid id);
         Task CreateAsync(OrderReqDto orderDto, Guid userId);
         Task UpdateStatusAsync(Guid orderId, OrderStatus newStatus);
         Task EditAsync(Guid orderId, OrderReqDto orderDto);
+        Task DeleteAsync(Guid id);
         Task<List<Guid>> GetAccessibleWarehouseIdsAsync(string role, Guid userId);
         Task<List<Product>> GetProductsByWarehouseAndCategoryAsync(Guid warehouseId, Guid? categoryId);
         Task<(bool isValid, string errorMessage, OrderDetail orderDetail)> ValidateAndAddProductAsync(Guid warehouseId, Guid productId, int quantity, Guid userId);
