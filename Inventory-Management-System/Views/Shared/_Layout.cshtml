@@ -64,6 +64,11 @@
                         }
                         @if(User.IsInRole("Admin") || User.IsInRole("Manager"))
                         {
+                            <li class="sidebar-item @IsActive("Customers")">
+                                <a class="sidebar-link" href="@Url.Action("Index", "Customers")">
+                                    <i class="align-middle" data-feather="users"></i> <span class="align-middle">Customers</span>
+                                </a>
+                            </li>
                             <li class="sidebar-item @IsActive("Inventory")">
                                 <a class="sidebar-link" href="@Url.Action("Index", "Products")">
                                     <i class="align-middle" data-feather="box"></i> <span class="align-middle">Inventory</span>
@@ -78,11 +83,6 @@
                         <li class="sidebar-item @IsActive("Orders")">
                             <a class="sidebar-link" href="@Url.Action("Index", "Orders")">
                                 <i class="align-middle" data-feather="shopping-cart"></i> <span class="align-middle">Orders</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item @IsActive("Customers")">
-                            <a class="sidebar-link" href="@Url.Action("Index", "Customers")">
-                                <i class="align-middle" data-feather="users"></i> <span class="align-middle">Customers</span>
                             </a>
                         </li>
                         <li class="sidebar-item @IsActive("Shipments")">
