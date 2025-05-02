@@ -82,46 +82,57 @@ namespace Inventory_Management_System.Services
             }
         }
 
-        public async Task UpdateShipmentAsync(ShipmentReqDto dto)
+        public async Task UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus)
         {
             try
             {
-                var shipment = await _unitOfWork.Shipments.GetByIdAsync(dto.ShipmentID);
+                var shipment = await _unitOfWork.Shipments.GetByIdAsync(shipmentId,
+                    includes: new Expression<Func<Shipment, object>>[] { s => s.Order });
+
                 if (shipment == null)
                 {
-                    _logger.LogWarning("UpdateShipmentAsync - Shipment not found for ShipmentID: {ShipmentID}", dto.ShipmentID);
                     throw new KeyNotFoundException("Shipment not found.");
                 }
 
-                // Map DTO to entity
-                _mapper.Map(dto, shipment);
+                // Handle status transitions
+                switch (newStatus)
+                {
+                    case ShipmentStatus.InTransit:
+                        // Just update the status, no other changes needed
+                        shipment.Status = newStatus;
+                        shipment.ShippedDate = DateTime.UtcNow;
+                        break;
 
-                // Update order status based on shipment status
-                var order = await _unitOfWork.Orders.GetByIdAsync(dto.OrderID);
-                if (order == null)
-                {
-                    _logger.LogWarning("UpdateShipmentAsync - Order not found for OrderID: {OrderID}", dto.OrderID);
-                    throw new KeyNotFoundException("Order not found.");
-                }
+                    case ShipmentStatus.Cancelled:
+                        shipment.Status = newStatus;
+                        if (shipment.Order != null)
+                        {
+                            shipment.Order.Status = OrderStatus.Pending;
+                            await _unitOfWork.Orders.UpdateAsync(shipment.Order);
+                        }
+                        break;
 
-                if (dto.Status == ShipmentStatus.Cancelled)
-                {
-                    await _orderService.UpdateStatusAsync(dto.OrderID, OrderStatus.Pending);
-                    _logger.LogInformation("UpdateShipmentAsync - Set OrderID: {OrderID} to Pending due to ShipmentStatus.Cancelled", dto.OrderID);
-                }
-                else if (dto.Status == ShipmentStatus.Delivered)
-                {
-                    await _orderService.UpdateStatusAsync(dto.OrderID, OrderStatus.Delivered);
-                    _logger.LogInformation("UpdateShipmentAsync - Set OrderID: {OrderID} to Delivered due to ShipmentStatus.Delivered", dto.OrderID);
+                    case ShipmentStatus.Delivered:
+                        shipment.Status = newStatus;
+                        shipment.DeliveryDate = DateTime.UtcNow;
+                        if (shipment.Order != null)
+                        {
+                            shipment.Order.Status = OrderStatus.Delivered;
+                            await _unitOfWork.Orders.UpdateAsync(shipment.Order);
+                        }
+                        break;
+
+                    default:
+                        shipment.Status = newStatus;
+                        break;
                 }
 
                 await _unitOfWork.Shipments.UpdateAsync(shipment);
                 await _unitOfWork.SaveAsync();
-                _logger.LogInformation("UpdateShipmentAsync - Successfully updated shipment for ShipmentID: {ShipmentID}", dto.ShipmentID);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "UpdateShipmentAsync - Error updating shipment: {Message}", ex.Message);
+                _logger.LogError(ex, $"Error updating shipment status for ID: {shipmentId}");
                 throw;
             }
         }

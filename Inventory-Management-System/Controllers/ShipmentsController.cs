@@ -128,28 +128,22 @@ namespace Inventory_Management_System.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateShipment(Guid shipmentId, string trackingNumber, ShipmentStatus status)
+        public async Task<IActionResult> UpdateStatus(Guid shipmentId, string newStatus)
         {
             try
             {
-                var shipment = await _shipmentService.GetShipmentByIdAsync(shipmentId);
-                var dto = _mapper.Map<ShipmentReqDto>(shipment);
-
-                dto.TrackingNumber = trackingNumber;
-                dto.Status = status;
-
-                if (status == ShipmentStatus.Delivered)
+                if (!Enum.TryParse<ShipmentStatus>(newStatus, true, out var parsedStatus))
                 {
-                    dto.DeliveryDate = DateTime.Now;
+                    return Json(new { success = false, message = $"Invalid status value: {newStatus}" });
                 }
 
-                await _shipmentService.UpdateShipmentAsync(dto);
-                return Json(new { success = true, message = "Shipment updated successfully.", deliveryDate = dto.DeliveryDate?.ToString("g") });
+                await _shipmentService.UpdateShipmentStatusAsync(shipmentId, parsedStatus);
+                return Json(new { success = true, message = $"Shipment status updated to {parsedStatus} successfully." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "UpdateShipment - Error updating shipment: {Message}", ex.Message);
-                return Json(new { success = false, message = "Error updating shipment: " + ex.Message });
+                _logger.LogError(ex, $"Error updating shipment status for ID: {shipmentId}");
+                return Json(new { success = false, message = ex.Message });
             }
         }
     }

@@ -7,7 +7,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Interface
     {
         Task<(IEnumerable<Shipment> Items, int TotalCount)> GetPagedShipmentsAsync(int pageNumber, int pageSize, ShipmentStatus? statusFilter = null);
         Task<Shipment> GetShipmentByIdAsync(Guid shipmentId);
-        Task UpdateShipmentAsync(ShipmentReqDto dto);
+        Task UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus);
         Task DeleteShipmentAsync(Guid shipmentId);
     }
 }
