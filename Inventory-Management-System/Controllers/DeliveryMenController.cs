@@ -183,12 +183,14 @@ namespace Inventory_Management_System.Controllers
             catch (NotFoundException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                return View();
+                var deliveryMan = await _deliveryManService.GetByIdAsync(id); // Reload the model for the view
+                return View(deliveryMan);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
-                return View();
+                var deliveryMan = await _deliveryManService.GetByIdAsync(id); // Reload the model for the view
+                return View(deliveryMan);
             }
         }
     }

@@ -38,7 +38,7 @@
             <input type="hidden" name="DeliveryMethod" id="deliveryMethodHidden" value="@Model.DeliveryMethod" />
             <input type="hidden" name="DeliveryManID" id="deliveryManHidden" value="@Model.DeliveryManID" />
 
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
             <div class="mb-3">
                 <label asp-for="Status" class="form-label">Current Status</label>
@@ -113,20 +113,20 @@
             border-color: #007bff;
         }
 
-        .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
-        }
+            .btn-primary:hover {
+                background-color: #0056b3;
+                border-color: #0056b3;
+            }
 
         .btn-secondary {
             background-color: #6c757d;
             border-color: #6c757d;
         }
 
-        .btn-secondary:hover {
-            background-color: #5a6268;
-            border-color: #5a6268;
-        }
+            .btn-secondary:hover {
+                background-color: #5a6268;
+                border-color: #5a6268;
+            }
     </style>
 }
 
@@ -140,7 +140,7 @@
             const deliveryManSection = $('#deliveryManSection');
             const deliveryManSelect = $('#deliveryManSelect');
 
-            function toggleDeliveryManSection() {
+            function toggleSections() {
                 const selectedMethod = deliveryMethodSelect.val();
                 if (selectedMethod === '@DeliveryMethod.Delivering') {
                     deliveryManSection.show();
@@ -149,12 +149,12 @@
                     deliveryManSection.hide();
                     deliveryManSelect.prop('required', false);
                     deliveryManSelect.val('');
-                    $('#deliveryManHidden').val(''); // Clear hidden input
+                    $('#deliveryManHidden').val('');
                 }
             }
 
-            toggleDeliveryManSection();
-            deliveryMethodSelect.on('change', toggleDeliveryManSection);
+            toggleSections();
+            deliveryMethodSelect.on('change', toggleSections);
         });
 
         function updateHidden(hiddenId, value) {

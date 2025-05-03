@@ -57,9 +57,9 @@
 
                 <dt class="col-sm-3">DeliveryMan Name</dt>
                 <dd class="col-sm-9">
-                    @if (Model.DeliveryName != null)
+                    @if (!string.IsNullOrEmpty(Model.DeliveryName))
                     {
-                        <span class="badge bg-info">@Model.DeliveryMan?.FullName</span>
+                        <span class="badge bg-info">@Model.DeliveryName</span>
                     }
                     else
                     {
@@ -69,15 +69,16 @@
 
                 <dt class="col-sm-3">DeliveryMan Number</dt>
                 <dd class="col-sm-9">
-                    @if (Model.DeliveryMan != null && !string.IsNullOrEmpty(Model.DeliveryPhoneNumber))
+                    @if (!string.IsNullOrEmpty(Model.DeliveryPhoneNumber))
                     {
-                        <span class="badge bg-info">@Model.DeliveryMan.PhoneNumber</span>
+                        <span class="badge bg-info">@Model.DeliveryPhoneNumber</span>
                     }
                     else
                     {
                         <span class="badge bg-secondary">Not Available</span>
                     }
                 </dd>
+
                 <dt class="col-sm-3">Item Count</dt>
                 <dd class="col-sm-9">@Model.ItemCount</dd>
 

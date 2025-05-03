@@ -4,7 +4,15 @@
 @{
     ViewData["Title"] = "Delete Delivery Man";
 }
-
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
 <h1 class="h3 mb-4">Delete Delivery Man</h1>
 
 <div class="card shadow-sm border-0">

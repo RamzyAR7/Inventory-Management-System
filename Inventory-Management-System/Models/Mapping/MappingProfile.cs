@@ -176,9 +176,9 @@ namespace Inventory_Management_System.Models.Mapping
                 .ForMember(dest => dest.DeliveryMethod, opt => opt.MapFrom(src => src.DeliveryMethod))
                 .ForMember(dest => dest.DeliveryManID, opt => opt.MapFrom(src => src.DeliveryManID))
                 .ForMember(dest => dest.OrderID, opt => opt.MapFrom(src => src.OrderID))
-                .ForMember(dest => dest.DeliveryName, opt => opt.MapFrom(src => src.DeliveryMan.FullName))
-                .ForMember(dest => dest.DeliveryPhoneNumber, opt => opt.MapFrom(src => src.DeliveryMan.PhoneNumber))
-                .ForMember(dest => dest.Order, opt => opt.Ignore()); // Ignore navigation property
+                .ForMember(dest => dest.DeliveryName, opt => opt.Ignore())
+                .ForMember(dest => dest.DeliveryPhoneNumber, opt => opt.Ignore())
+                .ForMember(dest => dest.Order, opt => opt.Ignore());
             #endregion
         }
     }

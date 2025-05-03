@@ -183,14 +183,13 @@ namespace Inventory_Management_System.Services
                 }
 
                 shipment.DeliveryManID = shipmentDto.DeliveryManID;
-                shipment.DeliveryName = deliveryMan.FullName;
-                shipment.DeliveryPhoneNumber = deliveryMan.PhoneNumber;
+                shipment.DeliveryName = deliveryMan.FullName; // Set from DeliveryMan
+                shipment.DeliveryPhoneNumber = deliveryMan.PhoneNumber; // Set from DeliveryMan
                 deliveryMan.Status = DeliveryManStatus.Busy;
                 await _unitOfWork.DeliveryMen.UpdateAsync(deliveryMan);
             }
             else
             {
-                // If switching to Pickup, clear the DeliveryManID
                 shipment.DeliveryManID = null;
             }
 

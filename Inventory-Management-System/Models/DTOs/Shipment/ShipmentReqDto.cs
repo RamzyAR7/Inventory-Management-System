@@ -27,7 +27,15 @@ namespace Inventory_Management_System.Models.DTOs.Shipment
         public DateTime? DeliveryDate { get; set; }
         public Guid? DeliveryManID { get; set; }
 
-        public DeliveryManReqDto DeliveryMan { get; set; }
+        //public DeliveryManReqDto DeliveryMan { get; set; }
+
+        //[Required]
+        //[StringLength(100)]
+        //public string DeliveryName { get; set; }
+
+        //[Required]
+        //[StringLength(20)]
+        //public string DeliveryPhoneNumber { get; set; }
 
         [Required]
         public Guid OrderID { get; set; }

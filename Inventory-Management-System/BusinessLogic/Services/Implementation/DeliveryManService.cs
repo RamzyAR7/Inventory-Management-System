@@ -78,7 +78,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
             if (deliveryMan.Status != DeliveryManStatus.Free)
             {
-                throw new InvalidOperationException("Can not delete DeliveryMan that in Order");
+                throw new InvalidOperationException("Can not delete this DeliveryMan because he is Busy");
             }
             var shipments = await _unitOfWork.Shipments.GetByIdAsync(s => s.DeliveryManID == id);
             if (shipments != null)

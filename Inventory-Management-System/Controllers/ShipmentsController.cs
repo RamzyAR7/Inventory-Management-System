@@ -123,26 +123,21 @@ namespace Inventory_Management_System.Controllers
 
                 if (shipment.Status != ShipmentStatus.Pending)
                 {
-                    TempData["error"] = "Shipment must be in Shipped status to update delivery method.";
+                    TempData["error"] = "Shipment must be in Pending status to update delivery method.";
                     return RedirectToAction("Index");
                 }
 
                 var freeDeliveryMen = await _deliveryManService.GetAllAsync();
                 freeDeliveryMen = freeDeliveryMen.Where(d => d.IsActive && d.Status == DeliveryManStatus.Free).ToList();
-                var deliveryMethods = Enum.GetValues(typeof(DeliveryMethod)).Cast<DeliveryMethod>().ToList();
-
-                ViewBag.DeliveryMethods = new SelectList(deliveryMethods);
-                ViewBag.FreeDeliveryMen = new SelectList(
-                    freeDeliveryMen.Select(d => new
-                    {
-                        d.DeliveryManID,
-                        DisplayName = d.FullName
-                    }),
-                    "DeliveryManID",
-                    "DisplayName"
-                );
 
                 var shipmentReqDto = _mapper.Map<ShipmentReqDto>(shipment);
+                ViewBag.FreeDeliveryMen = new SelectList(
+                    freeDeliveryMen.Select(d => new { d.DeliveryManID, DisplayName = d.FullName }),
+                    "DeliveryManID",
+                    "DisplayName",
+                    shipmentReqDto.DeliveryManID
+                );
+
                 return View(shipmentReqDto);
             }
             catch (KeyNotFoundException)
