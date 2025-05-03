@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
+using IMS.BAL.DTOs.Shipment;
+using IMS.Data.Entities;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
-using Inventory_Management_System.Entities;
-using Inventory_Management_System.Models.DTOs.Shipment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Threading.Tasks;

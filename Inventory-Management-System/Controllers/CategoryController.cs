@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
+using IMS.BAL.DTOs.Category;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
-using Inventory_Management_System.Models.DTOs.Category;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;

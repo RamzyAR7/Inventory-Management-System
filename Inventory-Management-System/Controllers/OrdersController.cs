@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
+using IMS.BAL.DTOs.Order.Request;
+using IMS.BAL.DTOs.Order.Responce;
+using IMS.Data.Entities;
+using IMS.Data.UnitOfWork;
 using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
-using Inventory_Management_System.Entities;
-using Inventory_Management_System.Models.DTOs.Order;
-using Inventory_Management_System.Models.DTOs.Order.Request;
-using Inventory_Management_System.Models.DTOs.Order.Responce;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -32,7 +32,7 @@ namespace Inventory_Management_System.Controllers
             _mapper = mapper;
             _logger = logger;
         }
-
+        [HttpGet]
         public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, OrderStatus? statusFilter = null)
         {
             try
@@ -66,6 +66,7 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
+        [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
             try
@@ -87,6 +88,7 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
             try
@@ -153,6 +155,7 @@ namespace Inventory_Management_System.Controllers
             }
         }
 
+        [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
             try
@@ -256,7 +259,48 @@ namespace Inventory_Management_System.Controllers
                 return Json(new { success = false, message = "Failed to update order status: " + ex.Message });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var orderRes = await _orderService.GetByIdAsync(id);
+                if (orderRes == null)
+                {
+                    TempData["error"] = "Order not found.";
+                    return RedirectToAction(nameof(Index));
+                }
 
+                // Map OrderDetailResponseDto to OrderResponseDto
+                var orderResponse = _mapper.Map<OrderResponseDto>(orderRes);
+
+                return View(orderResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading delete order page: {OrderID}.", id);
+                TempData["error"] = "Failed to load delete order page: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        {
+            try
+            {
+                await _orderService.DeleteAsync(id);
+                TempData["success"] = "Order deleted successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting order: {OrderID}.", id);
+                TempData["error"] = "Failed to delete order: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
         [HttpGet]
         public async Task<IActionResult> GetProductsByWarehouseAndCategory(Guid warehouseId, Guid? categoryId)
         {
@@ -356,48 +400,6 @@ namespace Inventory_Management_System.Controllers
             {
                 _logger.LogError(ex, "Error populating ViewBag.");
                 return (false, "Failed to populate dropdowns: " + ex.Message);
-            }
-        }
-        [HttpGet]
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            try
-            {
-                var orderRes = await _orderService.GetByIdAsync(id);
-                if (orderRes == null)
-                {
-                    TempData["error"] = "Order not found.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                // Map OrderDetailResponseDto to OrderResponseDto
-                var orderResponse = _mapper.Map<OrderResponseDto>(orderRes);
-
-                return View(orderResponse);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error loading delete order page: {OrderID}.", id);
-                TempData["error"] = "Failed to load delete order page: " + ex.Message;
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
-        {
-            try
-            {
-                await _orderService.DeleteAsync(id);
-                TempData["success"] = "Order deleted successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting order: {OrderID}.", id);
-                TempData["error"] = "Failed to delete order: " + ex.Message;
-                return RedirectToAction(nameof(Index));
             }
         }
     }

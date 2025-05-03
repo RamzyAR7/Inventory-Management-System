@@ -1,15 +1,16 @@
 using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.DataAccess.Context;
-using Inventory_Management_System.DataAccess.Repositories;
 using AutoMapper; // Add this using directive at the top of the file
 using Microsoft.EntityFrameworkCore;
-using Inventory_Management_System.Models.Mapping;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Inventory_Management_System.BusinessLogic.Services.Implementation;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Inventory_Management_System.BusinessLogic.Services;
 using Inventory_Management_System.Services;
+using IMS.Data.Context;
+using IMS.Data.UnitOfWork;
+using IMS.BAL.Services;
+using IMS.BAL.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 

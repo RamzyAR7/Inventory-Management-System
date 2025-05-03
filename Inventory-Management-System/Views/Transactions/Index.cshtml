@@ -1,9 +1,9 @@
 ﻿@model dynamic
 @{
     ViewData["Title"] = "Transactions Dashboard";
-    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<Inventory_Management_System.Entities.InventoryTransaction>;
-    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<Inventory_Management_System.Entities.InventoryTransaction>;
-    var transfers = ViewBag.Transfers as IEnumerable<Inventory_Management_System.Entities.WarehouseTransfers>;
+    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<IMS.Data.Entities.InventoryTransaction>;
+    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<IMS.Data.Entities.InventoryTransaction>;
+    var transfers = ViewBag.Transfers as IEnumerable<IMS.Data.Entities.WarehouseTransfers>;
     int totalCount = (int)ViewBag.TotalCount;
     int pageNumber = (int)ViewBag.PageNumber;
     int pageSize = (int)ViewBag.PageSize;

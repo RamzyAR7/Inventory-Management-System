@@ -1,9 +1,9 @@
 ﻿@model dynamic
-@using Inventory_Management_System.Entities
+@using IMS.Data.Entities
 
 @{
     ViewData["Title"] = "Shipments";
-    var shipments = ViewBag.Shipments as IEnumerable<Inventory_Management_System.Entities.Shipment>;
+    var shipments = ViewBag.Shipments as IEnumerable<IMS.Data.Entities.Shipment>;
     int totalCount = (int)ViewBag.TotalCount;
     int pageNumber = (int)ViewBag.PageNumber;
     int pageSize = (int)ViewBag.PageSize;

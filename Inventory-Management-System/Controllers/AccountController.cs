@@ -1,5 +1,5 @@
-﻿using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.Models.DTOs.UserDto;
+﻿using IMS.BAL.DTOs.User;
+using IMS.BAL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

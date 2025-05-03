@@ -1,8 +1,9 @@
-﻿using Inventory_Management_System.BusinessLogic.Interfaces;
+﻿using IMS.BAL.DTOs.Transactions;
+using IMS.BAL.DTOs.Warehouse;
+using IMS.Data.Entities;
+using IMS.Data.UnitOfWork;
+using Inventory_Management_System.BusinessLogic.Interfaces;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
-using Inventory_Management_System.Entities;
-using Inventory_Management_System.Models.DTOs.InventoryTransaction;
-using Inventory_Management_System.Models.DTOs.Warehouse;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -304,6 +305,79 @@ namespace Inventory_Management_System.Controllers
             return View(dto);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetProductsByWarehouse(Guid warehouseId)
+        {
+            try
+            {
+                _logger.LogInformation("GetProductsByWarehouse - Fetching products for WarehouseID: {WarehouseID}", warehouseId);
+
+                var warehouseStocks = await _unitOfWork.WarehouseStocks
+                    .Find(ws => ws.WarehouseID == warehouseId)
+                    .Include(ws => ws.Product)
+                    .ToListAsync();
+
+                var products = warehouseStocks
+                    .GroupBy(ws => ws.Product.ProductName.ToLower())
+                    .Select(g => g.First())
+                    .Select(ws => new
+                    {
+                        ProductID = ws.Product.ProductID,
+                        DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
+                    })
+                    .OrderBy(p => p.DisplayText)
+                    .ToList();
+
+                _logger.LogInformation("GetProductsByWarehouse - Fetched {Count} products for WarehouseID {WarehouseID}", products.Count, warehouseId);
+                return Json(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetProductsByWarehouse - Error fetching products for WarehouseID {WarehouseID}: {Message}", warehouseId, ex.Message);
+                return StatusCode(500, new { error = "Error fetching products" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMatchingProducts(Guid productId, Guid toWarehouseId)
+        {
+            try
+            {
+                _logger.LogInformation("GetMatchingProducts - Fetching matching products for ProductID: {ProductID}, ToWarehouseID: {ToWarehouseID}", productId, toWarehouseId);
+
+                var products = await _productService.GetAllAsync();
+                var fromProduct = products.FirstOrDefault(p => p.ProductID == productId);
+                if (fromProduct == null)
+                {
+                    _logger.LogWarning("GetMatchingProducts - Source product not found for ProductID {ProductID}", productId);
+                    return Json(new List<object>());
+                }
+
+                var toWarehouseStocks = await _unitOfWork.WarehouseStocks
+                    .Find(ws => ws.WarehouseID == toWarehouseId)
+                    .Include(ws => ws.Product)
+                    .ToListAsync();
+
+                var matchingProducts = toWarehouseStocks
+                    .Where(ws => ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())
+                    .Select(ws => new
+                    {
+                        ProductID = ws.Product.ProductID,
+                        DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
+                    })
+                    .DistinctBy(p => p.ProductID)
+                    .OrderBy(p => p.DisplayText)
+                    .ToList();
+
+                _logger.LogInformation("GetMatchingProducts - Found {Count} matching products for ProductID {ProductID} in WarehouseID {WarehouseID}", matchingProducts.Count, productId, toWarehouseId);
+                return Json(matchingProducts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetMatchingProducts - Error fetching matching products for ProductID {ProductID}, ToWarehouseID {ToWarehouseID}: {Message}", productId, toWarehouseId, ex.Message);
+                return StatusCode(500, new { error = "Error fetching matching products" });
+            }
+        }
         private async Task PopulateViewBagAsync(Guid? selectedSupplierId = null, Guid? selectedWarehouseId = null, Guid? selectedProductId = null, Guid? selectedToWarehouseId = null, Guid? selectedToProductId = null, bool requireStockForSource = false)
         {
             try
@@ -458,80 +532,6 @@ namespace Inventory_Management_System.Controllers
             {
                 _logger.LogError(ex, "PopulateViewBagAsync - Error populating ViewBag: {Message}", ex.Message);
                 throw;
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetProductsByWarehouse(Guid warehouseId)
-        {
-            try
-            {
-                _logger.LogInformation("GetProductsByWarehouse - Fetching products for WarehouseID: {WarehouseID}", warehouseId);
-
-                var warehouseStocks = await _unitOfWork.WarehouseStocks
-                    .Find(ws => ws.WarehouseID == warehouseId)
-                    .Include(ws => ws.Product)
-                    .ToListAsync();
-
-                var products = warehouseStocks
-                    .GroupBy(ws => ws.Product.ProductName.ToLower())
-                    .Select(g => g.First())
-                    .Select(ws => new
-                    {
-                        ProductID = ws.Product.ProductID,
-                        DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
-                    })
-                    .OrderBy(p => p.DisplayText)
-                    .ToList();
-
-                _logger.LogInformation("GetProductsByWarehouse - Fetched {Count} products for WarehouseID {WarehouseID}", products.Count, warehouseId);
-                return Json(products);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "GetProductsByWarehouse - Error fetching products for WarehouseID {WarehouseID}: {Message}", warehouseId, ex.Message);
-                return StatusCode(500, new { error = "Error fetching products" });
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetMatchingProducts(Guid productId, Guid toWarehouseId)
-        {
-            try
-            {
-                _logger.LogInformation("GetMatchingProducts - Fetching matching products for ProductID: {ProductID}, ToWarehouseID: {ToWarehouseID}", productId, toWarehouseId);
-
-                var products = await _productService.GetAllAsync();
-                var fromProduct = products.FirstOrDefault(p => p.ProductID == productId);
-                if (fromProduct == null)
-                {
-                    _logger.LogWarning("GetMatchingProducts - Source product not found for ProductID {ProductID}", productId);
-                    return Json(new List<object>());
-                }
-
-                var toWarehouseStocks = await _unitOfWork.WarehouseStocks
-                    .Find(ws => ws.WarehouseID == toWarehouseId)
-                    .Include(ws => ws.Product)
-                    .ToListAsync();
-
-                var matchingProducts = toWarehouseStocks
-                    .Where(ws => ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())
-                    .Select(ws => new
-                    {
-                        ProductID = ws.Product.ProductID,
-                        DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
-                    })
-                    .DistinctBy(p => p.ProductID)
-                    .OrderBy(p => p.DisplayText)
-                    .ToList();
-
-                _logger.LogInformation("GetMatchingProducts - Found {Count} matching products for ProductID {ProductID} in WarehouseID {WarehouseID}", matchingProducts.Count, productId, toWarehouseId);
-                return Json(matchingProducts);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "GetMatchingProducts - Error fetching matching products for ProductID {ProductID}, ToWarehouseID {ToWarehouseID}: {Message}", productId, toWarehouseId, ex.Message);
-                return StatusCode(500, new { error = "Error fetching matching products" });
             }
         }
     }
