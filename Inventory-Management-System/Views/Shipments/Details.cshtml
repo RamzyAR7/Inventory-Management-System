@@ -1,4 +1,4 @@
-﻿@model Inventory_Management_System.Entities.Shipment
+﻿@model IMS.Data.Entities.Shipment
 @{
     ViewData["Title"] = "Shipment Details";
 }
@@ -37,14 +37,47 @@
                 <dt class="col-sm-3">Warehouse</dt>
                 <dd class="col-sm-9">@(Model.Order?.Warehouse?.WarehouseName ?? "N/A")</dd>
 
-                <dt class="col-sm-3">Tracking Number</dt>
-                <dd class="col-sm-9">@Model.TrackingNumber</dd>
-
                 <dt class="col-sm-3">Destination</dt>
                 <dd class="col-sm-9">@Model.Destination</dd>
 
                 <dt class="col-sm-3">Status</dt>
                 <dd class="col-sm-9">@Model.Status</dd>
+
+                <dt class="col-sm-3">Shipped Method</dt>
+                <dd class="col-sm-9">
+                    @if (Model.DeliveryMethod == DeliveryMethod.Delivering)
+                    {
+                        <span class="badge bg-success">Delivering</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning">Pickup</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">DeliveryMan Name</dt>
+                <dd class="col-sm-9">
+                    @if (!string.IsNullOrEmpty(Model.DeliveryName))
+                    {
+                        <span class="badge bg-info">@Model.DeliveryName</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Not Assigned</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3">DeliveryMan Number</dt>
+                <dd class="col-sm-9">
+                    @if (!string.IsNullOrEmpty(Model.DeliveryPhoneNumber))
+                    {
+                        <span class="badge bg-info">@Model.DeliveryPhoneNumber</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Not Available</span>
+                    }
+                </dd>
 
                 <dt class="col-sm-3">Item Count</dt>
                 <dd class="col-sm-9">@Model.ItemCount</dd>

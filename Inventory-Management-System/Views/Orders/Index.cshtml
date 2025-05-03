@@ -1,9 +1,9 @@
 ﻿@model dynamic
-@using Inventory_Management_System.Entities
+@using IMS.Data.Entities
 
 @{
     ViewData["Title"] = "Orders";
-    var orders = ViewBag.Orders as IEnumerable<Inventory_Management_System.Models.DTOs.Order.Responce.OrderResponseDto>;
+    var orders = ViewBag.Orders as IEnumerable<IMS.BAL.DTOs.Order.Responce.OrderResponseDto>;
     int totalCount = (int)ViewBag.TotalCount;
     int pageNumber = (int)ViewBag.PageNumber;
     int pageSize = (int)ViewBag.PageSize;

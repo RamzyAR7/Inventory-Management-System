@@ -1,12 +1,11 @@
 ﻿using AutoMapper;
+using IMS.BAL.DTOs.Products;
+using IMS.BAL.DTOs.Warehouse;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
-using Inventory_Management_System.Entities;
-using Inventory_Management_System.Models.DTOs.Products;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
-using Inventory_Management_System.Models.DTOs.Warehouse;
 
 namespace Inventory_Management_System.Controllers
 {

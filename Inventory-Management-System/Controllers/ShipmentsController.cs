@@ -1,22 +1,26 @@
 ﻿using AutoMapper;
+using IMS.BAL.DTOs.Shipment;
+using IMS.Data.Entities;
 using Inventory_Management_System.BusinessLogic.Services.Interface;
-using Inventory_Management_System.Entities;
-using Inventory_Management_System.Models.DTOs.Shipment;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Threading.Tasks;
 
 namespace Inventory_Management_System.Controllers
 {
     public class ShipmentsController : Controller
     {
         private readonly IShipmentService _shipmentService;
+        private readonly IDeliveryManService _deliveryManService;
         private readonly IMapper _mapper;
         private readonly ILogger<ShipmentsController> _logger;
 
-        public ShipmentsController(IShipmentService shipmentService, IMapper mapper, ILogger<ShipmentsController> logger)
+        public ShipmentsController(IShipmentService shipmentService, IMapper mapper, ILogger<ShipmentsController> logger, IDeliveryManService deliveryManService)
         {
             _shipmentService = shipmentService;
             _mapper = mapper;
             _logger = logger;
+            _deliveryManService = deliveryManService;
         }
 
         [HttpGet]
@@ -103,6 +107,95 @@ namespace Inventory_Management_System.Controllers
             {
                 _logger.LogError(ex, $"Error updating shipment status for ID: {shipmentId}");
                 return Json(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> UpdateDeliveryMethoud(Guid id)
+        {
+            try
+            {
+                var shipment = await _shipmentService.GetShipmentByIdAsync(id);
+                if (shipment == null)
+                {
+                    TempData["error"] = "Shipment not found.";
+                    return RedirectToAction("Index");
+                }
+
+                if (shipment.Status != ShipmentStatus.Pending)
+                {
+                    TempData["error"] = "Shipment must be in Pending status to update delivery method.";
+                    return RedirectToAction("Index");
+                }
+
+                var freeDeliveryMen = await _deliveryManService.GetAllAsync();
+                freeDeliveryMen = freeDeliveryMen.Where(d => d.IsActive && d.Status == DeliveryManStatus.Free).ToList();
+
+                var shipmentReqDto = _mapper.Map<ShipmentReqDto>(shipment);
+                ViewBag.FreeDeliveryMen = new SelectList(
+                    freeDeliveryMen.Select(d => new { d.DeliveryManID, DisplayName = d.FullName }),
+                    "DeliveryManID",
+                    "DisplayName",
+                    shipmentReqDto.DeliveryManID
+                );
+
+                return View(shipmentReqDto);
+            }
+            catch (KeyNotFoundException)
+            {
+                _logger.LogWarning("UpdateDeliveryMethoud - Shipment not found for ShipmentID: {ShipmentID}", id);
+                TempData["error"] = "Shipment not found.";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UpdateDeliveryMethoud - Error retrieving shipment: {Message}", ex.Message);
+                TempData["error"] = "An error occurred while retrieving the shipment.";
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateDeliveryMethoud(ShipmentReqDto shipmentDto)
+        {
+            _logger.LogInformation("UpdateDeliveryMethoud called for shipmentId: {ShipmentId}, DeliveryMethod: {DeliveryMethod}, DeliveryManID: {DeliveryManID}",
+                shipmentDto.ShipmentID, shipmentDto.DeliveryMethod, shipmentDto.DeliveryManID);
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    _logger.LogWarning("Validation failed: {Errors}", string.Join(", ", errors));
+                    var freeDeliveryMen = await _deliveryManService.GetAllAsync();
+                    freeDeliveryMen = freeDeliveryMen.Where(d => d.IsActive && d.Status == DeliveryManStatus.Free).ToList();
+                    var deliveryMethods = Enum.GetValues(typeof(DeliveryMethod)).Cast<DeliveryMethod>().ToList();
+
+                    ViewBag.DeliveryMethods = new SelectList(deliveryMethods);
+                    ViewBag.FreeDeliveryMen = new SelectList(
+                        freeDeliveryMen.Select(d => new { d.DeliveryManID, DisplayName = d.FullName }),
+                        "DeliveryManID",
+                        "DisplayName",
+                        shipmentDto.DeliveryManID // Preselect the current DeliveryManID
+                    );
+                    return View(shipmentDto);
+                }
+
+                var shipment = await _shipmentService.GetShipmentByIdAsync(shipmentDto.ShipmentID);
+                if (shipment == null)
+                {
+                    TempData["error"] = "Shipment not found.";
+                    return RedirectToAction("Index");
+                }
+
+                await _shipmentService.UpdateDeliveryMethoud(shipmentDto);
+                TempData["success"] = "Shipment delivery method updated successfully.";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating shipment: {Message}", ex.Message);
+                TempData["error"] = "An error occurred while updating the shipment.";
+                return RedirectToAction("Index");
             }
         }
         [HttpGet]

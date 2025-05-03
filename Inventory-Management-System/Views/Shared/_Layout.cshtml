@@ -66,6 +66,11 @@
                                     <i class="align-middle" data-feather="users"></i> <span class="align-middle">Suppliers</span>
                                 </a>
                             </li>
+                            <li class="sidebar-item @IsActive("DeliveryMen")">
+                                <a class="sidebar-link" href="@Url.Action("Index", "DeliveryMen")">
+                                    <i class="align-middle" data-feather="truck"></i> <span class="align-middle">Delivery Men</span>
+                                </a>
+                            </li>
                         }
                         @if(User.IsInRole("Admin") || User.IsInRole("Manager"))
                         {

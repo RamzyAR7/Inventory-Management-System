@@ -1,9 +1,9 @@
 ﻿@model dynamic
-@using Inventory_Management_System.Entities
+@using IMS.Data.Entities
 
 @{
     ViewData["Title"] = "Shipments";
-    var shipments = ViewBag.Shipments as IEnumerable<Inventory_Management_System.Entities.Shipment>;
+    var shipments = ViewBag.Shipments as IEnumerable<IMS.Data.Entities.Shipment>;
     int totalCount = (int)ViewBag.TotalCount;
     int pageNumber = (int)ViewBag.PageNumber;
     int pageSize = (int)ViewBag.PageSize;
@@ -284,8 +284,8 @@
                 searching: false,
                 info: false,
                 columnDefs: [
-                    { orderable: false, targets: [8] }, // Actions column
-                    { responsivePriority: 1, targets: [0, 8] },
+                    { orderable: false, targets: [7] }, // Actions column
+                    { responsivePriority: 1, targets: [0, 7] },
                     { responsivePriority: 2, targets: [2, 3] }
                 ],
                 drawCallback: function () {
@@ -320,13 +320,14 @@
 
                 if (!shipmentId || !newStatus) {
                     showToast('Invalid shipment or status.', 'danger');
+                    $select.val('');
                     return;
                 }
 
-                // Get anti-forgery token
                 const token = $('#antiForgeryForm input[name="__RequestVerificationToken"]').val();
                 if (!token) {
                     showToast('Error: Anti-forgery token not found.', 'danger');
+                    $select.val('');
                     return;
                 }
 
@@ -341,17 +342,14 @@
                     success: function (response) {
                         if (response.success) {
                             if (response.isDeleted) {
-                                // Remove the row from the DataTable if the shipment is deleted
                                 table.row($row).remove().draw();
                                 showToast(response.message, 'success');
                             } else {
-                                // Update badge text and class
                                 $badge.text(newStatus).data('status', newStatus);
                                 $badge.removeClass('badge-Pending badge-InTransit badge-Delivered badge-Cancelled')
                                       .addClass(getStatusBadgeClass(newStatus));
                                 showToast(response.message, 'success');
 
-                                // Update Delete button visibility
                                 const $deleteButton = $row.find('.delete-button');
                                 if (newStatus === 'Cancelled') {
                                     $deleteButton.show();
@@ -359,7 +357,6 @@
                                     $deleteButton.hide();
                                 }
 
-                                // If status is Delivered, remove the dropdown
                                 if (newStatus === 'Delivered') {
                                     $select.remove();
                                 }
@@ -368,7 +365,7 @@
                             }
                         } else {
                             showToast('Error: ' + response.message, 'danger');
-                            $select.val('');
+                            $select.val(originalStatus);
                         }
                     },
                     error: function (xhr, status, error) {
@@ -380,7 +377,7 @@
                         });
                         const errorMsg = xhr.responseJSON?.message || xhr.responseText || 'Failed to update status. Check console for details.';
                         showToast('Error: ' + errorMsg, 'danger');
-                        $select.val('');
+                        $select.val(originalStatus);
                     }
                 });
             });
