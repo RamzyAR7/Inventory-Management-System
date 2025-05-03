@@ -20,6 +20,7 @@ namespace Inventory_Management_System.Entities
 
         // Navigation properties
         public ICollection<Warehouse> ManagedWarehouses { get; set; }
+        public ICollection<DeliveryMan> DeliveryMen { get; set; }
         public ICollection<Order> Orders { get; set; }
     }
 }

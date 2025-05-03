@@ -1,18 +1,26 @@
-﻿namespace Inventory_Management_System.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Inventory_Management_System.Entities
 {
 
     public class Shipment
     {
         public Guid ShipmentID { get; set; }   // Primary Key
-        public string? TrackingNumber { get; set; } = null!; // Tracking number for the shipment
         public string? Destination { get; set; } = null!; // Destination address for the shipment
         public ShipmentStatus Status { get; set; }
         public int ItemCount { get; set; }
         public DateTime? ShippedDate { get; set; }
         public DateTime? DeliveryDate { get; set; }
+        public DeliveryMethod DeliveryMethod { get; set; } // Delivery method (e.g., Delivering, Pickup)
 
         // Relationships
         public Guid OrderID { get; set; }
         public Order? Order { get; set; }
+        public Guid? DeliveryManID { get; set; }
+        public DeliveryMan? DeliveryMan { get; set; }
+        [Required]
+        public string DeliveryName { get; set; }
+        [Required]
+        public string DeliveryPhoneNumber { get; set; }
     }
 }

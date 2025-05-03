@@ -1,4 +1,5 @@
 ﻿using Inventory_Management_System.Entities;
+using Inventory_Management_System.Models.DTOs.DeliveryMan;
 using System.ComponentModel.DataAnnotations;
 
 namespace Inventory_Management_System.Models.DTOs.Shipment
@@ -9,10 +10,6 @@ namespace Inventory_Management_System.Models.DTOs.Shipment
         public Guid ShipmentID { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string TrackingNumber { get; set; }
-
-        [Required]
         [StringLength(200)]
         public string Destination { get; set; }
 
@@ -20,11 +17,17 @@ namespace Inventory_Management_System.Models.DTOs.Shipment
         public ShipmentStatus Status { get; set; }
 
         [Required]
+        public DeliveryMethod DeliveryMethod { get; set; } // Delivery method (e.g., Delivering, Pickup)
+
+        [Required]
         [Range(1, int.MaxValue)]
         public int ItemCount { get; set; }
 
         public DateTime? ShippedDate { get; set; }
         public DateTime? DeliveryDate { get; set; }
+        public Guid? DeliveryManID { get; set; }
+
+        public DeliveryManReqDto DeliveryMan { get; set; }
 
         [Required]
         public Guid OrderID { get; set; }

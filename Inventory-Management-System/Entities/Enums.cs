@@ -20,4 +20,15 @@
         Cancelled,
         Pending
     }
+    public enum DeliveryManStatus
+    {
+        Free,
+        Busy
+    }
+
+    public enum DeliveryMethod
+    {
+        Delivering,
+        Pickup
+    }
 }

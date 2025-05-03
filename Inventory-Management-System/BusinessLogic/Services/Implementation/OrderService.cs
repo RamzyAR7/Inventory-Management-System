@@ -29,23 +29,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
-
-        //public async Task<IEnumerable<OrderResponseDto>> GetAllAsync()
-        //{
-        //    var userRole = GetCurrentUserRole();
-        //    var userId = GetCurrentUserId();
-        //    var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
-
-        //    if (!managerWarehouseIds.Any() && userRole != "Admin")
-        //    {
-        //        _logger.LogWarning("No warehouses accessible for user {UserID} with role {Role}.", userId, userRole);
-        //        return Enumerable.Empty<OrderResponseDto>();
-        //    }
-
-        //    var predicate = userRole == "Admin" ? null : (Expression<Func<Order, bool>>)(o => managerWarehouseIds.Contains(o.WarehouseID));
-        //    var orders = await _unitOfWork.Orders.GetAllWithDetailsAsync(predicate);
-        //    return _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
-        //}
         public async Task<(IEnumerable<OrderResponseDto> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize, OrderStatus? statusFilter = null)
         {
             try
@@ -62,8 +45,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
                 var includes = new Expression<Func<Order, object>>[]
                 {
-            o => o.Customer,
-            o => o.Warehouse
+                    o => o.Customer,
+                    o => o.Warehouse
                 };
 
                 Expression<Func<Order, bool>> predicate = null;
@@ -245,8 +228,10 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                             ShippedDate = DateTime.UtcNow,
                             Status = ShipmentStatus.Pending,
                             ItemCount = order.OrderDetails.Count,
-                            TrackingNumber = order.Customer?.PhoneNumber,
-                            Destination = order.Customer?.Address ?? "Default Address"
+                            Destination = order.Customer?.Address ?? "Default Address",
+                            DeliveryMethod = DeliveryMethod.Pickup,
+                            DeliveryName = "N/A",
+                            DeliveryPhoneNumber = "N/A"
                         };
                         await _unitOfWork.Shipments.AddAsync(newShipment);
                     }

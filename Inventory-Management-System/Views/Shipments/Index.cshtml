@@ -63,7 +63,6 @@
                             <th>Date</th>
                             <th>Customer</th>
                             <th>Warehouse</th>
-                            <th>Tracking #</th>
                             <th>Destination</th>
                             <th>Items</th>
                             <th>Status</th>
@@ -81,7 +80,6 @@
                                     <td>@(shipment.Order?.OrderDate.ToString("MM/dd/yyyy") ?? "N/A")</td>
                                     <td>@(shipment.Order?.Customer?.FullName ?? "N/A")</td>
                                     <td>@(shipment.Order?.Warehouse?.WarehouseName ?? "N/A")</td>
-                                    <td>@(shipment.TrackingNumber ?? "N/A")</td>
                                     <td>@shipment.Destination</td>
                                     <td>@shipment.ItemCount</td>
                                     <td>
@@ -115,6 +113,13 @@
                                                style="@(shipment.Status == ShipmentStatus.Cancelled ? "" : "display:none;")">
                                                 <i class="fas fa-trash"></i>
                                             </a>
+                                            @if (shipment.Status == ShipmentStatus.Pending)
+                                            {
+                                                <a asp-action="UpdateDeliveryMethoud" asp-route-id="@shipment.ShipmentID"
+                                                   class="btn btn-primary btn-sm" title="Update Delivery Method">
+                                                    <i class="fas fa-truck"></i>
+                                                </a>
+                                            }
                                         </div>
                                     </td>
                                 </tr>
@@ -124,7 +129,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-4">
+                                <td colspan="8" class="text-center text-muted py-4">
                                     <i class="fas fa-box-open fa-2x mb-2"></i>
                                     <p class="mb-0">No shipments found</p>
                                 </td>
@@ -379,8 +384,8 @@
                 searching: false,
                 info: false,
                 columnDefs: [
-                    { orderable: false, targets: [8] }, // Actions column
-                    { responsivePriority: 1, targets: [0, 8] },
+                    { orderable: false, targets: [7] }, // Actions column
+                    { responsivePriority: 1, targets: [0, 7] },
                     { responsivePriority: 2, targets: [2, 3] }
                 ],
                 drawCallback: function () {
@@ -415,13 +420,14 @@
 
                 if (!shipmentId || !newStatus) {
                     showToast('Invalid shipment or status.', 'danger');
+                    $select.val('');
                     return;
                 }
 
-                // Get anti-forgery token
                 const token = $('#antiForgeryForm input[name="__RequestVerificationToken"]').val();
                 if (!token) {
                     showToast('Error: Anti-forgery token not found.', 'danger');
+                    $select.val('');
                     return;
                 }
 
@@ -436,17 +442,14 @@
                     success: function (response) {
                         if (response.success) {
                             if (response.isDeleted) {
-                                // Remove the row from the DataTable if the shipment is deleted
                                 table.row($row).remove().draw();
                                 showToast(response.message, 'success');
                             } else {
-                                // Update badge text and class
                                 $badge.text(newStatus).data('status', newStatus);
                                 $badge.removeClass('badge-Pending badge-InTransit badge-Delivered badge-Cancelled')
                                       .addClass(getStatusBadgeClass(newStatus));
                                 showToast(response.message, 'success');
 
-                                // Update Delete button visibility
                                 const $deleteButton = $row.find('.delete-button');
                                 if (newStatus === 'Cancelled') {
                                     $deleteButton.show();
@@ -454,7 +457,6 @@
                                     $deleteButton.hide();
                                 }
 
-                                // If status is Delivered, remove the dropdown
                                 if (newStatus === 'Delivered') {
                                     $select.remove();
                                 }
@@ -463,7 +465,7 @@
                             }
                         } else {
                             showToast('Error: ' + response.message, 'danger');
-                            $select.val('');
+                            $select.val(originalStatus);
                         }
                     },
                     error: function (xhr, status, error) {
@@ -475,7 +477,7 @@
                         });
                         const errorMsg = xhr.responseJSON?.message || xhr.responseText || 'Failed to update status. Check console for details.';
                         showToast('Error: ' + errorMsg, 'danger');
-                        $select.val('');
+                        $select.val(originalStatus);
                     }
                 });
             });

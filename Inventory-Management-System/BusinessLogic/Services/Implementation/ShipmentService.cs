@@ -62,7 +62,8 @@ namespace Inventory_Management_System.Services
                 {
                     s => s.Order,
                     s => s.Order.Customer,
-                    s => s.Order.Warehouse
+                    s => s.Order.Warehouse,
+                    s => s.DeliveryMan
                 };
 
                 var shipment = await _unitOfWork.Shipments.GetByIdAsync(shipmentId, includes);
@@ -131,6 +132,11 @@ namespace Inventory_Management_System.Services
                             shipment.Order.Status = OrderStatus.Delivered;
                             await _unitOfWork.Orders.UpdateAsync(shipment.Order);
                         }
+                        if(shipment.DeliveryMan != null)
+                        {
+                            shipment.DeliveryMan.Status = DeliveryManStatus.Free;
+                            await _unitOfWork.DeliveryMen.UpdateAsync(shipment.DeliveryMan);
+                        }
                         break;
 
                     default:
@@ -146,6 +152,51 @@ namespace Inventory_Management_System.Services
                 _logger.LogError(ex, $"Error updating shipment status for ID: {shipmentId}");
                 throw;
             }
+        }
+
+        public async Task UpdateDeliveryMethoud(ShipmentReqDto shipmentDto)
+        {
+            if (shipmentDto.Status != ShipmentStatus.Pending)
+            {
+                throw new InvalidOperationException("Shipment must be in Pending status to update delivery method.");
+            }
+
+            var shipment = await _unitOfWork.Shipments.GetByIdAsync(shipmentDto.ShipmentID, includes: new Expression<Func<Shipment, object>>[] { s => s.DeliveryMan });
+            if (shipment == null)
+            {
+                throw new KeyNotFoundException("Shipment not found.");
+            }
+
+            shipment.DeliveryMethod = shipmentDto.DeliveryMethod;
+
+            if (shipmentDto.DeliveryMethod == DeliveryMethod.Delivering)
+            {
+                if (!shipmentDto.DeliveryManID.HasValue)
+                {
+                    throw new InvalidOperationException("Delivery man must be selected for Delivering method.");
+                }
+
+                var deliveryMan = await _unitOfWork.DeliveryMen.GetByIdAsync(shipmentDto.DeliveryManID.Value);
+                if (deliveryMan == null || !deliveryMan.IsActive || deliveryMan.Status != DeliveryManStatus.Free)
+                {
+                    throw new InvalidOperationException("Selected delivery man is not available.");
+                }
+
+                shipment.DeliveryManID = shipmentDto.DeliveryManID;
+                shipment.DeliveryName = deliveryMan.FullName;
+                shipment.DeliveryPhoneNumber = deliveryMan.PhoneNumber;
+                deliveryMan.Status = DeliveryManStatus.Busy;
+                await _unitOfWork.DeliveryMen.UpdateAsync(deliveryMan);
+            }
+            else
+            {
+                // If switching to Pickup, clear the DeliveryManID
+                shipment.DeliveryManID = null;
+            }
+
+            shipment.Status = ShipmentStatus.InTransit;
+            await _unitOfWork.Shipments.UpdateAsync(shipment);
+            await _unitOfWork.SaveAsync();
         }
         public async Task DeleteShipmentAsync(Guid shipmentId)
         {

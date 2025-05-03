@@ -12,6 +12,7 @@ namespace Inventory_Management_System.BusinessLogic.Interfaces
         IGenericRepository<Category> Categories { get; }
         ISuppliersRepository Suppliers { get; }
         IGenericRepository<Warehouse> Warehouses { get; }
+        IGenericRepository<DeliveryMan> DeliveryMen { get; }
         IProductRepository Products { get; }
         IWarehouseStockRepository WarehouseStocks { get; }
         ISupplierProductRepository SupplierProducts { get; }

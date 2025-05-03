@@ -102,6 +102,28 @@ namespace Inventory_Management_System.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DeliveryMen",
+                columns: table => new
+                {
+                    DeliveryManID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    ManagerID = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DeliveryMen", x => x.DeliveryManID);
+                    table.ForeignKey(
+                        name: "FK_DeliveryMen_Users_ManagerID",
+                        column: x => x.ManagerID,
+                        principalTable: "Users",
+                        principalColumn: "UserID");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Warehouses",
                 columns: table => new
                 {
@@ -278,17 +300,25 @@ namespace Inventory_Management_System.Migrations
                 columns: table => new
                 {
                     ShipmentID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TrackingNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Destination = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Destination = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     ItemCount = table.Column<int>(type: "int", nullable: false),
                     ShippedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DeliveryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    DeliveryMethod = table.Column<int>(type: "int", nullable: false),
+                    OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DeliveryManID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    DeliveryName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeliveryPhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Shipments", x => x.ShipmentID);
+                    table.ForeignKey(
+                        name: "FK_Shipments_DeliveryMen_DeliveryManID",
+                        column: x => x.DeliveryManID,
+                        principalTable: "DeliveryMen",
+                        principalColumn: "DeliveryManID");
                     table.ForeignKey(
                         name: "FK_Shipments_Orders_OrderID",
                         column: x => x.OrderID,
@@ -355,13 +385,24 @@ namespace Inventory_Management_System.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "IsActive", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("3f060619-91c0-46f1-b594-e2af537f0dd6"), new DateTime(2025, 5, 1, 15, 44, 57, 261, DateTimeKind.Utc).AddTicks(8555), "admin@gmail.com", "$2a$11$KjEt3traeM94XOIIu5yGVuM9qGvlMorBL55QhktfmgvY9yMCVaJEO", true, null, "Admin", "Admin" });
+                values: new object[] { new Guid("f73f60de-498c-4bdd-bb3e-bfb8d2d386ba"), new DateTime(2025, 5, 3, 3, 1, 45, 525, DateTimeKind.Utc).AddTicks(4933), "admin@gmail.com", "$2a$11$UhWrBq3nHRfWfBeK9D43OuM8O1bzeit7WdsNKNdUJYA4lEpktp4.K", true, null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_Email",
                 table: "Customers",
                 column: "Email",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeliveryMen_FullName",
+                table: "DeliveryMen",
+                column: "FullName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeliveryMen_ManagerID",
+                table: "DeliveryMen",
+                column: "ManagerID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_InventoryTransactions_OrderID",
@@ -412,6 +453,11 @@ namespace Inventory_Management_System.Migrations
                 name: "IX_Products_CategoryID",
                 table: "Products",
                 column: "CategoryID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shipments_DeliveryManID",
+                table: "Shipments",
+                column: "DeliveryManID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Shipments_OrderID",
@@ -511,6 +557,9 @@ namespace Inventory_Management_System.Migrations
 
             migrationBuilder.DropTable(
                 name: "WarehouseTransfers");
+
+            migrationBuilder.DropTable(
+                name: "DeliveryMen");
 
             migrationBuilder.DropTable(
                 name: "InventoryTransactions");

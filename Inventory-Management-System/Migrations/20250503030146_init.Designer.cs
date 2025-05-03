@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Inventory_Management_System.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250501154458_init")]
+    [Migration("20250503030146_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -84,6 +84,42 @@ namespace Inventory_Management_System.Migrations
                         .IsUnique();
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("Inventory_Management_System.Entities.DeliveryMan", b =>
+                {
+                    b.Property<Guid>("DeliveryManID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ManagerID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("DeliveryManID");
+
+                    b.HasIndex("FullName")
+                        .IsUnique();
+
+                    b.HasIndex("ManagerID");
+
+                    b.ToTable("DeliveryMen");
                 });
 
             modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
@@ -239,8 +275,19 @@ namespace Inventory_Management_System.Migrations
                     b.Property<DateTime?>("DeliveryDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("DeliveryManID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DeliveryMethod")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeliveryName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeliveryPhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Destination")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ItemCount")
@@ -257,11 +304,9 @@ namespace Inventory_Management_System.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("TrackingNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("ShipmentID");
+
+                    b.HasIndex("DeliveryManID");
 
                     b.HasIndex("OrderID")
                         .IsUnique();
@@ -360,10 +405,10 @@ namespace Inventory_Management_System.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("3f060619-91c0-46f1-b594-e2af537f0dd6"),
-                            CreatedAt = new DateTime(2025, 5, 1, 15, 44, 57, 261, DateTimeKind.Utc).AddTicks(8555),
+                            UserID = new Guid("f73f60de-498c-4bdd-bb3e-bfb8d2d386ba"),
+                            CreatedAt = new DateTime(2025, 5, 3, 3, 1, 45, 525, DateTimeKind.Utc).AddTicks(4933),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$KjEt3traeM94XOIIu5yGVuM9qGvlMorBL55QhktfmgvY9yMCVaJEO",
+                            HashedPassword = "$2a$11$UhWrBq3nHRfWfBeK9D43OuM8O1bzeit7WdsNKNdUJYA4lEpktp4.K",
                             IsActive = true,
                             Role = "Admin",
                             UserName = "Admin"
@@ -463,6 +508,15 @@ namespace Inventory_Management_System.Migrations
                     b.ToTable("WarehouseTransfers");
                 });
 
+            modelBuilder.Entity("Inventory_Management_System.Entities.DeliveryMan", b =>
+                {
+                    b.HasOne("Inventory_Management_System.Entities.User", "Manager")
+                        .WithMany("DeliveryMen")
+                        .HasForeignKey("ManagerID");
+
+                    b.Navigation("Manager");
+                });
+
             modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
                 {
                     b.HasOne("Inventory_Management_System.Entities.Order", "Order")
@@ -553,11 +607,17 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.Shipment", b =>
                 {
+                    b.HasOne("Inventory_Management_System.Entities.DeliveryMan", "DeliveryMan")
+                        .WithMany("Shipments")
+                        .HasForeignKey("DeliveryManID");
+
                     b.HasOne("Inventory_Management_System.Entities.Order", "Order")
                         .WithOne("Shipment")
                         .HasForeignKey("Inventory_Management_System.Entities.Shipment", "OrderID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("DeliveryMan");
 
                     b.Navigation("Order");
                 });
@@ -682,6 +742,11 @@ namespace Inventory_Management_System.Migrations
                     b.Navigation("Orders");
                 });
 
+            modelBuilder.Entity("Inventory_Management_System.Entities.DeliveryMan", b =>
+                {
+                    b.Navigation("Shipments");
+                });
+
             modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
                 {
                     b.Navigation("InTransfers");
@@ -723,6 +788,8 @@ namespace Inventory_Management_System.Migrations
 
             modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
                 {
+                    b.Navigation("DeliveryMen");
+
                     b.Navigation("ManagedWarehouses");
 
                     b.Navigation("Orders");

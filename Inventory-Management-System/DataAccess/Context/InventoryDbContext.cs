@@ -20,6 +20,7 @@ namespace Inventory_Management_System.DataAccess.Context
         public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
         public DbSet<WarehouseTransfers> WarehouseTransfers { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
+        public DbSet<DeliveryMan> DeliveryMen { get; set; }
 
 
         public InventoryDbContext(DbContextOptions<InventoryDbContext> options): base(options)
@@ -41,6 +42,7 @@ namespace Inventory_Management_System.DataAccess.Context
             modelBuilder.ApplyConfiguration(new ShipmentConfigurations());
             modelBuilder.ApplyConfiguration(new CustomerConfigurations());
             modelBuilder.ApplyConfiguration(new WarehouseConfigurations());
+            modelBuilder.ApplyConfiguration(new DeliveryManConfigurations());
             SeedAdmin(modelBuilder);
         }
         public static void SeedAdmin(ModelBuilder modelBuilder)
