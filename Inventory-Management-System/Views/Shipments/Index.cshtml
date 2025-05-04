@@ -19,7 +19,9 @@
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-dark">Shipments Management</h1>
+        <h1 class="h3 mb-0 text-dark">
+            <i class="fas fa-shipping-fast"></i>Shipments Management
+        </h1>
     </div>
 
     @if (TempData["success"] != null)
@@ -39,7 +41,6 @@
 
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold">Shipment List</h6>
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button"
                         id="statusFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -189,86 +190,161 @@
 <!-- Toast Container -->
 <div id="toastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;"></div>
 
-@section Styles {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
-    <style>
-        .badge {
-            padding: 0.45rem 0.75rem;
-            font-size: 0.75rem;
+<style>
+    /* Main Header Styling */
+    .d-flex.justify-content-between.align-items-center.mb-4 {
+        margin-bottom: 1rem !important;
+    }
+
+    h1.h3 {
+        color: #608fc8 !important;
+        font-size: 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Card Header Styling */
+    .card-header {
+        background-color: #608fc8 !important;
+        color: white !important;
+        padding: 1rem 1.5rem;
+        border-bottom: none;
+    }
+
+        .card-header h6 {
             font-weight: 600;
-            border-radius: 0.375rem;
-            text-transform: capitalize;
+            margin-bottom: 0;
         }
 
-        .badge-Pending {
-            background-color: #ffc107;
-            color: #212529;
+    /* Filter Button Styling */
+    .dropdown .btn-outline-light {
+        background-color: white !important;
+        color: #608fc8 !important;
+        border-color: white !important;
+        border-radius: 50rem !important;
+        padding: 0.375rem 1rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+
+        .dropdown .btn-outline-light:hover {
+            background-color: #f8f9fa !important;
         }
 
-        .badge-InTransit {
-            background-color: #0dcaf0;
-            color: #000;
-        }
+    .dropdown-menu {
+        border-radius: 0.5rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    }
 
-        .badge-Delivered {
-            background-color: #198754;
+    .dropdown-item:hover {
+        background-color: #f1f5fb;
+    }
+
+    /* Status Badges */
+    .badge {
+        border-radius: 0.25rem;
+        padding: 0.4em 0.6em;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .badge-Pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .badge-InTransit {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .badge-Delivered {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    .badge-Cancelled {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    /* Action Buttons */
+    .btn-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        border-radius: 0.375rem !important;
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.4rem 0.9rem;
+    }
+
+    .btn-sm {
+        padding: 0.3rem 0.7rem;
+        font-size: 0.8rem;
+        min-width: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+
+    .btn-primary {
+        background-color: #608fc8;
+        border-color: #608fc8;
+    }
+
+    /* Status Dropdown */
+    .status-select {
+        width: 140px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+        border: 1px solid #ced4da;
+        margin-left: 0.5rem;
+    }
+
+    /* Back Button */
+    .btn-outline-secondary {
+        border-color: #6c757d;
+        color: #6c757d;
+    }
+
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
             color: #fff;
         }
 
-        .badge-Cancelled {
-            background-color: #dc3545;
-            color: #fff;
+    /* Responsive Adjustments */
+    @@media (max-width: 768px) {
+        .btn-group {
+            flex-direction: column;
+            align-items: flex-start;
         }
 
-        .btn-outline-primary {
-            border-color: #608fc8;
-            color: #608fc8;
+        .status-select {
+            margin-top: 0.5rem;
+            margin-left: 0;
+            width: 100%;
         }
-
-            .btn-outline-primary:hover {
-                background-color: #608fc8;
-                color: #fff;
-            }
-
-        .btn-outline-danger {
-            border-color: #dc3545;
-            color: #dc3545;
-        }
-
-            .btn-outline-danger:hover {
-                background-color: #dc3545;
-                color: #fff;
-            }
-
-        .btn-outline-secondary {
-            border-color: #6c757d;
-            color: #6c757d;
-        }
-
-            .btn-outline-secondary:hover {
-                background-color: #6c757d;
-                color: #fff;
-            }
-
-        .table th {
-            font-weight: 600;
-            color: #6c757d;
-        }
-
-        .rounded-pill {
-            border-radius: 50rem !important;
-        }
-
-        .fw-semibold {
-            font-weight: 600;
-        }
-
-        .text-primary {
-            color: #608fc8 !important;
-        }
-    </style>
-}
+    }
+</style>
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>

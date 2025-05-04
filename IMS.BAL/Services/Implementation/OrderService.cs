@@ -530,7 +530,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 (OrderStatus.Confirmed, OrderStatus.Shipped) => true,
                 (OrderStatus.Confirmed, OrderStatus.Cancelled) => true,
                 (OrderStatus.Shipped, OrderStatus.Delivered) => true,
-                (OrderStatus.Shipped, OrderStatus.Cancelled) => true,
                 (OrderStatus.Shipped, OrderStatus.Pending) => true,
                 (OrderStatus.Shipped, OrderStatus.Confirmed) => true,
                 (OrderStatus.Cancelled, OrderStatus.Pending) => true,
