@@ -9,6 +9,7 @@
     int pageSize = (int)ViewBag.PageSize;
     int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
     OrderStatus? statusFilter = ViewBag.StatusFilter;
+    var allStatuses = ViewBag.OrderStatuses as List<OrderStatus> ?? new List<OrderStatus>();
 }
 
 <!-- Add Anti-Forgery Token Form -->
@@ -42,20 +43,25 @@
     }
 
     <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">           
+        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-light rounded-pill px-3 d-flex align-items-center" type="button"
                         id="statusFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-filter me-1"></i> Filter by Status
+                    <i class="fas fa-filter me-1"></i>
+                    @if (statusFilter != null)
+                    {
+                        @:Filter: @statusFilter
+                    }
+                    else
+                    {
+                        @:Filter by Status
+                    }
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="statusFilterDropdown">
-                    <li><a class="dropdown-item" href="#" data-filter="all">All Orders</a></li>
-                    @if (ViewBag.OrderStatuses is List<OrderStatus> statuses)
+                    <li><a class="dropdown-item" href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = (OrderStatus?)null })">All Orders</a></li>
+                    @foreach (var status in allStatuses)
                     {
-                        foreach (var status in statuses)
-                        {
-                            <li><a class="dropdown-item" href="#" data-filter="@status">@status</a></li>
-                        }
+                        <li><a class="dropdown-item" href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = status })">@status</a></li>
                     }
                 </ul>
             </div>
@@ -95,46 +101,43 @@
                                     <td>@order.CreatedByUserName</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a asp-action="Details" asp-route-id="@order.OrderID" 
+                                            <a asp-action="Details" asp-route-id="@order.OrderID"
                                                class="btn btn-info btn-sm" title="View Details">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a asp-action="Edit" asp-route-id="@order.OrderID" 
-                                               class="btn btn-warning btn-sm edit-button" title="Edit" 
+                                            <a asp-action="Edit" asp-route-id="@order.OrderID"
+                                               class="btn btn-warning btn-sm edit-button" title="Edit"
                                                style="@(order.Status == OrderStatus.Pending ? "" : "display:none;")">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <a asp-action="Delete" asp-route-id="@order.OrderID"
-                                               class="btn btn-warning btn-sm delete-button" title="Delete" 
+                                               class="btn btn-warning btn-sm delete-button" title="Delete"
                                                style="@(order.Status == OrderStatus.Cancelled ? "" : "display:none;")">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                             @if (order.Status != OrderStatus.Delivered)
                                             {
-                                                <select class="form-select form-select-sm status-select" 
-                                                        data-order-id="@order.OrderID" 
+                                                <select class="form-select form-select-sm status-select"
+                                                        data-order-id="@order.OrderID"
                                                         aria-label="Change status for order @order.OrderID">
                                                     <option value="" disabled selected>Change Status</option>
-                                                    @if (ViewBag.OrderStatuses is List<OrderStatus> availableStatuses)
+                                                    @foreach (var status in allStatuses)
                                                     {
-                                                        foreach (var status in availableStatuses)
+                                                        bool isValidTransition = (order.Status, status) switch
                                                         {
-                                                            bool isValidTransition = (order.Status, status) switch
-                                                            {
-                                                                (OrderStatus.Pending, OrderStatus.Confirmed) => true,
-                                                                (OrderStatus.Pending, OrderStatus.Cancelled) => true,
-                                                                (OrderStatus.Confirmed, OrderStatus.Pending) => true,
-                                                                (OrderStatus.Confirmed, OrderStatus.Shipped) => true,
-                                                                (OrderStatus.Confirmed, OrderStatus.Cancelled) => true,
-                                                                (OrderStatus.Shipped, OrderStatus.Pending) => true,
-                                                                (OrderStatus.Shipped, OrderStatus.Confirmed) => true,
-                                                                (OrderStatus.Cancelled, OrderStatus.Pending) => true,
-                                                                _ => false
-                                                            };
-                                                            if (isValidTransition && status != OrderStatus.Delivered)
-                                                            {
-                                                                <option value="@status">@status</option>
-                                                            }
+                                                            (OrderStatus.Pending, OrderStatus.Confirmed) => true,
+                                                            (OrderStatus.Pending, OrderStatus.Cancelled) => true,
+                                                            (OrderStatus.Confirmed, OrderStatus.Pending) => true,
+                                                            (OrderStatus.Confirmed, OrderStatus.Shipped) => true,
+                                                            (OrderStatus.Confirmed, OrderStatus.Cancelled) => true,
+                                                            (OrderStatus.Shipped, OrderStatus.Pending) => true,
+                                                            (OrderStatus.Shipped, OrderStatus.Confirmed) => true,
+                                                            (OrderStatus.Cancelled, OrderStatus.Pending) => true,
+                                                            _ => false
+                                                        };
+                                                        if (isValidTransition && status != OrderStatus.Delivered && status != order.Status)
+                                                        {
+                                                            <option value="@status">@status</option>
                                                         }
                                                     }
                                                 </select>
@@ -160,30 +163,30 @@
                 <nav class="mt-4">
                     <ul class="pagination justify-content-center">
                         <li class="page-item @(pageNumber == 1 ? "disabled" : "")">
-                            <a class="page-link" 
-                               asp-action="Index" 
-                               asp-route-pageNumber="@(pageNumber - 1)" 
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-pageNumber="@(pageNumber - 1)"
                                asp-route-pageSize="@pageSize"
                                asp-route-statusFilter="@statusFilter">
                                 Previous
                             </a>
                         </li>
-                        
+
                         @for (int i = 1; i <= totalPages; i++)
                         {
                             <li class="page-item @(i == pageNumber ? "active" : "")">
-                                <a class="page-link" 
-                                   asp-action="Index" 
-                                   asp-route-pageNumber="@i" 
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-pageNumber="@i"
                                    asp-route-pageSize="@pageSize"
                                    asp-route-statusFilter="@statusFilter">@i</a>
                             </li>
                         }
-                        
+
                         <li class="page-item @(pageNumber == totalPages ? "disabled" : "")">
-                            <a class="page-link" 
-                               asp-action="Index" 
-                               asp-route-pageNumber="@(pageNumber + 1)" 
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-pageNumber="@(pageNumber + 1)"
                                asp-route-pageSize="@pageSize"
                                asp-route-statusFilter="@statusFilter">
                                 Next
@@ -201,7 +204,7 @@
 
 <style>
     .d-flex.justify-content-between.align-items-center.mb-0 {
-        margin-bottom: 1rem !important; /* Add bottom margin */
+        margin-bottom: 1rem !important;
     }
 
     .container-fluid {
@@ -432,18 +435,6 @@
                         $(this).addClass(getStatusBadgeClass(status));
                     });
                 }
-            });
-
-            // Handle status filter dropdown
-            $('.dropdown-menu a[data-filter]').on('click', function (e) {
-                e.preventDefault();
-                const filterValue = $(this).data('filter');
-                if (filterValue === 'all') {
-                    window.location.href = '@Url.Action("Index", new { pageNumber = 1, pageSize = 10 })';
-                } else {
-                    window.location.href = '@Url.Action("Index", new { pageNumber = 1, pageSize = 10 })' + `&statusFilter=${filterValue}`;
-                }
-                $('#statusFilterDropdown').text('Filter: ' + $(this).text());
             });
 
             // Handle status change

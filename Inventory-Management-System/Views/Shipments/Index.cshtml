@@ -44,13 +44,21 @@
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button"
                         id="statusFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-filter mr-1"></i>Filter by Status
+                    <i class="fas fa-filter mr-1"></i>
+                    @if (statusFilter != null)
+                    {
+                        @:Filter: @statusFilter
+                    }
+                    else
+                    {
+                        @:Filter by Status
+                    }
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="statusFilterDropdown">
-                    <li><a class="dropdown-item" href="#" data-filter="all">All Shipments</a></li>
+                    <li><a class="dropdown-item" href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = (ShipmentStatus?)null })">All Shipments</a></li>
                     @foreach (var status in allStatuses)
                     {
-                        <li><a class="dropdown-item" href="#" data-filter="@status">@status</a></li>
+                        <li><a class="dropdown-item" href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = status })">@status</a></li>
                     }
                 </ul>
             </div>
@@ -388,18 +396,6 @@
                         $(this).addClass(getStatusBadgeClass(status));
                     });
                 }
-            });
-
-            // Handle status filter dropdown
-            $('.dropdown-menu a[data-filter]').on('click', function (e) {
-                e.preventDefault();
-                const filterValue = $(this).data('filter');
-                if (filterValue === 'all') {
-                    window.location.href = '@Url.Action("Index", new { pageNumber = pageNumber, pageSize = pageSize })';
-                } else {
-                    window.location.href = '@Url.Action("Index", new { pageNumber = pageNumber, pageSize = pageSize })' + `&statusFilter=${filterValue}`;
-                }
-                $('#statusFilterDropdown').text('Filter: ' + $(this).text());
             });
 
             // Handle status change

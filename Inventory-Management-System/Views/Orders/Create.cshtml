@@ -92,11 +92,11 @@
     </div>
 </div>
 
-<!-- Product Selection Modal -->
+<!-- Product Selection Modal - Updated for scrolling -->
 <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content h-100">
+            <div class="modal-header bg-primary text-white sticky-top">
                 <h5 class="modal-title" id="productModalLabel">
                     <i class="fas fa-boxes me-2"></i> Select Products
                 </h5>
@@ -104,7 +104,7 @@
             </div>
             <div class="modal-body p-4">
                 <!-- Filter Section -->
-                <div class="row mb-4">
+                <div class="row mb-4 sticky-top bg-white pt-2 pb-3" style="z-index: 1;">
                     <div class="col-md-6">
                         <label for="categoryFilter" class="form-label fw-bold text-dark">
                             <i class="fas fa-filter me-2"></i> Filter by Category
@@ -139,7 +139,7 @@
                 <!-- Products Table -->
                 <div class="table-responsive rounded-3 border">
                     <table class="table table-hover mb-0" id="productsTable">
-                        <thead class="table-light">
+                        <thead class="table-light sticky-top" style="top: 120px;">
                             <tr>
                                 <th width="25%">Product</th>
                                 <th width="20%">Category</th>
@@ -162,7 +162,7 @@
                     <p class="text-muted">Try adjusting your filters or search term</p>
                 </div>
             </div>
-            <div class="modal-footer bg-light">
+            <div class="modal-footer bg-light sticky-bottom">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i> Cancel
                 </button>
@@ -291,25 +291,28 @@
             }
 
         /* Modal */
-        .modal-content {
-            border-radius: 0.5rem;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        .modal-dialog-scrollable .modal-content {
+            max-height: calc(100vh - 3.5rem);
         }
 
-        .modal-header {
-            background-color: #608fc8;
-            color: white;
-            padding: 1rem 1.5rem;
-            border-bottom: none;
+        .modal-dialog-scrollable .modal-body {
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+            padding-bottom: 80px; /* Space for sticky footer */
         }
 
-        .modal-title {
-            font-weight: 600;
+        .modal-header.sticky-top {
+            top: 0;
+            z-index: 2;
         }
 
-        .btn-close-white {
-            filter: invert(1);
+        .modal-footer.sticky-bottom {
+            bottom: 0;
+            z-index: 2;
+        }
+
+        .table thead.sticky-top {
+            z-index: 1;
         }
 
         /* Quantity Input */
@@ -347,6 +350,14 @@
                 margin-top: 0.5rem;
                 margin-left: 0;
                 width: 100%;
+            }
+
+            .modal-dialog-scrollable .modal-content {
+                max-height: calc(100vh - 1rem);
+            }
+            
+            .modal-dialog-scrollable .modal-body {
+                max-height: calc(100vh - 150px);
             }
         }
     </style>
