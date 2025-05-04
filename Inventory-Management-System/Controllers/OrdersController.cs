@@ -154,7 +154,6 @@ namespace Inventory_Management_System.Controllers
                 return View(orderDto);
             }
         }
-
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -175,6 +174,7 @@ namespace Inventory_Management_System.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Fetch product details for each order detail
                 var orderDto = new OrderReqDto
                 {
                     OrderID = order.OrderID,
@@ -184,7 +184,9 @@ namespace Inventory_Management_System.Controllers
                     OrderDetails = order.OrderDetails.Select(od => new OrderDetailReqDto
                     {
                         ProductID = od.ProductID,
-                        Quantity = od.Quantity
+                        Quantity = od.Quantity,
+                        ProductName = _unitOfWork.Products.GetByIdAsync(p => p.ProductID == od.ProductID).Result?.ProductName ?? "Unknown",
+                        UnitPrice = _unitOfWork.Products.GetByIdAsync(p => p.ProductID == od.ProductID).Result?.Price ?? 0m
                     }).ToList()
                 };
 

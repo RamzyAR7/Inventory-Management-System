@@ -7,6 +7,8 @@ namespace IMS.BAL.DTOs.Order.Request
         [Required(ErrorMessage = "Product is required.")]
         public Guid ProductID { get; set; }
 
+        public string ProductName { get; set; } = string.Empty; // Add this
+
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
         public int Quantity { get; set; }
 
