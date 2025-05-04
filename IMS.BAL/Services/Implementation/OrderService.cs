@@ -49,7 +49,8 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 var includes = new Expression<Func<Order, object>>[]
                 {
                     o => o.Customer,
-                    o => o.Warehouse
+                    o => o.Warehouse,
+                    o => o.CreatedByUser
                 };
 
                 Expression<Func<Order, bool>> predicate = null;
