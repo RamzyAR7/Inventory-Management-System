@@ -246,7 +246,7 @@ namespace Inventory_Management_System.Controllers
             try
             {
                 await _orderService.UpdateStatusAsync(id, status);
-                return Json(new { success = true, message = "Order status updated successfully." });
+                return Json(new { success = true, message = "Order status updated successfully."});
             }
             catch (InvalidOperationException ex)
             {

@@ -268,9 +268,15 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                         }
                     }
 
-                    //order.TotalAmount = 0;
                 }
-
+                else if (order.Status == OrderStatus.Shipped && newStatus == OrderStatus.Confirmed)
+                {
+                    var shipment = await _unitOfWork.Shipments.GetByIdAsync(s => s.OrderID == orderId);
+                    if (shipment != null)
+                    {
+                        await _unitOfWork.Shipments.DeleteAsync(shipment.ShipmentID);
+                    }
+                }
                 order.Status = newStatus;
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveAsync();
@@ -526,6 +532,7 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 (OrderStatus.Shipped, OrderStatus.Delivered) => true,
                 (OrderStatus.Shipped, OrderStatus.Cancelled) => true,
                 (OrderStatus.Shipped, OrderStatus.Pending) => true,
+                (OrderStatus.Shipped, OrderStatus.Confirmed) => true,
                 (OrderStatus.Cancelled, OrderStatus.Pending) => true,
                 _ => false
             };

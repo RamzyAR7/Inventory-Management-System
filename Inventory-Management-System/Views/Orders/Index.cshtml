@@ -366,6 +366,15 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script>
+        // Pass OrderStatuses to JavaScript with string names
+        const orderStatuses = {
+            'Pending': 0,
+            'Confirmed': 1,
+            'Shipped': 2,
+            'Delivered': 3,
+            'Cancelled': 4
+        };
+
         $(document).ready(function () {
             // Initialize DataTable
             const table = $('#ordersTable').DataTable({
@@ -409,7 +418,7 @@
             });
 
             // Handle status change
-            $('.status-select').on('change', function () {
+            $(document).on('change', '.status-select', function () {
                 const orderId = $(this).data('order-id');
                 const newStatus = $(this).val();
                 const $row = $(this).closest('tr');
@@ -464,10 +473,19 @@
                             // If status is Delivered, remove the dropdown
                             if (newStatus === 'Delivered') {
                                 $select.remove();
+                            } else {
+                                // Regenerate dropdown options with string names
+                                $select.empty();
+                                $select.append('<option value="" disabled selected>Change Status</option>');
+                                for (const [statusName, statusValue] of Object.entries(orderStatuses)) {
+                                    if (statusName !== newStatus && statusName !== 'Delivered') {
+                                        $select.append(`<option value="${statusName}">${statusName}</option>`);
+                                    }
+                                }
                             }
 
-                            // Reset dropdown
-                            $select.val('');
+                            // Redraw the row to ensure DataTable updates
+                            table.row($row).invalidate().draw();
                         } else {
                             showToast('Error: ' + response.message, 'danger');
                             $select.val('');
