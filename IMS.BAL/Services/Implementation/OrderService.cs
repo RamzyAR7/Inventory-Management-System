@@ -40,12 +40,6 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                 var userId = GetCurrentUserId();
                 var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
-                if (!managerWarehouseIds.Any() && userRole != "Admin")
-                {
-                    _logger.LogWarning("No warehouses accessible for user {UserId} with role {Role}.", userId, userRole);
-                    return (Enumerable.Empty<OrderResponseDto>(), 0);
-                }
-
                 var includes = new Expression<Func<Order, object>>[]
                 {
                     o => o.Customer,
@@ -53,14 +47,27 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
                     o => o.CreatedByUser
                 };
 
+                // Build the predicate based on user role and status filter
                 Expression<Func<Order, bool>> predicate = null;
+
+                if (userRole != "Admin")
+                {
+                    // For non-admin users, they can only see orders from their accessible warehouses
+                    predicate = o => managerWarehouseIds.Contains(o.WarehouseID);
+                }
+
+                // Apply additional status filter if provided
                 if (statusFilter.HasValue)
                 {
-                    predicate = o => o.Status == statusFilter.Value;
-                }
-                else if (userRole != "Admin")
-                {
-                    predicate = o => managerWarehouseIds.Contains(o.WarehouseID);
+                    if (predicate == null)
+                    {
+                        predicate = o => o.Status == statusFilter.Value;
+                    }
+                    else
+                    {
+                        var originalPredicate = predicate;
+                        predicate = o => originalPredicate.Compile()(o) && o.Status == statusFilter.Value;
+                    }
                 }
 
                 var (orders, totalCount) = await _unitOfWork.Orders.GetPagedAsync(pageNumber, pageSize, predicate, includes);
@@ -495,7 +502,9 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
         public async Task<List<Guid>> GetAccessibleWarehouseIdsAsync(string role, Guid userId)
         {
             if (role == "Admin")
+            {
                 return (await _unitOfWork.Warehouses.GetAllAsync()).Select(w => w.WarehouseID).ToList();
+            }
 
             if (role == "Manager")
             {
@@ -505,16 +514,29 @@ namespace Inventory_Management_System.BusinessLogic.Services.Implementation
 
             if (role == "Employee")
             {
-                var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserID == userId);
-                if (user == null)
+                // Get the employee's manager
+                var employee = await _unitOfWork.Users.GetByIdAsync(userId);
+                if (employee == null)
                     throw new InvalidOperationException("User not found.");
 
-                var manager = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Role == "Manager");
-                if (manager == null)
-                    throw new InvalidOperationException("No manager found for this employee.");
+                // If employee has a direct manager assigned
+                if (employee.ManagerID.HasValue)
+                {
+                    var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == employee.ManagerID.Value);
+                    return managerWarehouses.Select(w => w.WarehouseID).ToList();
+                }
 
-                var warehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == manager.UserID);
-                return warehouses.Select(w => w.WarehouseID).ToList();
+                // Fallback: Get all managers' warehouses if no direct manager assigned
+                var managers = await _unitOfWork.Users.FindAsync(u => u.Role == "Manager");
+                var allManagerWarehouses = new List<Warehouse>();
+
+                foreach (var manager in managers)
+                {
+                    var warehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == manager.UserID);
+                    allManagerWarehouses.AddRange(warehouses);
+                }
+
+                return allManagerWarehouses.Select(w => w.WarehouseID).Distinct().ToList();
             }
 
             return new List<Guid>();
