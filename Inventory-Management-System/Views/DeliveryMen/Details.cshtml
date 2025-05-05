@@ -5,94 +5,58 @@
     ViewData["Title"] = "Delivery Man Details";
 }
 
-<h1 class="h3 mb-4">Delivery Man Details</h1>
+<div class="container py-4" style="max-width: 600px;">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
+        <div class="mb-4 d-flex align-items-center">
+            <h3 class="fw-semibold mb-0 text-primary" style="font-size: 1.5rem;">
+                Delivery Man Details
+            </h3>
+        </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-primary text-white py-3">
-        <h6 class="m-0 font-weight-bold">Delivery Man #@Model.DeliveryManID</h6>
-    </div>
-    <div class="card-body p-4">
-        <dl class="row">
-            <dt class="col-sm-3">Full Name</dt>
+        <dl class="row mb-0">
+            <dt class="col-sm-3 fw-semibold">Full Name</dt>
             <dd class="col-sm-9">@Model.FullName</dd>
 
-            <dt class="col-sm-3">Phone Number</dt>
+            <dt class="col-sm-3 fw-semibold">Phone Number</dt>
             <dd class="col-sm-9">@Model.PhoneNumber</dd>
 
-            <dt class="col-sm-3">Email</dt>
+            <dt class="col-sm-3 fw-semibold">Email</dt>
             <dd class="col-sm-9">@Model.Email</dd>
 
-            <dt class="col-sm-3">Status</dt>
+            <dt class="col-sm-3 fw-semibold">Status</dt>
             <dd class="col-sm-9">
-                <span class="badge @(Model.Status == DeliveryManStatus.Busy ? "badge-danger" : "badge-success")">
+                <span class="badge @(Model.Status == DeliveryManStatus.Busy ? "bg-danger" : "bg-success") text-white rounded-pill px-3">
                     @Model.Status
                 </span>
             </dd>
-            <dt class="col-sm-3">Is Active</dt>
+
+            <dt class="col-sm-3 fw-semibold">Is Active</dt>
             <dd class="col-sm-9">@(Model.IsActive ? "Yes" : "No")</dd>
 
-            <dt class="col-sm-3">Manager</dt>
+            <dt class="col-sm-3 fw-semibold">Manager</dt>
             <dd class="col-sm-9">@(Model.Manager?.UserName ?? "Not Assigned")</dd>
         </dl>
-    </div>
-    <div class="card-footer">
-        <a asp-action="Edit" asp-route-id="@Model.DeliveryManID" class="btn btn-warning">Edit</a>
-        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+
+        <div class="mt-4 d-flex justify-content-between">
+            <a asp-action="Edit" asp-route-id="@Model.DeliveryManID" class="btn btn-warning rounded-pill px-4 fw-semibold text-white">
+                Edit
+            </a>
+
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+                Back to List
+            </a>
+        </div>
     </div>
 </div>
 
 @section Styles {
     <style>
-        .card {
-            border-radius: 0.5rem;
-            overflow: hidden;
+        .fw-semibold {
+            font-weight: 600;
         }
 
-        .card-header {
-            border-bottom: none;
-        }
-
-        .badge {
-            padding: 0.5rem 0.75rem;
-            font-size: 0.85rem;
-            border-radius: 0.25rem;
-        }
-
-        .badge-success {
-            background-color: #28a745;
-            color: #fff;
-        }
-
-        .badge-danger {
-            background-color: #dc3545;
-            color: #fff;
-        }
-
-        .btn {
-            border-radius: 0.375rem;
-            padding: 0.5rem 1rem;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-        }
-
-        .btn-warning {
-            background-color: #ffc107;
-            border-color: #ffc107;
-        }
-
-        .btn-warning:hover {
-            background-color: #e0a800;
-            border-color: #e0a800;
-        }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            border-color: #6c757d;
-        }
-
-        .btn-secondary:hover {
-            background-color: #5a6268;
-            border-color: #5a6268;
+        .text-primary {
+            color: #608fc8 !important;
         }
     </style>
 }
