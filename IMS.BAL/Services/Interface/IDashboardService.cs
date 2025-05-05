@@ -1,6 +1,6 @@
 ﻿using IMS.BAL.DTOs;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Interface
+namespace IMS.BAL.Services.Interface
 {
     public interface IDashboardService
     {

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using IMS.Data.Context;
-using IMS.Data.Repositories.Interfaces;
+using IMS.DAL.Context;
+using IMS.DAL.Repositories.Interfaces;
 
-namespace IMS.Data.Repositories.Implementation
+namespace IMS.DAL.Repositories.Implementation
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {

@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 
-namespace IMS.Data.Repositories.Interfaces
+namespace IMS.DAL.Repositories.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {

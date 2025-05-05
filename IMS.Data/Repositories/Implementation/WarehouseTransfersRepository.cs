@@ -1,8 +1,8 @@
-﻿using IMS.Data.Context;
-using IMS.Data.Entities;
-using IMS.Data.Repositories.Interfaces;
+﻿using IMS.DAL.Context;
+using IMS.DAL.Entities;
+using IMS.DAL.Repositories.Interfaces;
 
-namespace IMS.Data.Repositories.Implementation
+namespace IMS.DAL.Repositories.Implementation
 {
     public class WarehouseTransfersRepository: GenericRepository<WarehouseTransfers>, IWarehouseTransfersRepository
     {

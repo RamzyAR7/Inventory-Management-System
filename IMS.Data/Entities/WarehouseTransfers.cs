@@ -1,4 +1,4 @@
-﻿namespace IMS.Data.Entities
+﻿namespace IMS.DAL.Entities
 {
     public class WarehouseTransfers
     {

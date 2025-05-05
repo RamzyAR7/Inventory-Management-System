@@ -1,0 +1,208 @@
+﻿@model dynamic
+@using IMS.DAL.Entities
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="page-title-box d-flex align-items-center justify-content-between">
+            <h4 class="mb-0">Inventory Management Dashboard</h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Total Products -->
+        <div class="col-md-6 col-xl-4 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <div class="float-end mt-2">
+                        <div id="totalProductsRadialChart" data-colors='["--bs-success"]'></div>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0">Total Products</p>
+                        <h4 class="my-1">
+                            <span id="spanTotalProducts">@Model.TotalProducts</span>
+                        </h4>
+                    </div>
+                    <p class="text-muted mt-3 mb-0">Current inventory items</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Orders -->
+        <div class="col-md-6 col-xl-4 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <div class="float-end mt-2">
+                        <div id="totalOrdersRadialChart" data-colors='["--bs-warning"]'></div>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0">Total Orders</p>
+                        <h4 class="my-1">
+                            <span id="spanTotalOrders">@Model.TotalOrders</span>
+                        </h4>
+                    </div>
+                    <p class="text-muted mt-3 mb-0">
+                        Completed: @Model.CompletedOrders
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Inventory -->
+        <div class="col-md-6 col-xl-4 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <div class="float-end mt-2">
+                        <div id="totalInventoryRadialChart" data-colors='["#F0006B"]'></div>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0">Total Inventory Items</p>
+                        <h4 class="my-1">
+                            <span id="spanTotalInventory">@Model.TotalInventory</span>
+                        </h4>
+                    </div>
+                    <p class="text-muted mt-3 mb-0">Items across all warehouses</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Selling Product -->
+        <div class="col-md-6 col-xl-4 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <div class="float-end mt-2">
+                        <i class="fas fa-award fa-2x text-primary"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0">Top Selling Product</p>
+                        <h4 class="my-1">@Model.TopSellingProductName</h4>
+                    </div>
+                    <p class="text-muted mt-3 mb-0">
+                        Total Sold: @Model.TopSellingProductQuantity units
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouses and Customers -->
+        <div class="col-md-6 col-xl-4 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <div>
+                        <p class="text-muted mb-0">Business Overview</p>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Warehouses</span>
+                            <span class="fw-bold">@Model.TotalWarehouses</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Customers</span>
+                            <span class="fw-bold">@Model.TotalCustomers</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Suppliers</span>
+                            <span class="fw-bold">@Model.TotalSuppliers</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Categories</span>
+                            <span class="fw-bold">@Model.TotalCategories</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Summary -->
+        <div class="col-md-6 col-xl-4 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <div>
+                        <p class="text-muted mb-0">Transaction Summary</p>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipments</span>
+                            <span class="fw-bold">@Model.TotalShipments</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Inventory Transactions</span>
+                            <span class="fw-bold">@Model.TotalInventoryTransactions</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Supplied Products</span>
+                            <span class="fw-bold">@Model.TotalSuppliedProducts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart for Inventory Distribution -->
+        <div class="col-md-12 col-xl-8 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <div>
+                        <p class="text-muted mb-0">Inventory Analytics</p>
+                    </div>
+                    <div id="inventoryAnalyticsChart" data-colors='["--bs-warning","--bs-primary"]'></div>
+                    <div class="justify-content-center text-center chart-spinner" style="display:none">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Users -->
+        <div class="col-md-12 col-xl-4 mt-2">
+            <div class="card">
+                <div class="card-body">
+                    <div>
+                        <p class="text-muted mb-0">System Overview</p>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <h2 class="mb-3">@Model.TotalUsers</h2>
+                        <p class="text-muted">Total System Users</p>
+                        <hr />
+                        <div class="mt-4">
+                            <p class="mb-2">System Health</p>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 95%" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/js/dashboard/radialChart.js"></script>
+    <script src="~/js/dashboard/inventoryAnalytics.js"></script>
+
+    <script>
+        // Initialize radial charts
+        $(document).ready(function() {
+            // Products Radial Chart
+            initRadialChart('totalProductsRadialChart', 85, '#34c38f');
+
+            // Orders Radial Chart
+            initRadialChart('totalOrdersRadialChart', 75, '#f1b44c');
+
+            // Inventory Radial Chart
+            initRadialChart('totalInventoryRadialChart', 65, '#F0006B');
+        });
+
+        // Simple function to initialize radial charts (you can replace this with your actual implementation)
+        function initRadialChart(elementId, percentage, color) {
+            // This is a placeholder - replace with your actual chart initialization code
+            console.log(`Initializing ${elementId} with ${percentage}% and color ${color}`);
+        }
+    </script>
+}

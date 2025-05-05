@@ -1,8 +1,8 @@
-﻿using IMS.Data.Entities;
+﻿using IMS.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace IMS.Data.ConfigurationCalsses
+namespace IMS.DAL.ConfigurationCalsses
 {
     public class ShipmentConfigurations : IEntityTypeConfiguration<Shipment>
     {

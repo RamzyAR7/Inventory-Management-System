@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace IMS.Data.Entities
+namespace IMS.DAL.Entities
 {
 
     public class Shipment

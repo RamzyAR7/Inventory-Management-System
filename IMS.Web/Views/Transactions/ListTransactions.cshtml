@@ -1,0 +1,195 @@
+@model dynamic
+@{
+    ViewData["Title"] = "In/Out Transactions";
+    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<IMS.DAL.Entities.InventoryTransaction>;
+    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<IMS.DAL.Entities.InventoryTransaction>;
+    int totalCount = (int)ViewBag.TotalCount;
+    int pageNumber = (int)ViewBag.PageNumber;
+    int pageSize = (int)ViewBag.PageSize;
+    int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+}
+
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
+
+        <!-- Title -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-semibold text-primary mb-0 d-flex align-items-center">
+                <i class="fas fa-random me-2"></i> In/Out Transactions
+            </h3>
+        </div>
+
+        <!-- Alerts -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success rounded-3 small fw-semibold">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger rounded-3 small fw-semibold">@TempData["ErrorMessage"]</div>
+        }
+
+        <!-- Filter -->
+        <form asp-action="Index" method="get" class="mb-4">
+            <div class="form-group mb-2">
+                <label for="warehouseId" class="form-label fw-semibold text-muted d-flex align-items-center">
+                    <i class="fas fa-filter me-2 text-secondary"></i> Filter by Warehouse
+                </label>
+                <div class="input-group">
+                    <select name="warehouseId" id="warehouseId" asp-items="ViewBag.Warehouses"
+                            class="form-select rounded-pill border-primary shadow-sm fw-semibold text-primary"
+                            style="max-width: 280px;" onchange="this.form.submit()">
+                        <option value="">All Warehouses</option>
+                    </select>
+                </div>
+                <input type="hidden" name="pageNumber" value="1" />
+            </div>
+        </form>
+
+
+        <!-- In Transactions -->
+        <h5 class="fw-semibold text-primary mb-3 mt-5 d-flex align-items-center">
+            <i class="fas fa-arrow-down me-2"></i> In Transactions (From Suppliers)
+        </h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr class="text-muted small">
+                        <th>Transaction ID</th>
+                        <th>Supplier</th>
+                        <th>Product</th>
+                        <th>Warehouse</th>
+                        <th>Quantity</th>
+                        <th>Date</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (supplierInTransactions != null && supplierInTransactions.Any())
+                    {
+                        foreach (var transaction in supplierInTransactions)
+                        {
+                            <tr>
+                                <td>@transaction.TransactionID</td>
+                                <td>@(transaction.Suppliers?.SupplierName ?? "N/A")</td>
+                                <td>@transaction.Product.ProductName</td>
+                                <td>@transaction.Warehouse.WarehouseName</td>
+                                <td>@transaction.Quantity</td>
+                                <td>@transaction.TransactionDate.ToString("g")</td>
+                                <td class="text-center">
+                                    <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID"
+                                       class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1">
+                                        <i class="fas fa-info-circle"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-box-open mb-2"></i><br />No supplier In transactions found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Out Transactions -->
+        <h5 class="fw-semibold text-primary mb-3 mt-5 d-flex align-items-center">
+            <i class="fas fa-arrow-up me-2"></i> Out Transactions (To Customers)
+        </h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr class="text-muted small">
+                        <th>Transaction ID</th>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Warehouse</th>
+                        <th>Quantity</th>
+                        <th>Date</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (customerOutTransactions != null && customerOutTransactions.Any())
+                    {
+                        foreach (var transaction in customerOutTransactions)
+                        {
+                            <tr>
+                                <td>@transaction.TransactionID</td>
+                                <td>@(transaction.Order?.Customer?.FullName ?? "N/A")</td>
+                                <td>@transaction.Product.ProductName</td>
+                                <td>@transaction.Warehouse.WarehouseName</td>
+                                <td>@transaction.Quantity</td>
+                                <td>@transaction.TransactionDate.ToString("g")</td>
+                                <td class="text-center">
+                                    <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID"
+                                       class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1">
+                                        <i class="fas fa-info-circle"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="fas fa-box-open mb-2"></i><br />No customer Out transactions found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == pageNumber ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="ListTransactions"
+                               asp-route-warehouseId="@ViewBag.WarehouseId"
+                               asp-route-pageNumber="@i">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+
+        <!-- Footer Buttons -->
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-action="CreateInTransaction" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                <i class="fas fa-plus-circle me-2"></i> Create In Transaction
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+}
+
+<style>
+    .dropdown .btn-outline-primary {
+        border-width: 1.5px;
+        font-size: 0.95rem;
+        background-color: white;
+    }
+
+    .dropdown-menu .dropdown-item {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+</style>

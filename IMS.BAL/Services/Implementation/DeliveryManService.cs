@@ -1,12 +1,11 @@
 ﻿using AutoMapper;
 using IMS.BAL.DTOs.DeliveryMan;
-using IMS.Data.Entities;
-using IMS.Data.UnitOfWork;
-using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.BusinessLogic.Services.Interface;
+using IMS.BAL.Services.Interface;
+using IMS.DAL.Entities;
+using IMS.DAL.UnitOfWork;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Implementation
+namespace IMS.BAL.Services.Implementation
 {
     public class DeliveryManService: IDeliveryManService
     {

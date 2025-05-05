@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
-using IMS.Data.Context;
-using IMS.Data.Entities;
-using IMS.Data.Repositories.Implementation;
-using IMS.Data.Repositories.Interface;
-using IMS.Data.Repositories.Interfaces;
+using IMS.DAL.Context;
+using IMS.DAL.Entities;
+using IMS.DAL.Repositories.Implementation;
+using IMS.DAL.Repositories.Interface;
+using IMS.DAL.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace IMS.Data.UnitOfWork
+namespace IMS.DAL.UnitOfWork
 {
     public interface IUnitOfWork : IDisposable
     {

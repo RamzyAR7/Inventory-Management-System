@@ -1,6 +1,6 @@
-﻿using IMS.Data.Entities;
+﻿using IMS.DAL.Entities;
 
-namespace IMS.Data.Repositories.Interfaces
+namespace IMS.DAL.Repositories.Interfaces
 {
     public interface IInventoryTransactionRepository : IGenericRepository<InventoryTransaction>
     {

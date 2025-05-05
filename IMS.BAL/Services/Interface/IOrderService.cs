@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
 using IMS.BAL.DTOs.Order.Request;
 using IMS.BAL.DTOs.Order.Responce;
-using IMS.Data.Entities;
-using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.BusinessLogic.Services.Interface;
+using IMS.DAL.Entities;
+using IMS.BAL.Services.Interface;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Interface
+namespace IMS.BAL.Services.Interface
 {
     public interface IOrderService
     {

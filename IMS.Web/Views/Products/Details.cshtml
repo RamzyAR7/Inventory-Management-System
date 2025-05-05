@@ -1,0 +1,112 @@
+﻿@model IMS.DAL.Entities.Product
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn" style="max-width: 900px; margin: 0 auto;">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-semibold mb-0 text-primary">
+                <i class="align-middle me-2" data-feather="info"></i> Product Details
+            </h3>
+            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill fw-semibold px-4">
+                <i class="align-middle me-1" data-feather="arrow-left"></i> Back to List
+            </a>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger rounded-3 small py-2 px-3 mb-3">@TempData["ErrorMessage"]</div>
+        }
+
+        <dl class="row mb-0">
+            <dt class="col-sm-4 text-muted">Product Name</dt>
+            <dd class="col-sm-8">@Model.ProductName</dd>
+
+            <dt class="col-sm-4 text-muted">Description</dt>
+            <dd class="col-sm-8">@Model.ProductDescription</dd>
+
+            <dt class="col-sm-4 text-muted">Price</dt>
+            <dd class="col-sm-8">@Model.Price.ToString("C")</dd>
+
+            <dt class="col-sm-4 text-muted">Reorder Level</dt>
+            <dd class="col-sm-8">@Model.RecoderLevel</dd>
+
+            <dt class="col-sm-4 text-muted">Stock Quantity</dt>
+            <dd class="col-sm-8">
+                @if (Model.WarehouseStocks?.Any() == true)
+                {
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1">
+                        @Model.WarehouseStocks.Sum(w => w.StockQuantity)
+                    </span>
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-muted">Category</dt>
+            <dd class="col-sm-8">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1">@Model.Category?.CategoryName</span>
+            </dd>
+
+            <dt class="col-sm-4 text-muted">Is Active</dt>
+            <dd class="col-sm-8">
+                <span class="badge @(Model.IsActive ? "bg-success bg-opacity-10 text-success" : "bg-danger bg-opacity-10 text-danger") px-3 py-1">
+                    @(Model.IsActive ? "Active" : "Inactive")
+                </span>
+            </dd>
+
+            <dt class="col-sm-4 text-muted">Suppliers</dt>
+            <dd class="col-sm-8">
+                @if (Model.Suppliers?.Any() == true)
+                {
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach (var supplier in Model.Suppliers)
+                        {
+                            <span class="badge bg-info bg-opacity-10 text-info px-3 py-1">@supplier.Supplier?.SupplierName</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4 text-muted">Warehouses</dt>
+            <dd class="col-sm-8">
+                @if (Model.WarehouseStocks?.Any() == true)
+                {
+                    <div class="d-flex flex-wrap gap-1">
+                        @foreach (var warehouse in Model.WarehouseStocks)
+                        {
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-1">@warehouse.Warehouse.WarehouseName</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">None</span>
+                }
+            </dd>
+        </dl>
+
+        <div class="d-flex justify-content-start mt-4">
+            <a asp-action="Edit" asp-route-id="@Model.ProductID" class="btn btn-warning rounded-pill px-4 fw-semibold">
+                <i class="align-middle me-1" data-feather="edit"></i> Edit
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+        });
+    </script>
+}

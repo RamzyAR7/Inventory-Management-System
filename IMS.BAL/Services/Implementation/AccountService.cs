@@ -2,14 +2,13 @@
 using IMS.BAL.DTOs.User;
 using IMS.BAL.Hashing;
 using IMS.BAL.Services;
-using IMS.Data.UnitOfWork;
-using Inventory_Management_System.BusinessLogic.Interfaces;
+using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Implementation
+namespace IMS.BAL.Services.Implementation
 {
     public class AccountService : IAccountService
     {

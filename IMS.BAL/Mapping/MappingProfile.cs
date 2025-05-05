@@ -11,7 +11,7 @@ using IMS.BAL.DTOs.Transactions;
 using IMS.BAL.DTOs.User;
 using IMS.BAL.DTOs.Warehouse;
 using IMS.BAL.Hashing;
-using IMS.Data.Entities;
+using IMS.DAL.Entities;
 
 namespace IMS.BAL.Mapping
 {

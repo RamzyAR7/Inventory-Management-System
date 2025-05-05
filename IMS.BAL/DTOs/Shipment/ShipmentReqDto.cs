@@ -1,4 +1,4 @@
-﻿using IMS.Data.Entities;
+﻿using IMS.DAL.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace IMS.BAL.DTOs.Shipment

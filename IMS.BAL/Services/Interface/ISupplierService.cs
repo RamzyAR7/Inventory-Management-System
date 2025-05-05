@@ -1,7 +1,7 @@
 ﻿using IMS.BAL.DTOs.Supplier;
-using IMS.Data.Entities;
+using IMS.DAL.Entities;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Interface
+namespace IMS.BAL.Services.Interface
 {
     public interface ISupplierService
     {

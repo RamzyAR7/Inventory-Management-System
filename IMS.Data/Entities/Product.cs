@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace IMS.Data.Entities
+namespace IMS.DAL.Entities
 {
     public class Product
     {

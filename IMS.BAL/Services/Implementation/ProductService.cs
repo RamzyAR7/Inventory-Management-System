@@ -1,15 +1,14 @@
 ﻿using AutoMapper;
-using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using IMS.BAL.DTOs.Products;
-using IMS.Data.UnitOfWork;
+using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Http;
-using IMS.Data.Entities;
+using IMS.DAL.Entities;
+using IMS.BAL.Services.Interface;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Implementation
+namespace IMS.BAL.Services.Implementation
 {
     public class ProductService : IProductService
     {

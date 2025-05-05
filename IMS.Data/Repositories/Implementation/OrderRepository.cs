@@ -2,11 +2,11 @@
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using IMS.Data.Entities;
-using IMS.Data.Repositories.Interfaces;
-using IMS.Data.Context;
+using IMS.DAL.Entities;
+using IMS.DAL.Repositories.Interfaces;
+using IMS.DAL.Context;
 
-namespace IMS.Data.Repositories.Implementation
+namespace IMS.DAL.Repositories.Implementation
 {
     public class OrderRepository : GenericRepository<Order>, IOrderRepository
     {

@@ -1,5 +1,5 @@
 ﻿using IMS.BAL.DTOs.User;
-using IMS.Data.Entities;
+using IMS.DAL.Entities;
 
 namespace IMS.BAL.DTOs.Warehouse
 {

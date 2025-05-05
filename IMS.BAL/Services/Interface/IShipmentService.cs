@@ -1,7 +1,7 @@
 ﻿using IMS.BAL.DTOs.Shipment;
-using IMS.Data.Entities;
+using IMS.DAL.Entities;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Interface
+namespace IMS.BAL.Services.Interface
 {
     public interface IShipmentService
     {

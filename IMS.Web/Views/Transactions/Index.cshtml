@@ -1,0 +1,225 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Transactions Dashboard";
+    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<IMS.DAL.Entities.InventoryTransaction>;
+    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<IMS.DAL.Entities.InventoryTransaction>;
+    var transfers = ViewBag.Transfers as IEnumerable<IMS.DAL.Entities.WarehouseTransfers>;
+    int totalCount = (int)ViewBag.TotalCount;
+    int pageNumber = (int)ViewBag.PageNumber;
+    int pageSize = (int)ViewBag.PageSize;
+    int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+}
+
+<div class="container py-4">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-semibold mb-0 d-flex align-items-center" style="color: #608fc8; font-size: 1.5rem;">
+                <i class="fas fa-exchange-alt me-2"></i> Transactions Dashboard
+            </h3>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="text-success small fw-semibold mb-3">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="text-danger small fw-semibold mb-3">@TempData["ErrorMessage"]</div>
+        }
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <a asp-action="ListTransactions" class="btn btn-secondary rounded-pill px-3">
+                <i class="fas fa-list me-1"></i> All In/Out Transactions
+            </a>
+            <a asp-action="ListTransfers" class="btn btn-secondary rounded-pill px-3">
+                <i class="fas fa-exchange-alt me-1"></i> All Transfers
+            </a>
+            <a asp-action="CreateInTransaction" class="btn btn-primary rounded-pill px-3">
+                <i class="fas fa-plus-circle me-1"></i> Create In Transaction
+            </a>
+            <a asp-action="TransferBetweenWarehouses" class="btn btn-primary rounded-pill px-3">
+                <i class="fas fa-truck-moving me-1"></i> Create Transfer
+            </a>
+        </div>
+        <form asp-action="Index" method="get" class="mb-4">
+            <div class="form-group mb-2">
+                <label for="warehouseId" class="form-label fw-semibold text-muted d-flex align-items-center">
+                    <i class="fas fa-filter me-2 text-secondary"></i> Filter by Warehouse
+                </label>
+                <div class="input-group">
+                    <select name="warehouseId" id="warehouseId" asp-items="ViewBag.Warehouses"
+                            class="form-select rounded-pill border-primary shadow-sm fw-semibold text-primary"
+                            style="max-width: 280px;" onchange="this.form.submit()">
+                        <option value="">All Warehouses</option>
+                    </select>
+                </div>
+                <input type="hidden" name="pageNumber" value="1" />
+            </div>
+        </form>
+
+
+
+
+        <!-- In Transactions -->
+        <h5 class="fw-semibold text-primary mb-3 mt-5 d-flex align-items-center" >
+            <i class="fas fa-arrow-down me-2"></i> In Transactions (From Suppliers)
+        </h5>
+        <div class="table-responsive rounded-3 overflow-hidden mb-5">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light text-muted">
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Supplier</th>
+                        <th>Product</th>
+                        <th>Warehouse</th>
+                        <th>Quantity</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (supplierInTransactions != null && supplierInTransactions.Any())
+                    {
+                        foreach (var transaction in supplierInTransactions)
+                        {
+                            <tr>
+                                <td>@transaction.TransactionID</td>
+                                <td>@(transaction.Suppliers?.SupplierName ?? "N/A")</td>
+                                <td>@transaction.Product.ProductName</td>
+                                <td>@transaction.Warehouse.WarehouseName</td>
+                                <td>@transaction.Quantity</td>
+                                <td>@transaction.TransactionDate.ToString("g")</td>
+                                <td>
+                                    <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-semibold">
+                                        <i class="fas fa-info-circle me-1"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="7" class="text-center text-muted">No supplier In transactions found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Out Transactions -->
+        <h5 class="fw-semibold text-primary mb-3 mt-5 d-flex align-items-center" >
+            <i class="fas fa-arrow-up me-2"></i> Out Transactions (To Customers)
+        </h5>
+        <div class="table-responsive rounded-3 overflow-hidden mb-5">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light text-muted">
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Warehouse</th>
+                        <th>Quantity</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (customerOutTransactions != null && customerOutTransactions.Any())
+                    {
+                        foreach (var transaction in customerOutTransactions)
+                        {
+                            <tr>
+                                <td>@transaction.TransactionID</td>
+                                <td>@(transaction.Order?.Customer?.FullName ?? "N/A")</td>
+                                <td>@transaction.Product.ProductName</td>
+                                <td>@transaction.Warehouse.WarehouseName</td>
+                                <td>@transaction.Quantity</td>
+                                <td>@transaction.TransactionDate.ToString("g")</td>
+                                <td>
+                                    <a asp-action="TransactionDetails" asp-route-id="@transaction.TransactionID" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-semibold">
+                                        <i class="fas fa-info-circle me-1"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="7" class="text-center text-muted">No customer Out transactions found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Transfers -->
+        <h5 class="fw-semibold text-primary mb-3 mt-5 d-flex align-items-center" >
+            <i class="fas fa-random me-2"></i> Warehouse Transfers
+        </h5>
+        <div class="table-responsive rounded-3 overflow-hidden mb-4">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light text-muted">
+                    <tr>
+                        <th>Transfer ID</th>
+                        <th>From Warehouse</th>
+                        <th>From Product</th>
+                        <th>To Warehouse</th>
+                        <th>To Product</th>
+                        <th>Quantity</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (transfers != null && transfers.Any())
+                    {
+                        foreach (var transfer in transfers)
+                        {
+                            <tr>
+                                <td>@transfer.WarehouseTransferID</td>
+                                <td>@transfer.FromWarehouse.WarehouseName</td>
+                                <td>@transfer.FromProduct.ProductName</td>
+                                <td>@transfer.ToWarehouse.WarehouseName</td>
+                                <td>@transfer.ToProduct.ProductName</td>
+                                <td>@transfer.Quantity</td>
+                                <td>@transfer.TransferDate.ToString("g")</td>
+                                <td>
+                                    <a asp-action="TransferDetails" asp-route-id="@transfer.WarehouseTransferID" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-semibold">
+                                        <i class="fas fa-info-circle me-1"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="8" class="text-center text-muted">No transfers found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == pageNumber ? "active" : "")">
+                            <a class="page-link rounded-pill" asp-action="Index" asp-route-warehouseId="@ViewBag.WarehouseId" asp-route-pageNumber="@i">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+
+        <div class="mt-4 text-end">
+            <a asp-controller="Products" asp-action="Index" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                <i class="fas fa-boxes me-2"></i> Go to Inventory
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+}

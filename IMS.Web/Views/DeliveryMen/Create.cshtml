@@ -1,0 +1,93 @@
+﻿@model IMS.BAL.DTOs.DeliveryMan.DeliveryManReqDto
+@using IMS.DAL.Entities
+
+@{
+    ViewData["Title"] = "Create Delivery Man";
+}
+
+<div class="container py-4" style="max-width: 600px;">
+    <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
+        <div class="mb-4 d-flex align-items-center">
+            <h3 class="fw-semibold mb-0  d-flex align-items-center" style="color: #6c707de6; font-size: 1.5rem;">
+                Create Delivery Man
+            </h3>
+        </div>
+
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show small" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <label asp-for="FullName" class="form-label fw-semibold"></label>
+                    <input asp-for="FullName" class="form-control rounded-3" />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="PhoneNumber" class="form-label fw-semibold"></label>
+                    <input asp-for="PhoneNumber" class="form-control rounded-3" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Email" class="form-label fw-semibold"></label>
+                    <input asp-for="Email" class="form-control rounded-3" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="IsActive" class="form-label fw-semibold"></label>
+                    <select asp-for="IsActive" class="form-select rounded-3">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                    <span asp-validation-for="IsActive" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="ManagerID" class="form-label fw-semibold"></label>
+                    <select asp-for="ManagerID" class="form-select rounded-3" asp-items="ViewBag.Managers">
+                        <option value="">Select a Manager</option>
+                    </select>
+                    <span asp-validation-for="ManagerID" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary text-white rounded-pill px-4 fw-semibold">
+                    Save
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .fw-semibold {
+            font-weight: 600;
+        }
+
+        .text-primary {
+            color: #608fc8 !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

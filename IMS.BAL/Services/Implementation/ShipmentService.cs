@@ -1,17 +1,16 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
-using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.BusinessLogic.Services.Interface;
 using Microsoft.EntityFrameworkCore;
 using IMS.BAL.DTOs.Shipment;
-using IMS.Data.UnitOfWork;
-using IMS.Data.Entities;
+using IMS.DAL.UnitOfWork;
+using IMS.DAL.Entities;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using IMS.BAL.DTOs.Order.Responce;
+using IMS.BAL.Services.Interface;
 
-namespace Inventory_Management_System.Services
+namespace IMS.BAL.Services.Implementation
 {
     public class ShipmentService : IShipmentService
     {

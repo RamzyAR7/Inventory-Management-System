@@ -1,10 +1,10 @@
 ﻿using IMS.BAL.DTOs;
-using IMS.Data.Context;
-using IMS.Data.Entities;
-using Inventory_Management_System.BusinessLogic.Services.Interface;
+using IMS.BAL.Services.Interface;
+using IMS.DAL.Context;
+using IMS.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Implementation
+namespace IMS.BAL.Services.Implementation
 {
     public class DashboardService : IDashboardService
     {

@@ -1,8 +1,8 @@
-﻿using IMS.Data.ConfigurationCalsses;
-using IMS.Data.Entities;
+﻿using IMS.DAL.ConfigurationCalsses;
+using IMS.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace IMS.Data.Context
+namespace IMS.DAL.Context
 {
     public class InventoryDbContext:DbContext
     {

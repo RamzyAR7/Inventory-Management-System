@@ -1,7 +1,7 @@
-﻿using IMS.Data.Entities;
-using IMS.Data.Repositories.Interfaces;
+﻿using IMS.DAL.Entities;
+using IMS.DAL.Repositories.Interfaces;
 
-namespace IMS.Data.Repositories.Interfaces
+namespace IMS.DAL.Repositories.Interfaces
 {
     public interface ISupplierProductRepository: IGenericRepository<SupplierProduct>
     {

@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
 using IMS.BAL.DTOs.User;
 using IMS.BAL.Hashing;
-using IMS.Data.Entities;
-using IMS.Data.UnitOfWork;
-using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.BusinessLogic.Services.Interface;
+using IMS.BAL.Services.Interface;
+using IMS.DAL.Entities;
+using IMS.DAL.UnitOfWork;
 using System.Linq.Expressions;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Implementation
+namespace IMS.BAL.Services.Implementation
 {
     public class UserService : IUserService
     {

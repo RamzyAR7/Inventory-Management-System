@@ -1,7 +1,7 @@
 ﻿using IMS.BAL.DTOs.User;
 using Microsoft.EntityFrameworkCore.Query;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Interface
+namespace IMS.BAL.Services.Interface
 {
     public interface IUserService
     {

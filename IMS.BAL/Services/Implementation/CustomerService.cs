@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using IMS.BAL.DTOs.Customer;
-using IMS.Data.Entities;
-using IMS.Data.UnitOfWork;
-using Inventory_Management_System.BusinessLogic.Interfaces;
-using Inventory_Management_System.BusinessLogic.Services.Interface;
+using IMS.BAL.Services.Interface;
+using IMS.DAL.Entities;
+using IMS.DAL.UnitOfWork;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Implementation
+
+namespace IMS.BAL.Services.Implementation
 {
     public class CustomerService : ICustomerService
     {

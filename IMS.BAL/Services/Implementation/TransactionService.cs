@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using IMS.BAL.DTOs.Transactions;
-using IMS.Data.Entities;
-using IMS.Data.UnitOfWork;
-using Inventory_Management_System.BusinessLogic.Interfaces;
+using IMS.BAL.Interfaces;
+using IMS.DAL.Entities;
+using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -12,7 +12,7 @@ using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Inventory_Management_System.BusinessLogic.Services.Implementation
+namespace IMS.BAL.Services.Implementation
 {
     public class TransactionService : ITransactionService
     {

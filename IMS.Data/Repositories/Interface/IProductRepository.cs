@@ -1,7 +1,7 @@
-﻿using IMS.Data.Entities;
+﻿using IMS.DAL.Entities;
 using System.Linq.Expressions;
 
-namespace IMS.Data.Repositories.Interfaces
+namespace IMS.DAL.Repositories.Interfaces
 {
     public interface IProductRepository: IGenericRepository<Product>
     {

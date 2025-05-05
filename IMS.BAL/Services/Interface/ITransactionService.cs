@@ -1,7 +1,7 @@
 ﻿using IMS.BAL.DTOs.Transactions;
-using IMS.Data.Entities;
+using IMS.DAL.Entities;
 
-namespace Inventory_Management_System.BusinessLogic.Interfaces
+namespace IMS.BAL.Interfaces
 {
     public interface ITransactionService
     {
