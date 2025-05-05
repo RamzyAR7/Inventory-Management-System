@@ -45,6 +45,7 @@ namespace IMS.Web.Controllers
             if (ModelState.IsValid)
             {
                 await _supplierService.CreateAsync(supplier);
+                TempData["success"] = "Supplier created successfully.";
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);
@@ -67,6 +68,7 @@ namespace IMS.Web.Controllers
             if (ModelState.IsValid)
             {
                 await _supplierService.UpdateAsync(id, supplier);
+                TempData["success"] = "Supplier edited successfully.";
                 return RedirectToAction(nameof(Index));
             }
             return View(supplier);
@@ -86,6 +88,7 @@ namespace IMS.Web.Controllers
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             await _supplierService.DeleteAsync(id);
+            TempData["success"] = "Supplier deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
     }
