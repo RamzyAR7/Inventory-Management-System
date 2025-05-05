@@ -1,6 +1,7 @@
 ﻿using IMS.Data.Context;
 using IMS.Data.Entities;
 using IMS.Data.Repositories.Implementation;
+using IMS.Data.Repositories.Interface;
 using IMS.Data.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -11,17 +12,17 @@ namespace IMS.Data.UnitOfWork
     {
         private readonly InventoryDbContext _context;
 
-        private IGenericRepository<Customer> _customers;
-        private IGenericRepository<Category> _categories;
+        private ICustomerRepository _customers;
+        private ICategoryRepository _categories;
         private ISuppliersRepository _suppliers;
-        private IGenericRepository<Warehouse> _warehouses;
-        private IGenericRepository<DeliveryMan> _deliveryMen;
+        private IWarehousesRepository _warehouses;
+        private IDeliveryManRepository _deliveryMen;
         private IProductRepository _products;
         private IWarehouseStockRepository _warehouseStocks;
         private IOrderRepository _orders;
-        private IGenericRepository<OrderDetail> _orderDetails;
+        private IOrderDetailsRepository _orderDetails;
         private IInventoryTransactionRepository _inventoryTransactions;
-        private IGenericRepository<Shipment> _shipments;
+        private IShipmentRepository _shipments;
         private ISupplierProductRepository _supplierProduct;
         private IWarehouseTransfersRepository _warehouseTransfers;
         private IUserRepository _users;
@@ -35,19 +36,19 @@ namespace IMS.Data.UnitOfWork
         }
 
         public IUserRepository Users => _users ??= new UserRepository(_context);
-        public IGenericRepository<Customer> Customers => _customers ??= new GenericRepository<Customer>(_context);
-        public IGenericRepository<Category> Categories => _categories ??= new GenericRepository<Category>(_context);
+        public ICustomerRepository Customers => _customers ??= new CustomerRepository(_context);
+        public ICategoryRepository Categories => _categories ??= new CategoryRepository(_context);
         public ISuppliersRepository Suppliers => _suppliers ??= new SuppliersRepository(_context);
-        public IGenericRepository<Warehouse> Warehouses => _warehouses ??= new GenericRepository<Warehouse>(_context);
-        public IGenericRepository<DeliveryMan> DeliveryMen => _deliveryMen ??= new GenericRepository<DeliveryMan>(_context);
+        public IWarehousesRepository Warehouses => _warehouses ??= new WarehousesRepository(_context);
+        public IDeliveryManRepository DeliveryMen => _deliveryMen ??= new DeliveryManRepository(_context);
         public IProductRepository Products => _products ??= new ProductRepository(_context);
         public IWarehouseStockRepository WarehouseStocks => _warehouseStocks ??= new WarehouseStockRepository(_context);
         public ISupplierProductRepository SupplierProducts => _supplierProduct ??= new SupplierProductRepository(_context);
         public IOrderRepository Orders => _orders ??= new OrderRepository(_context);
-        public IGenericRepository<OrderDetail> OrderDetails => _orderDetails ??= new GenericRepository<OrderDetail>(_context);
+        public IOrderDetailsRepository OrderDetails => _orderDetails ??= new OrderDetailsRepository(_context);
         public IInventoryTransactionRepository InventoryTransactions => _inventoryTransactions ??= new InventoryTransactionRepository(_context);
         public IWarehouseTransfersRepository WarehouseTransfers => _warehouseTransfers ??= new WarehouseTransfersRepository(_context);
-        public IGenericRepository<Shipment> Shipments => _shipments ??= new GenericRepository<Shipment>(_context);
+        public IShipmentRepository Shipments => _shipments ??= new ShipmentRepository(_context);
 
         public async Task<int> Save()
         {
