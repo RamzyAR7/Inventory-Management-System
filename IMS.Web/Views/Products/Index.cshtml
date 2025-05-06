@@ -35,16 +35,10 @@
             </div>
         </div>
 
-        @if (TempData["SuccessMessage"] != null)
+        @if (TempData["success"] != null)
         {
             <div class="alert alert-success small rounded-3 py-2 px-3" role="alert">
                 @TempData["SuccessMessage"]
-            </div>
-        }
-        @if (TempData["InfoMessage"] != null)
-        {
-            <div class="alert alert-info small rounded-3 py-2 px-3" role="alert">
-                @TempData["InfoMessage"]
             </div>
         }
         @if (TempData["error"] != null)

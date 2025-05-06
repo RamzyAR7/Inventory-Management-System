@@ -47,18 +47,12 @@ namespace IMS.Web.Controllers
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var user = userId != null ? await _unitOfWork.Users.GetByExpressionAsync(e => e.UserID == Guid.Parse(userId)) : null;
-                var userRole = user?.Role;
-
                 var (products, totalCount) = await _productService.GetPagedProductsAsync(
                     pageNumber,
                     pageSize,
                     categoryId,
                     sortBy,
-                    sortDescending,
-                    userId,
-                    userRole);
+                    sortDescending);
 
                 if (!products.Any() && pageNumber == 1)
                 {
@@ -104,11 +98,18 @@ namespace IMS.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
-            var product = await _productService.GetByIdAsync(id);
-            if (product == null)
-                return NotFound();
-
-            return View(product);
+            try
+            {
+                var product = await _productService.GetByIdAsync(id);
+                if (product == null)
+                    return NotFound();
+                return View(product);
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Failed to load this product: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpGet]

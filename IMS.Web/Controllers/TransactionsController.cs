@@ -2,6 +2,7 @@
 using IMS.BLL.DTOs.Warehouse;
 using IMS.BLL.Interfaces;
 using IMS.BLL.Services.Interface;
+using IMS.BLL.SharedServices.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
@@ -23,14 +24,16 @@ namespace IMS.Web.Controllers
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
         private readonly ISupplierService _supplierService;
+        private readonly IProductHelperService _productHelperService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TransactionsController> _logger;
 
-        public TransactionsController(ITransactionService transactionService, IWarehouseService warehouseService, IProductService productService, ISupplierService supplierService, IUnitOfWork unitOfWork, ILogger<TransactionsController> logger)
+        public TransactionsController(ITransactionService transactionService, IWarehouseService warehouseService,IProductHelperService productHelperService ,IProductService productService, ISupplierService supplierService, IUnitOfWork unitOfWork, ILogger<TransactionsController> logger)
         {
             _transactionService = transactionService;
             _warehouseService = warehouseService;
             _productService = productService;
+            _productHelperService = productHelperService;
             _supplierService = supplierService;
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -285,7 +288,7 @@ namespace IMS.Web.Controllers
                     }
 
                     await _transactionService.TransferBetweenWarehousesAsync(dto);
-                    await _productService.AssignSupplierFromAnotherProductAsync(dto.FromProductId, dto.ToProductId);
+                    await _productHelperService.AssignSupplierFromAnotherProductAsync(dto.FromProductId, dto.ToProductId);
                     TempData["SuccessMessage"] = "Transfer completed successfully!";
                     return RedirectToAction("Index");
                 }

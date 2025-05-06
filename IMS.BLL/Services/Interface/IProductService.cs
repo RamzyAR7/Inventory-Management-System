@@ -17,8 +17,6 @@ namespace IMS.BLL.Services.Interface
         Task<Product?> GetByIdAsync(Guid id);
         Task CreateAsync(ProductReqDto productDto);
         Task UpdateAsync(Guid id, ProductReqDto productDto);
-        Task<List<ProductReqDto>> GetProductsByWarehouseAsync(Guid warehouseId);
         Task DeleteAsync(Guid id);
-        Task AssignSupplierFromAnotherProductAsync(Guid sourceProductId, Guid targetProductId);
     }
 }
