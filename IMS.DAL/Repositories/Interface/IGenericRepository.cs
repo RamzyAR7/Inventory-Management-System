@@ -15,8 +15,13 @@ namespace IMS.DAL.Repositories.Interfaces
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
         Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
         Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
-        Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize,
-            Expression<Func<T, bool>> predicate = null, params Expression<Func<T, object>>[] includeProperties);
+        Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<T, bool>> predicate = null,
+            Expression<Func<T, object>> orderBy = null,
+            bool sortDescending = false,
+            params Expression<Func<T, object>>[] includeProperties);
         // CRUD
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);

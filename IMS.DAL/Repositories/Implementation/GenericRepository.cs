@@ -112,7 +112,13 @@ namespace IMS.DAL.Repositories.Implementation
             return await query.FirstOrDefaultAsync(predicate);
         }
 
-        public virtual async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize,Expression<Func<T, bool>> predicate = null, params Expression<Func<T, object>>[] includeProperties)
+        public virtual async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<T, bool>> predicate = null,
+            Expression<Func<T, object>> orderBy = null,
+            bool sortDescending = false,
+            params Expression<Func<T, object>>[] includeProperties)
         {
             if (pageNumber < 1)
                 throw new ArgumentException("Page number must be greater than 0", nameof(pageNumber));
@@ -135,6 +141,13 @@ namespace IMS.DAL.Repositories.Implementation
             }
 
             var totalCount = await query.CountAsync();
+
+            // Apply sorting if orderBy is provided
+            if (orderBy != null)
+            {
+                query = sortDescending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
+            }
+
             var items = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)

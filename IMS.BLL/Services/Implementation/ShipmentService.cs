@@ -7,7 +7,6 @@ using IMS.DAL.UnitOfWork;
 using IMS.DAL.Entities;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using IMS.BLL.DTOs.Order.Responce;
 using IMS.BLL.Services.Interface;
 
 namespace IMS.BLL.Services.Implementation
@@ -29,7 +28,12 @@ namespace IMS.BLL.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<(IEnumerable<Shipment> Items, int TotalCount)> GetPagedShipmentsAsync(int pageNumber, int pageSize, ShipmentStatus? statusFilter = null)
+        public async Task<(IEnumerable<Shipment> Items, int TotalCount)> GetPagedShipmentsAsync(
+            int pageNumber,
+            int pageSize,
+            ShipmentStatus? statusFilter = null,
+            string sortBy = "OrderDate",
+            bool sortDescending = false)
         {
             try
             {
@@ -49,25 +53,48 @@ namespace IMS.BLL.Services.Implementation
 
                 if (userRole != "Admin")
                 {
-                    // For non-admin users, they can only see shipments from their accessible warehouses
                     predicate = s => managerWarehouseIds.Contains(s.Order.WarehouseID);
                 }
 
-                // Apply additional status filter if provided
                 if (statusFilter.HasValue)
                 {
-                    if (predicate == null)
-                    {
-                        predicate = s => s.Status == statusFilter.Value;
-                    }
-                    else
-                    {
-                        var originalPredicate = predicate;
-                        predicate = s => originalPredicate.Compile()(s) && s.Status == statusFilter.Value;
-                    }
+                    var statusPredicate = (Expression<Func<Shipment, bool>>)(s => s.Status == statusFilter.Value);
+                    predicate = predicate == null ? statusPredicate : CombinePredicates(predicate, statusPredicate);
                 }
 
-                var (items, totalCount) = await _unitOfWork.Shipments.GetPagedAsync(pageNumber, pageSize, predicate, includes);
+                // Define sorting
+                Expression<Func<Shipment, object>> orderBy;
+                switch (sortBy.ToLower())
+                {
+                    case "customername":
+                        orderBy = s => s.Order.Customer.FullName;
+                        break;
+                    case "warehousename":
+                        orderBy = s => s.Order.Warehouse.WarehouseName;
+                        break;
+                    case "destination":
+                        orderBy = s => s.Destination;
+                        break;
+                    case "itemcount":
+                        orderBy = s => s.ItemCount;
+                        break;
+                    case "status":
+                        orderBy = s => s.Status;
+                        break;
+                    default:
+                        orderBy = s => s.Order.OrderDate;
+                        break;
+                }
+
+                // Fetch paged shipments
+                var (items, totalCount) = await _unitOfWork.Shipments.GetPagedAsync(
+                    pageNumber,
+                    pageSize,
+                    predicate,
+                    orderBy,
+                    sortDescending,
+                    includes);
+
                 _logger.LogInformation("GetPagedShipmentsAsync - Retrieved {ItemCount} shipments, TotalCount: {TotalCount}", items.Count(), totalCount);
                 return (items, totalCount);
             }
@@ -78,6 +105,19 @@ namespace IMS.BLL.Services.Implementation
             }
         }
 
+        // Helper method to combine predicates
+        private Expression<Func<T, bool>> CombinePredicates<T>(
+            Expression<Func<T, bool>> predicate1,
+            Expression<Func<T, bool>> predicate2)
+        {
+            var parameter = Expression.Parameter(typeof(T));
+            var body = Expression.AndAlso(
+                Expression.Invoke(predicate1, parameter),
+                Expression.Invoke(predicate2, parameter));
+            return Expression.Lambda<Func<T, bool>>(body, parameter);
+        }
+
+        // Other methods remain unchanged
         public async Task<Shipment> GetShipmentByIdAsync(Guid shipmentId)
         {
             try
@@ -111,7 +151,7 @@ namespace IMS.BLL.Services.Implementation
             try
             {
                 var shipment = await _unitOfWork.Shipments.GetByIdAsync(shipmentId,
-                    includes: new Expression<Func<Shipment, object>>[] { s => s.Order });
+                    includes: new Expression<Func<Shipment, object>>[] { s => s.Order, s => s.DeliveryMan });
 
                 if (shipment == null)
                 {
@@ -125,8 +165,6 @@ namespace IMS.BLL.Services.Implementation
                         shipment.Status = newStatus;
                         shipment.ShippedDate = DateTime.UtcNow;
                         break;
-
-
                     case ShipmentStatus.Cancelled:
                         shipment.Status = newStatus;
                         if (shipment.Order != null)
@@ -146,7 +184,6 @@ namespace IMS.BLL.Services.Implementation
                             await _unitOfWork.Orders.UpdateAsync(shipment.Order);
                         }
                         break;
-
                     case ShipmentStatus.Delivered:
                         shipment.Status = newStatus;
                         shipment.DeliveryDate = DateTime.UtcNow;
@@ -155,13 +192,12 @@ namespace IMS.BLL.Services.Implementation
                             shipment.Order.Status = OrderStatus.Delivered;
                             await _unitOfWork.Orders.UpdateAsync(shipment.Order);
                         }
-                        if(shipment.DeliveryMan != null)
+                        if (shipment.DeliveryMan != null)
                         {
                             shipment.DeliveryMan.Status = DeliveryManStatus.Free;
                             await _unitOfWork.DeliveryMen.UpdateAsync(shipment.DeliveryMan);
                         }
                         break;
-
                     default:
                         shipment.Status = newStatus;
                         break;
@@ -206,8 +242,8 @@ namespace IMS.BLL.Services.Implementation
                 }
 
                 shipment.DeliveryManID = shipmentDto.DeliveryManID;
-                shipment.DeliveryName = deliveryMan.FullName; // Set from DeliveryMan
-                shipment.DeliveryPhoneNumber = deliveryMan.PhoneNumber; // Set from DeliveryMan
+                shipment.DeliveryName = deliveryMan.FullName;
+                shipment.DeliveryPhoneNumber = deliveryMan.PhoneNumber;
                 deliveryMan.Status = DeliveryManStatus.Busy;
                 await _unitOfWork.DeliveryMen.UpdateAsync(deliveryMan);
             }
@@ -220,6 +256,7 @@ namespace IMS.BLL.Services.Implementation
             await _unitOfWork.Shipments.UpdateAsync(shipment);
             await _unitOfWork.SaveAsync();
         }
+
         public async Task DeleteShipmentAsync(Guid shipmentId)
         {
             try
@@ -240,8 +277,6 @@ namespace IMS.BLL.Services.Implementation
                 await _unitOfWork.Shipments.DeleteAsync(shipment.ShipmentID);
                 await _unitOfWork.SaveAsync();
                 _logger.LogInformation("DeleteShipmentAsync - Successfully deleted shipment for ShipmentID: {ShipmentID}", shipmentId);
-
-
             }
             catch (Exception ex)
             {
@@ -249,6 +284,7 @@ namespace IMS.BLL.Services.Implementation
                 throw;
             }
         }
+
         public async Task<List<Guid>> GetAccessibleWarehouseIdsAsync(string role, Guid userId)
         {
             if (role == "Admin")
@@ -264,19 +300,16 @@ namespace IMS.BLL.Services.Implementation
 
             if (role == "Employee")
             {
-                // Get the employee's manager
                 var employee = await _unitOfWork.Users.GetByIdAsync(userId);
                 if (employee == null)
                     throw new InvalidOperationException("User not found.");
 
-                // If employee has a direct manager assigned
                 if (employee.ManagerID.HasValue)
                 {
                     var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == employee.ManagerID.Value);
                     return managerWarehouses.Select(w => w.WarehouseID).ToList();
                 }
 
-                // Fallback: Get all managers' warehouses if no direct manager assigned
                 var managers = await _unitOfWork.Users.FindAsync(u => u.Role == "Manager");
                 var allManagerWarehouses = new List<Warehouse>();
 
@@ -291,6 +324,7 @@ namespace IMS.BLL.Services.Implementation
 
             return new List<Guid>();
         }
+
         private async Task<Shipment> ValidateUserAccessAsync(Guid shipmentId, Expression<Func<Shipment, object>>[]? includes = null)
         {
             Shipment shipment;
@@ -321,6 +355,7 @@ namespace IMS.BLL.Services.Implementation
             _logger.LogInformation("GetShipmentByIdAsync - Retrieved shipment for ShipmentID: {ShipmentID}", shipmentId);
             return shipment;
         }
+
         private string GetCurrentUserRole()
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -343,5 +378,4 @@ namespace IMS.BLL.Services.Implementation
             return userId;
         }
     }
-
 }

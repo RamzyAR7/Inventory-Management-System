@@ -12,6 +12,6 @@
 
         // Navigation properties
         public User Manager { get; set; } // Assuming User entity represents managers
-        public ICollection<Shipment> Shipments { get; set; }
+        public ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
     }
 }

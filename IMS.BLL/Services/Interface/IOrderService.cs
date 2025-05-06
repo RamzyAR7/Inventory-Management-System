@@ -8,7 +8,12 @@ namespace IMS.BLL.Services.Interface
 {
     public interface IOrderService
     {
-        Task<(IEnumerable<OrderResponseDto> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize, OrderStatus? statusFilter = null);
+        Task<(IEnumerable<OrderResponseDto> Items, int TotalCount)> GetPagedOrdersAsync(
+                    int pageNumber,
+                    int pageSize,
+                    OrderStatus? statusFilter = null,
+                    string sortBy = "OrderDate",
+                    bool sortDescending = false);
         //Task<IEnumerable<OrderResponseDto>> GetAllAsync();
         Task<OrderDetailResponseDto?> GetByIdAsync(Guid id);
         Task CreateAsync(OrderReqDto orderDto, Guid userId);

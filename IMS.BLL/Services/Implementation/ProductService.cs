@@ -7,6 +7,8 @@ using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Http;
 using IMS.DAL.Entities;
 using IMS.BLL.Services.Interface;
+using System.Linq.Expressions;
+using System.Linq;
 
 namespace IMS.BLL.Services.Implementation
 {
@@ -25,17 +27,101 @@ namespace IMS.BLL.Services.Implementation
             _logger = logger;
         }
 
+        public async Task<(IEnumerable<Product> Items, int TotalCount)> GetPagedProductsAsync(
+            int pageNumber = 1,
+            int pageSize = 10,
+            Guid? categoryId = null,
+            string sortBy = "ProductName",
+            bool sortDescending = false,
+            string userId = null,
+            string userRole = null)
+        {
+            try
+            {
+                userRole ??= await GetCurrentUserRole();
+                userId ??= await GetCurrentUserId();
+                var managerWarehouseIds = new List<Guid>();
+
+                if (userRole == "Manager")
+                {
+                    var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
+                    managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+
+                    if (!managerWarehouseIds.Any())
+                    {
+                        _logger.LogWarning("No warehouses assigned to this manager.");
+                        return (Enumerable.Empty<Product>(), 0);
+                    }
+                }
+
+                // Build predicate
+                Expression<Func<Product, bool>> predicate = null;
+
+                if (userRole == "Manager")
+                {
+                    predicate = p => p.WarehouseStocks.Any(ws => managerWarehouseIds.Contains(ws.WarehouseID));
+                }
+
+                if (categoryId.HasValue)
+                {
+                    var categoryFilter = predicate == null
+                        ? (Expression<Func<Product, bool>>)(p => p.CategoryID == categoryId.Value)
+                        : p => predicate.Compile()(p) && p.CategoryID == categoryId.Value;
+                    predicate = categoryFilter;
+                }
+
+                // Define sorting
+                Expression<Func<Product, object>> orderBy;
+                switch (sortBy.ToLower())
+                {
+                    case "price":
+                        orderBy = p => p.Price;
+                        break;
+                    case "reorderlevel":
+                        orderBy = p => p.RecoderLevel;
+                        break;
+                    case "stockquantity":
+                        orderBy = p => p.WarehouseStocks.Sum(ws => ws.StockQuantity);
+                        break;
+                    case "category":
+                        orderBy = p => p.Category.CategoryName;
+                        break;
+                    case "isactive":
+                        orderBy = p => p.IsActive;
+                        break;
+                    default:
+                        orderBy = p => p.ProductName;
+                        break;
+                }
+
+                // Call the repository method
+                var (products, totalCount) = await _unitOfWork.Products.GetPagedAsyncWithNestedIncludes(
+                    pageNumber,
+                    pageSize,
+                    predicate,
+                    orderBy,
+                    sortDescending);
+
+                _logger.LogInformation("GetPagedProductsAsync - Retrieved {ItemCount} products, TotalCount: {TotalCount}", products.Count(), totalCount);
+                return (products, totalCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetPagedProductsAsync - Error retrieving products: {Message}", ex.Message);
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            if (GetCurrentUserRole() == "Manager")
+            if (await GetCurrentUserRole() == "Manager")
             {
-                var userId = GetCurrentUserId();
+                var userId = await GetCurrentUserId();
                 var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
                 var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
 
                 if (!managerWarehouseIds.Any())
                 {
-                    // Log a warning and return an empty list instead of throwing an exception
                     _logger.LogWarning("No warehouses assigned to this manager.");
                     return Enumerable.Empty<Product>();
                 }
@@ -49,9 +135,10 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task<Product?> GetByIdAsync(Guid id)
         {
-            if (GetCurrentUserRole() == "Manager")
+            var userRole = await GetCurrentUserRole(); // Await the Task to get the actual string value
+            if (userRole == "Manager") // Compare the string value
             {
-                var userId = GetCurrentUserId();
+                var userId = await GetCurrentUserId(); // Await the Task to get the actual string value
                 var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
                 var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
 
@@ -69,8 +156,8 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task CreateAsync(ProductReqDto productDto)
         {
-            var userRole = GetCurrentUserRole();
-            var userId = GetCurrentUserId();
+            var userRole = await GetCurrentUserRole();
+            var userId = await GetCurrentUserId();
 
             // Validate warehouses
             var warehouses = await _unitOfWork.Warehouses.FindAsync(w => productDto.WarehouseIds.Contains(w.WarehouseID));
@@ -131,7 +218,7 @@ namespace IMS.BLL.Services.Implementation
         {
             _logger.LogInformation("Starting UpdateAsync for ProductID: {ProductID}", id);
 
-            var userRole = GetCurrentUserRole();
+            var userRole = await GetCurrentUserRole();
             var existingProduct = await _unitOfWork.Products.GetAsyncWithNestedIncludesBy(e => e.ProductID == id);
             if (existingProduct == null)
             {
@@ -141,7 +228,7 @@ namespace IMS.BLL.Services.Implementation
 
             if (userRole == "Manager")
             {
-                var userId = GetCurrentUserId();
+                var userId = await GetCurrentUserId();
                 var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
                 var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
                 if (productDto.WarehouseIds.Any(wid => !managerWarehouseIds.Contains(wid)))
@@ -198,7 +285,7 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task DeleteAsync(Guid id)
         {
-            var userRole = GetCurrentUserRole();
+            var userRole = await GetCurrentUserRole();
             var existingProduct = await _unitOfWork.Products.GetAsyncWithNestedIncludesBy(e => e.ProductID == id);
             if (existingProduct == null)
             {
@@ -207,7 +294,7 @@ namespace IMS.BLL.Services.Implementation
 
             if (userRole == "Manager")
             {
-                var userId = GetCurrentUserId();
+                var userId = await GetCurrentUserId();
                 var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
                 var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
 
@@ -299,32 +386,46 @@ namespace IMS.BLL.Services.Implementation
             await _unitOfWork.SaveAsync();
             _logger.LogInformation("Assigned suppliers from ProductID {SourceProductId} to ProductID {TargetProductId}", sourceProductId, targetProductId);
         }
-        private string GetCurrentUserRole()
+        private async Task<string> GetCurrentUserRole()
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            if (_httpContextAccessor.HttpContext == null)
             {
-                _logger.LogError("User ID claim is missing.");
-                throw new Exception("User not authenticated.");
+                _logger.LogError("GetCurrentUserRole - HttpContext is null. User role cannot be determined.");
+                throw new InvalidOperationException("HttpContext is not available. This operation requires an active HTTP request.");
             }
 
-            var user = _unitOfWork.Users.GetByExpressionAsync(e => e.UserID == Guid.Parse(userId)).Result;
+            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogError("GetCurrentUserRole - User ID claim is missing.");
+                throw new InvalidOperationException("User not authenticated.");
+            }
+
+            var user = await _unitOfWork.Users.GetByExpressionAsync(e => e.UserID == Guid.Parse(userId));
             if (user == null)
             {
-                _logger.LogError("User not found in the database. UserID: {UserID}", userId);
-                throw new Exception("User not found");
+                _logger.LogError("GetCurrentUserRole - User not found in the database. UserID: {UserID}", userId);
+                throw new InvalidOperationException("User not found.");
             }
 
             return user.Role;
         }
 
-        private string GetCurrentUserId()
+        private async Task<string> GetCurrentUserId()
         {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+            if (_httpContextAccessor.HttpContext == null)
             {
-                throw new Exception("User not found");
+                _logger.LogError("GetCurrentUserId - HttpContext is null. User ID cannot be determined.");
+                throw new InvalidOperationException("HttpContext is not available. This operation requires an active HTTP request.");
             }
+
+            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogError("GetCurrentUserId - User ID claim is missing.");
+                throw new InvalidOperationException("User not authenticated.");
+            }
+
             return userId;
         }
 

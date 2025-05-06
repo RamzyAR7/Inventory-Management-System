@@ -31,15 +31,21 @@ namespace IMS.Web.Controllers
             _mapper = mapper;
             _logger = logger;
         }
+
         [HttpGet]
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, OrderStatus? statusFilter = null)
+        public async Task<IActionResult> Index(
+            int pageNumber = 1,
+            int pageSize = 10,
+            OrderStatus? statusFilter = null,
+            string sortBy = "OrderDate",
+            bool sortDescending = false)
         {
             try
             {
-                _logger.LogInformation("Index - Retrieving orders for PageNumber: {PageNumber}, PageSize: {PageSize}, StatusFilter: {StatusFilter}",
-                    pageNumber, pageSize, statusFilter);
+                _logger.LogInformation("Index - Retrieving orders for PageNumber: {PageNumber}, PageSize: {PageSize}, StatusFilter: {StatusFilter}, SortBy: {SortBy}, SortDescending: {SortDescending}",
+                    pageNumber, pageSize, statusFilter, sortBy, sortDescending);
 
-                var (orders, totalCount) = await _orderService.GetPagedOrdersAsync(pageNumber, pageSize, statusFilter);
+                var (orders, totalCount) = await _orderService.GetPagedOrdersAsync(pageNumber, pageSize, statusFilter, sortBy, sortDescending);
                 _logger.LogInformation("Index - Retrieved {OrderCount} orders, TotalCount: {TotalCount}", orders.Count(), totalCount);
 
                 ViewBag.OrderStatuses = Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToList();
@@ -48,6 +54,8 @@ namespace IMS.Web.Controllers
                 ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
                 ViewBag.StatusFilter = statusFilter;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
 
                 return View();
             }
@@ -57,9 +65,11 @@ namespace IMS.Web.Controllers
                 TempData["error"] = "Failed to load orders: " + ex.Message;
                 ViewBag.Orders = new List<OrderResponseDto>();
                 ViewBag.TotalCount = 0;
-                ViewBag.PageNumber = 1;
+                ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
                 ViewBag.StatusFilter = statusFilter;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
                 ViewBag.OrderStatuses = Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToList();
                 return View();
             }

@@ -31,7 +31,12 @@ namespace IMS.BLL.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
-        public async Task<(IEnumerable<OrderResponseDto> Items, int TotalCount)> GetPagedOrdersAsync(int pageNumber, int pageSize, OrderStatus? statusFilter = null)
+        public async Task<(IEnumerable<OrderResponseDto> Items, int TotalCount)> GetPagedOrdersAsync(
+            int pageNumber,
+            int pageSize,
+            OrderStatus? statusFilter = null,
+            string sortBy = "OrderDate",
+            bool sortDescending = false)
         {
             try
             {
@@ -41,9 +46,9 @@ namespace IMS.BLL.Services.Implementation
 
                 var includes = new Expression<Func<Order, object>>[]
                 {
-                    o => o.Customer,
-                    o => o.Warehouse,
-                    o => o.CreatedByUser
+            o => o.Customer,
+            o => o.Warehouse,
+            o => o.CreatedByUser
                 };
 
                 // Build the predicate based on user role and status filter
@@ -51,25 +56,48 @@ namespace IMS.BLL.Services.Implementation
 
                 if (userRole != "Admin")
                 {
-                    // For non-admin users, they can only see orders from their accessible warehouses
                     predicate = o => managerWarehouseIds.Contains(o.WarehouseID);
                 }
 
-                // Apply additional status filter if provided
                 if (statusFilter.HasValue)
                 {
-                    if (predicate == null)
-                    {
-                        predicate = o => o.Status == statusFilter.Value;
-                    }
-                    else
-                    {
-                        var originalPredicate = predicate;
-                        predicate = o => originalPredicate.Compile()(o) && o.Status == statusFilter.Value;
-                    }
+                    var statusPredicate = (Expression<Func<Order, bool>>)(o => o.Status == statusFilter.Value);
+                    predicate = predicate == null ? statusPredicate : CombinePredicates(predicate, statusPredicate);
                 }
 
-                var (orders, totalCount) = await _unitOfWork.Orders.GetPagedAsync(pageNumber, pageSize, predicate, includes);
+                // Define sorting
+                Expression<Func<Order, object>> orderBy;
+                switch (sortBy.ToLower())
+                {
+                    case "customername":
+                        orderBy = o => o.Customer.FullName;
+                        break;
+                    case "warehousename":
+                        orderBy = o => o.Warehouse.WarehouseName;
+                        break;
+                    case "totalamount":
+                        orderBy = o => o.TotalAmount;
+                        break;
+                    case "status":
+                        orderBy = o => o.Status;
+                        break;
+                    case "createdbyusername":
+                        orderBy = o => o.CreatedByUser.UserName;
+                        break;
+                    default:
+                        orderBy = o => o.OrderDate;
+                        break;
+                }
+
+                // Fetch paged orders
+                var (orders, totalCount) = await _unitOfWork.Orders.GetPagedAsync(
+                    pageNumber,
+                    pageSize,
+                    predicate,
+                    orderBy,
+                    sortDescending,
+                    includes);
+
                 var orderDtos = _mapper.Map<IEnumerable<OrderResponseDto>>(orders);
                 _logger.LogInformation("GetPagedOrdersAsync - Retrieved {ItemCount} orders, TotalCount: {TotalCount}", orders.Count(), totalCount);
                 return (orderDtos, totalCount);
@@ -79,6 +107,18 @@ namespace IMS.BLL.Services.Implementation
                 _logger.LogError(ex, "GetPagedOrdersAsync - Error retrieving orders: {Message}", ex.Message);
                 throw;
             }
+        }
+
+        // Helper method to combine predicates
+        private Expression<Func<T, bool>> CombinePredicates<T>(
+            Expression<Func<T, bool>> predicate1,
+            Expression<Func<T, bool>> predicate2)
+        {
+            var parameter = Expression.Parameter(typeof(T));
+            var body = Expression.AndAlso(
+                Expression.Invoke(predicate1, parameter),
+                Expression.Invoke(predicate2, parameter));
+            return Expression.Lambda<Func<T, bool>>(body, parameter);
         }
 
         public async Task<OrderDetailResponseDto?> GetByIdAsync(Guid id)

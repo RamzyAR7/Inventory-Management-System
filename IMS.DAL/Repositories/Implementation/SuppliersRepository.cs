@@ -14,20 +14,14 @@ namespace IMS.DAL.Repositories.Implementation
             _context = context;
         }
 
-        public async Task<List<Supplier>> GetAllSuppliersWithProducts()
-        {
-            return await _context.Suppliers
-                        .Include(s => s.SupplierProducts)
-                        .ThenInclude(sp => sp.Product)
-                        .ToListAsync();
-        }
-
-        public async Task<Supplier> GetSupplierBy(Expression<Func<Supplier, bool>> predicate)
+        public async Task<Supplier> GetSupplierAndProductsBy(Expression<Func<Supplier, bool>> predicate)
         {
             var supplier = await _context.Suppliers
                             .Include(s => s.SupplierProducts)
                             .ThenInclude(sp => sp.Product)
+                            .ThenInclude(p => p.Category)
                             .FirstOrDefaultAsync(predicate);
+
             if (supplier == null)
             {
                 throw new Exception("Supplier not found");

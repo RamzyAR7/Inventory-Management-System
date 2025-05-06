@@ -17,7 +17,12 @@ namespace IMS.Web.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<ShipmentsController> _logger;
 
-        public ShipmentsController(IShipmentService shipmentService, IMapper mapper, ILogger<ShipmentsController> logger, IDeliveryManService deliveryManService, IUserService userService)
+        public ShipmentsController(
+            IShipmentService shipmentService,
+            IMapper mapper,
+            ILogger<ShipmentsController> logger,
+            IDeliveryManService deliveryManService,
+            IUserService userService)
         {
             _shipmentService = shipmentService;
             _mapper = mapper;
@@ -27,14 +32,19 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, ShipmentStatus? statusFilter = null)
+        public async Task<IActionResult> Index(
+            int pageNumber = 1,
+            int pageSize = 10,
+            ShipmentStatus? statusFilter = null,
+            string sortBy = "OrderDate",
+            bool sortDescending = false)
         {
             try
             {
-                _logger.LogInformation("Index - Retrieving shipments for PageNumber: {PageNumber}, PageSize: {PageSize}, StatusFilter: {StatusFilter}",
-                    pageNumber, pageSize, statusFilter);
+                _logger.LogInformation("Index - Retrieving shipments for PageNumber: {PageNumber}, PageSize: {PageSize}, StatusFilter: {StatusFilter}, SortBy: {SortBy}, SortDescending: {SortDescending}",
+                    pageNumber, pageSize, statusFilter, sortBy, sortDescending);
 
-                var (shipments, totalCount) = await _shipmentService.GetPagedShipmentsAsync(pageNumber, pageSize, statusFilter);
+                var (shipments, totalCount) = await _shipmentService.GetPagedShipmentsAsync(pageNumber, pageSize, statusFilter, sortBy, sortDescending);
                 _logger.LogInformation("Index - Retrieved {ShipmentCount} shipments, TotalCount: {TotalCount}", shipments.Count(), totalCount);
 
                 ViewBag.Shipments = shipments;
@@ -42,6 +52,8 @@ namespace IMS.Web.Controllers
                 ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
                 ViewBag.StatusFilter = statusFilter;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
                 ViewBag.ShipmentStatuses = Enum.GetValues(typeof(ShipmentStatus)).Cast<ShipmentStatus>().ToList();
 
                 return View();
@@ -50,10 +62,19 @@ namespace IMS.Web.Controllers
             {
                 _logger.LogError(ex, "Index - Error retrieving shipments: {Message}", ex.Message);
                 TempData["error"] = "An error occurred while retrieving shipments.";
+                ViewBag.Shipments = new List<Shipment>();
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.StatusFilter = statusFilter;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+                ViewBag.ShipmentStatuses = Enum.GetValues(typeof(ShipmentStatus)).Cast<ShipmentStatus>().ToList();
                 return View();
             }
         }
 
+        // Other actions remain unchanged
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
@@ -75,6 +96,7 @@ namespace IMS.Web.Controllers
                 return RedirectToAction("Index");
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(Guid shipmentId, string newStatus)
@@ -86,7 +108,6 @@ namespace IMS.Web.Controllers
                     return Json(new { success = false, message = $"Invalid status value: {newStatus}" });
                 }
 
-                // Check if the shipment exists before updating
                 var shipment = await _shipmentService.GetShipmentByIdAsync(shipmentId);
                 if (shipment == null)
                 {
@@ -95,7 +116,6 @@ namespace IMS.Web.Controllers
 
                 await _shipmentService.UpdateShipmentStatusAsync(shipmentId, parsedStatus);
 
-                // Check if the shipment still exists after the update (e.g., deleted due to order cancellation)
                 shipment = await _shipmentService.GetShipmentByIdAsync(shipmentId);
                 bool isDeleted = shipment == null;
 
@@ -112,6 +132,7 @@ namespace IMS.Web.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> UpdateDeliveryMethoud(Guid id)
         {
@@ -180,7 +201,7 @@ namespace IMS.Web.Controllers
                         freeDeliveryMen.Select(d => new { d.DeliveryManID, DisplayName = d.FullName }),
                         "DeliveryManID",
                         "DisplayName",
-                        shipmentDto.DeliveryManID // Preselect the current DeliveryManID
+                        shipmentDto.DeliveryManID
                     );
                     return View(shipmentDto);
                 }
@@ -203,6 +224,7 @@ namespace IMS.Web.Controllers
                 return RedirectToAction("Index");
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -259,7 +281,5 @@ namespace IMS.Web.Controllers
                 return RedirectToAction("Index");
             }
         }
-
-
     }
 }

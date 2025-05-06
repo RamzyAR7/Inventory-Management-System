@@ -313,9 +313,7 @@ namespace IMS.Web.Controllers
                 _logger.LogInformation("GetProductsByWarehouse - Fetching products for WarehouseID: {WarehouseID}", warehouseId);
 
                 var warehouseStocks = await _unitOfWork.WarehouseStocks
-                    .Find(ws => ws.WarehouseID == warehouseId)
-                    .Include(ws => ws.Product)
-                    .ToListAsync();
+                    .FindAsync(ws => ws.WarehouseID == warehouseId, ws => ws.Product);
 
                 var products = warehouseStocks
                     .GroupBy(ws => ws.Product.ProductName.ToLower())
@@ -354,10 +352,8 @@ namespace IMS.Web.Controllers
                 }
 
                 var toWarehouseStocks = await _unitOfWork.WarehouseStocks
-                    .Find(ws => ws.WarehouseID == toWarehouseId)
-                    .Include(ws => ws.Product)
-                    .ToListAsync();
-
+                    .FindAsync(ws => ws.WarehouseID == toWarehouseId, ws => ws.Product);
+           
                 var matchingProducts = toWarehouseStocks
                     .Where(ws => ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())
                     .Select(ws => new
@@ -430,14 +426,13 @@ namespace IMS.Web.Controllers
 
                 if (selectedWarehouseId.HasValue)
                 {
-                    var warehouseStocksQuery = _unitOfWork.WarehouseStocks.Find(ws => ws.WarehouseID == selectedWarehouseId.Value);
+                    var warehouseStocksQuery = await _unitOfWork.WarehouseStocks.FindAsync(ws => ws.WarehouseID == selectedWarehouseId.Value, ws => ws.Product);
                     if (requireStockForSource)
                     {
-                        warehouseStocksQuery = warehouseStocksQuery.Where(ws => ws.StockQuantity > 0);
+                        warehouseStocksQuery = await _unitOfWork.WarehouseStocks.FindAsync(ws => ws.WarehouseID == selectedWarehouseId.Value, ws => ws.StockQuantity > 0, ws => ws.Product);
                     }
-                    var warehouseStocks = await warehouseStocksQuery.Include(ws => ws.Product).ToListAsync();
 
-                    var availableProducts = warehouseStocks
+                    var availableProducts = warehouseStocksQuery
                         .Select(ws => new
                         {
                             ws.Product.ProductID,
@@ -447,12 +442,12 @@ namespace IMS.Web.Controllers
                         .OrderBy(p => p.DisplayText)
                         .ToList();
 
-                    if (!availableProducts.Any() && warehouseStocks.Any())
+                    if (!availableProducts.Any() && warehouseStocksQuery.Any())
                     {
                         _logger.LogWarning("PopulateViewBagAsync - Mismatch between WarehouseStock ProductIDs and Products table for WarehouseID {WarehouseID}", selectedWarehouseId.Value);
                         ModelState.AddModelError("FromProductId", "No products found for the selected warehouse due to a data mismatch.");
                     }
-                    else if (!warehouseStocks.Any())
+                    else if (!warehouseStocksQuery.Any())
                     {
                         _logger.LogWarning("PopulateViewBagAsync - No products assigned to WarehouseID {WarehouseID}", selectedWarehouseId.Value);
                         ModelState.AddModelError("FromProductId", "The selected warehouse has no products assigned.");
@@ -466,7 +461,7 @@ namespace IMS.Web.Controllers
 
                     if (requireStockForSource && selectedProductId.HasValue)
                     {
-                        var selectedStock = warehouseStocks.FirstOrDefault(ws => ws.ProductID == selectedProductId.Value);
+                        var selectedStock = warehouseStocksQuery.FirstOrDefault(ws => ws.ProductID == selectedProductId.Value);
                         if (selectedStock == null || selectedStock.StockQuantity <= 0)
                         {
                             _logger.LogWarning("PopulateViewBagAsync - Product {ProductID} out of stock in WarehouseID {WarehouseID}. Available: {StockQuantity}", selectedProductId.Value, selectedWarehouseId.Value, selectedStock?.StockQuantity ?? 0);
@@ -489,9 +484,7 @@ namespace IMS.Web.Controllers
                     if (fromProduct != null)
                     {
                         var toWarehouseStocks = await _unitOfWork.WarehouseStocks
-                            .Find(ws => ws.WarehouseID == selectedToWarehouseId.Value)
-                            .Include(ws => ws.Product)
-                            .ToListAsync();
+                            .FindAsync(ws => ws.WarehouseID == selectedToWarehouseId.Value, ws => ws.Product);
 
                         var matchingProducts = toWarehouseStocks
                             .Where(ws => ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())

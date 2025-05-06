@@ -4,6 +4,7 @@ using IMS.BLL.Services.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using System.Linq.Expressions;
 
 namespace IMS.BLL.Services.Implementation
 {
@@ -28,16 +29,61 @@ namespace IMS.BLL.Services.Implementation
             }
             return deliverMen;
         }
-        public async Task<(IEnumerable<DeliveryMan> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize)
+        public async Task<(IEnumerable<DeliveryMan> Items, int TotalCount)> GetPagedAsync(
+            int pageNumber,
+            int pageSize,
+            string sortBy = "FullName",
+            bool sortDescending = false)
         {
-            var (deliveryMen, totalCount) = await _unitOfWork.DeliveryMen.GetPagedAsync(
-                pageNumber,
-                pageSize,
-                null, // No predicate; fetch all
-                d => d.Manager,
-                d => d.Shipments
-            );
-            return (deliveryMen, totalCount);
+            try
+            {
+                // Define includes for navigation properties
+                var includes = new Expression<Func<DeliveryMan, object>>[]
+                {
+                    d => d.Manager,
+                    d => d.Shipments
+                };
+
+                // Define sorting
+                Expression<Func<DeliveryMan, object>> orderBy;
+                switch (sortBy.ToLower())
+                {
+                    case "phonenumber":
+                        orderBy = d => d.PhoneNumber;
+                        break;
+                    case "email":
+                        orderBy = d => d.Email;
+                        break;
+                    case "status":
+                        orderBy = d => d.Status;
+                        break;
+                    case "isactive":
+                        orderBy = d => d.IsActive;
+                        break;
+                    case "manager":
+                        orderBy = d => d.Manager.UserName;
+                        break;
+                    default:
+                        orderBy = d => d.FullName;
+                        break;
+                }
+
+                // Fetch paged delivery men
+                var (deliveryMen, totalCount) = await _unitOfWork.DeliveryMen.GetPagedAsync(
+                    pageNumber,
+                    pageSize,
+                    null, // No predicate; fetch all
+                    orderBy,
+                    sortDescending,
+                    includes);
+
+                return (deliveryMen, totalCount);
+            }
+            catch (Exception ex)
+            {
+                // Log the error (assuming you have a logger injected)
+                throw new Exception("Error retrieving paged delivery men: " + ex.Message, ex);
+            }
         }
         public async Task<DeliveryMan?> GetByIdAsync(Guid id)
         {

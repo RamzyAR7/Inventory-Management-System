@@ -24,15 +24,31 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string sortBy = "FullName", bool sortDescending = false)
         {
-            var (deliveryMen, totalCount) = await _deliveryManService.GetPagedAsync(pageNumber, pageSize);
-            var deliveryManDtos = _mapper.Map<IEnumerable<DeliveryMan>>(deliveryMen);
+            try
+            {
+                var (deliveryMen, totalCount) = await _deliveryManService.GetPagedAsync(pageNumber, pageSize, sortBy, sortDescending);
+                var deliveryManDtos = _mapper.Map<IEnumerable<DeliveryMan>>(deliveryMen);
 
-            ViewBag.TotalCount = totalCount;
-            ViewBag.PageNumber = pageNumber;
-            ViewBag.PageSize = pageSize;
-            return View(deliveryManDtos);
+                ViewBag.TotalCount = totalCount;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+
+                return View(deliveryManDtos);
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Failed to load delivery men: " + ex.Message;
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+                return View(new List<DeliveryMan>());
+            }
         }
 
         [HttpGet]

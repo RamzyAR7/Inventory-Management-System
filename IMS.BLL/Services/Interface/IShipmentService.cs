@@ -5,7 +5,12 @@ namespace IMS.BLL.Services.Interface
 {
     public interface IShipmentService
     {
-        Task<(IEnumerable<Shipment> Items, int TotalCount)> GetPagedShipmentsAsync(int pageNumber, int pageSize, ShipmentStatus? statusFilter = null);
+        Task<(IEnumerable<Shipment> Items, int TotalCount)> GetPagedShipmentsAsync(
+                    int pageNumber,
+                    int pageSize,
+                    ShipmentStatus? statusFilter = null,
+                    string sortBy = "OrderDate",
+                    bool sortDescending = false);
         Task<Shipment> GetShipmentByIdAsync(Guid shipmentId);
         Task UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus);
         Task UpdateDeliveryMethoud(ShipmentReqDto shipmentDto);

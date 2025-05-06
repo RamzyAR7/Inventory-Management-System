@@ -89,11 +89,11 @@ namespace IMS.BLL.Services.Implementation
             {
                 t => t.Warehouse,
                 t => t.Product,
-                t => t.Suppliers, // For supplier-related In transactions
-                t => t.Order, // For customer-related Out transactions
-                t => t.Order.Customer, // Include Customer for Out transactions
-                t => t.InTransfers, // For In transactions from transfers
-                t => t.OutTransfers // For Out transactions from transfers
+                t => t.Suppliers,
+                t => t.Order,
+                t => t.Order.Customer,
+                t => t.InTransfers,
+                t => t.OutTransfers
             };
 
             Expression<Func<InventoryTransaction, bool>> predicate = null;
@@ -130,7 +130,13 @@ namespace IMS.BLL.Services.Implementation
                 predicate = t => t.WarehouseID == warehouseId.Value;
             }
 
-            var (items, totalCount) = await _unitOfWork.InventoryTransactions.GetPagedAsync(pageNumber, pageSize, predicate, includes);
+            // Fix: Adjusted the method call to pass the 'includes' array correctly
+            var pagedResult = await _unitOfWork.InventoryTransactions.GetPagedAsync(pageNumber, pageSize, predicate, orderBy: null, sortDescending: false, includes);
+
+            // Fix for CS8130: Explicitly define the types for the deconstructed variables
+            IEnumerable<InventoryTransaction> items = pagedResult.Items;
+            int totalCount = pagedResult.TotalCount;
+
             _logger.LogInformation("GetPagedTransactionsAsync - Retrieved {ItemCount} transactions, TotalCount: {TotalCount}", items.Count(), totalCount);
             return (items, totalCount);
         }

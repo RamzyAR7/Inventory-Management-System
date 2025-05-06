@@ -21,13 +21,13 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task<IEnumerable<Supplier>> GetAllAsync()
         {
-             return await _unitOfWork.Suppliers.GetAllSuppliersWithProducts();
+            return await _unitOfWork.Suppliers.GetAllAsync();
         }
 
         public async Task<Supplier> GetByIdAsync(Guid id)
         {
 
-            return await _unitOfWork.Suppliers.GetSupplierBy(s => s.SupplierID == id);
+            return await _unitOfWork.Suppliers.GetSupplierAndProductsBy(s => s.SupplierID == id);
         }
 
         public async Task CreateAsync(SupplierReqDto supplierDto)

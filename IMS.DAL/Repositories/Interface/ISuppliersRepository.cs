@@ -6,7 +6,6 @@ namespace IMS.DAL.Repositories.Interfaces
 {
     public interface ISuppliersRepository:IGenericRepository<Supplier>
     {
-        Task<List<Supplier>> GetAllSuppliersWithProducts();
-        Task<Supplier> GetSupplierBy(Expression<Func<Supplier, bool>> predicate);
+        Task<Supplier> GetSupplierAndProductsBy(Expression<Func<Supplier, bool>> predicate);
     }
 }

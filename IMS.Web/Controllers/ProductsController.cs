@@ -2,6 +2,8 @@
 using IMS.BLL.DTOs.Products;
 using IMS.BLL.DTOs.Warehouse;
 using IMS.BLL.Services.Interface;
+using IMS.DAL.Entities;
+using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,6 +18,7 @@ namespace IMS.Web.Controllers
         private readonly ICategoryService _categoryService;
         private readonly ISupplierService _supplierService;
         private readonly IWarehouseService _warehouseService;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public ProductsController(
@@ -23,26 +26,78 @@ namespace IMS.Web.Controllers
             ICategoryService categoryService,
             ISupplierService supplierService,
             IWarehouseService warehouseService,
+            IUnitOfWork unitOfWork,
             IMapper mapper)
         {
             _productService = productService;
             _categoryService = categoryService;
             _supplierService = supplierService;
             _warehouseService = warehouseService;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            int pageNumber = 1,
+            int pageSize = 10,
+            Guid? categoryId = null,
+            string sortBy = "ProductName",
+            bool sortDescending = false)
         {
-            var products = await _productService.GetAllAsync();
-            if (!products.Any())
+            try
             {
-                TempData["InfoMessage"] = "No products available for the warehouses you manage.";
-            }
-            return View(products);
-        }
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var user = userId != null ? await _unitOfWork.Users.GetByExpressionAsync(e => e.UserID == Guid.Parse(userId)) : null;
+                var userRole = user?.Role;
 
+                var (products, totalCount) = await _productService.GetPagedProductsAsync(
+                    pageNumber,
+                    pageSize,
+                    categoryId,
+                    sortBy,
+                    sortDescending,
+                    userId,
+                    userRole);
+
+                if (!products.Any() && pageNumber == 1)
+                {
+                    TempData["InfoMessage"] = "No products available for the warehouses you manage.";
+                }
+
+                ViewBag.Categories = (await _categoryService.GetAllCategories()).Select(c => new SelectListItem
+                {
+                    Value = c.CategoryID.ToString(),
+                    Text = c.CategoryName
+                }).ToList();
+                ViewBag.Products = products;
+                ViewBag.TotalCount = totalCount;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.CategoryId = categoryId;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Failed to load products: " + ex.Message;
+                ViewBag.Products = new List<Product>();
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = 1;
+                ViewBag.PageSize = pageSize;
+                ViewBag.CategoryId = categoryId;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+                ViewBag.Categories = (await _categoryService.GetAllCategories()).Select(c => new SelectListItem
+                {
+                    Value = c.CategoryID.ToString(),
+                    Text = c.CategoryName
+                }).ToList();
+                return View();
+            }
+        }
 
 
 
