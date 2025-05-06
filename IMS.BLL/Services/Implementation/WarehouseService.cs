@@ -44,7 +44,7 @@ namespace IMS.BLL.Services.Implementation
             var warehouse = _mapper.Map<Warehouse>(warehouseDto);
             warehouse.WarehouseID = Guid.NewGuid();
             await _unitOfWork.Warehouses.AddAsync(warehouse);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task UpdateAsync(Guid id, WarehouseReqDto warehouseDto)
@@ -54,7 +54,7 @@ namespace IMS.BLL.Services.Implementation
                 throw new NotFoundException($"Warehouse with ID {id} not found");
             _mapper.Map(warehouseDto, existingWarehouse);
             await _unitOfWork.Warehouses.UpdateAsync(existingWarehouse);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task DeleteAsync(Guid id)
@@ -63,7 +63,7 @@ namespace IMS.BLL.Services.Implementation
             if (warehouse == null)
                 throw new NotFoundException($"Warehouse with ID {id} not found");
             await _unitOfWork.Warehouses.DeleteAsync(id);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
     }
 }

@@ -286,12 +286,12 @@ namespace IMS.BLL.Services.Implementation
                 order.Status = newStatus;
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveAsync();
-                await _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitTransactionAsync();
                 _logger.LogInformation("Order status updated: {OrderID}, New Status: {Status}.", orderId, newStatus);
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackTransactionAsync();
                 _logger.LogError(ex, "Error updating order status: {OrderID}, Message: {Message}.", orderId, ex.Message);
                 throw;
             }
@@ -350,12 +350,12 @@ namespace IMS.BLL.Services.Implementation
                 order.TotalAmount = totalAmount;
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveAsync();
-                await _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitTransactionAsync();
                 _logger.LogInformation("Order edited successfully: {OrderID}.", order.OrderID);
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackTransactionAsync();
                 _logger.LogError(ex, "Error editing order: {OrderID}, Message: {Message}.", orderId, ex.Message);
                 throw;
             }

@@ -58,7 +58,7 @@ namespace IMS.BLL.Services.Implementation
             var deliveryMan = _mapper.Map<DeliveryMan>(deliveryManDto);
             deliveryMan.DeliveryManID = Guid.NewGuid();
             await _unitOfWork.DeliveryMen.AddAsync(deliveryMan);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
         public async Task UpdateAsync(Guid id, DeliveryManReqDto deliveryManDto)
         {
@@ -69,7 +69,7 @@ namespace IMS.BLL.Services.Implementation
             }
             _mapper.Map(deliveryManDto, existingDeliveryMan);
             await _unitOfWork.DeliveryMen.UpdateAsync(existingDeliveryMan);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
         public async Task DeleteAsync(Guid id)
         {
@@ -84,14 +84,14 @@ namespace IMS.BLL.Services.Implementation
             {
                 shipments.DeliveryManID = null;
                 await _unitOfWork.Shipments.UpdateAsync(shipments);
-                await _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
             }
             if (deliveryMan == null)
             {
                 throw new NotFoundException($"DeliveryMan with ID {id} not found");
             }
             await _unitOfWork.DeliveryMen.DeleteAsync(deliveryMan.DeliveryManID);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
 
         }
     }

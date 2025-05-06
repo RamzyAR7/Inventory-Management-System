@@ -310,12 +310,12 @@ namespace IMS.BLL.Services.Implementation
                 await UpdateWarehouseStockAsync(dto.WarehouseId, dto.ProductId, quantityChange);
 
                 await _unitOfWork.SaveAsync();
-                await _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitTransactionAsync();
                 _logger.LogInformation("In transaction completed successfully for TransactionID: {TransactionID}", inventoryTransaction.TransactionID);
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackTransactionAsync();
                 _logger.LogError(ex, "Error during in transaction: {Message}", ex.Message);
                 throw new Exception("Failed to complete the in transaction. Please try again.", ex);
             }
@@ -465,12 +465,12 @@ namespace IMS.BLL.Services.Implementation
                 await UpdateWarehouseStockAsync(toWarehouse.WarehouseID, dto.ToProductId, dto.Quantity);
 
                 await _unitOfWork.SaveAsync();
-                await _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitTransactionAsync();
                 _logger.LogInformation("Transfer completed successfully for WarehouseTransferID: {WarehouseTransferID}", warehouseTransfer.WarehouseTransferID);
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackTransactionAsync();
                 _logger.LogError(ex, "Error during transfer: {Message}", ex.Message);
                 throw;
             }

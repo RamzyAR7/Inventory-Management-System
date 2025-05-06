@@ -40,7 +40,7 @@ namespace IMS.BLL.Services.Implementation
             var category = _mapper.Map<Category>(categoryDto);
             category.CategoryID = Guid.NewGuid();
             await _unitOfWork.Categories.AddAsync(category);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
         public async Task UpdateCategory(Guid id, CategoryReqDto categoryDto)
         {
@@ -49,7 +49,7 @@ namespace IMS.BLL.Services.Implementation
                 throw new NotFoundException($"Category with ID {id} not found");
             _mapper.Map(categoryDto, category);
             await _unitOfWork.Categories.UpdateAsync(category);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
         public async Task DeleteCategory(Guid id)
         {
@@ -57,7 +57,7 @@ namespace IMS.BLL.Services.Implementation
             if (category == null)
                 throw new NotFoundException($"Category with ID {id} not found");
             await _unitOfWork.Categories.DeleteAsync(id);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
     }
 }

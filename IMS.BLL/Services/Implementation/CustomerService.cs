@@ -44,7 +44,7 @@ namespace IMS.BLL.Services.Implementation
             customer.CustomerID = Guid.NewGuid();
             customer.CreatedAt = DateTime.UtcNow;
             await _unitOfWork.Customers.AddAsync(customer);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
 
@@ -58,7 +58,7 @@ namespace IMS.BLL.Services.Implementation
             _mapper.Map(customerDto, existingCustomer);
             
             await _unitOfWork.Customers.UpdateAsync(existingCustomer);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task DeleteAsync(Guid id)
@@ -69,7 +69,7 @@ namespace IMS.BLL.Services.Implementation
                 throw new Exception("Customer not found");
             }
             await _unitOfWork.Customers.DeleteAsync(id);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
 
         }
     }

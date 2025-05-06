@@ -8,7 +8,7 @@ namespace IMS.DAL.Repositories.Implementation
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         protected readonly InventoryDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        protected readonly DbSet<T> _dbSet;
 
         public GenericRepository(InventoryDbContext context)
         {
@@ -37,7 +37,7 @@ namespace IMS.DAL.Repositories.Implementation
         //}
 
 
-        public async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
+        public virtual async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
             foreach (var include in includes)
@@ -64,7 +64,7 @@ namespace IMS.DAL.Repositories.Implementation
             return await query.FirstOrDefaultAsync(predicate);
         }
 
-        public async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
+        public virtual async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
         {
             var keyName = _context.Model.FindEntityType(typeof(T))!
                                  .FindPrimaryKey()!
@@ -102,7 +102,7 @@ namespace IMS.DAL.Repositories.Implementation
             return await GetByExpressionAsync(lambda, includes);
         }
 
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
             foreach (var include in includes)
@@ -120,7 +120,7 @@ namespace IMS.DAL.Repositories.Implementation
             return await _dbSet.FirstOrDefaultAsync(predicate);
         }
 
-        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+        public virtual async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
             foreach (var include in includes)
@@ -133,7 +133,7 @@ namespace IMS.DAL.Repositories.Implementation
             return await query.FirstOrDefaultAsync(predicate);
         }
 
-        public async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize,Expression<Func<T, bool>> predicate = null, params Expression<Func<T, object>>[] includeProperties)
+        public virtual async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize,Expression<Func<T, bool>> predicate = null, params Expression<Func<T, object>>[] includeProperties)
         {
             if (pageNumber < 1)
                 throw new ArgumentException("Page number must be greater than 0", nameof(pageNumber));

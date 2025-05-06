@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace IMS.DAL.UnitOfWork
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork , IDisposable
     {
         private readonly InventoryDbContext _context;
 
@@ -27,12 +27,9 @@ namespace IMS.DAL.UnitOfWork
         private IWarehouseTransfersRepository _warehouseTransfers;
         private IUserRepository _users;
 
-        public InventoryDbContext Context => _context;
-
         public UnitOfWork(InventoryDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _warehouseStocks = new WarehouseStockRepository(_context);
         }
 
         public IUserRepository Users => _users ??= new UserRepository(_context);
@@ -50,21 +47,7 @@ namespace IMS.DAL.UnitOfWork
         public IWarehouseTransfersRepository WarehouseTransfers => _warehouseTransfers ??= new WarehouseTransfersRepository(_context);
         public IShipmentRepository Shipments => _shipments ??= new ShipmentRepository(_context);
 
-        public async Task<int> Save()
-        {
-            try
-            {
-                return await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                throw new Exception("Concurrency error occurred while saving changes.", ex);
-            }
-            catch (DbUpdateException ex)
-            {
-                throw new Exception("Error occurred while saving changes to the database.", ex);
-            }
-        }
+        public InventoryDbContext Context => _context;
 
         public async Task SaveAsync()
         {
@@ -82,24 +65,23 @@ namespace IMS.DAL.UnitOfWork
             }
         }
 
-        public void Dispose()
-        {
-            _context.Dispose();
-        }
-
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _context.Database.BeginTransactionAsync();
         }
 
-        public async Task CommitAsync()
+        public async Task CommitTransactionAsync()
         {
             await _context.Database.CommitTransactionAsync();
         }
 
-        public async Task RollbackAsync()
+        public async Task RollbackTransactionAsync()
         {
             await _context.Database.RollbackTransactionAsync();
+        }
+        public void Dispose()
+        {
+            _context.Dispose();
         }
     }
 }

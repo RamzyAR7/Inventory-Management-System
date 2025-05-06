@@ -39,7 +39,7 @@ namespace IMS.BLL.Services.Implementation
             var supplier = _mapper.Map<Supplier>(supplierDto);
             supplier.SupplierID = Guid.NewGuid();
             await _unitOfWork.Suppliers.AddAsync(supplier);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task UpdateAsync(Guid id, SupplierReqDto supplierDto)
@@ -50,7 +50,7 @@ namespace IMS.BLL.Services.Implementation
 
             _mapper.Map(supplierDto, supplier);
             await _unitOfWork.Suppliers.UpdateAsync(supplier);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task DeleteAsync(Guid id)
@@ -60,7 +60,7 @@ namespace IMS.BLL.Services.Implementation
                 throw new NotFoundException($"Supplier with ID {id} not found");
 
             await _unitOfWork.Suppliers.DeleteAsync(id);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
     }
 

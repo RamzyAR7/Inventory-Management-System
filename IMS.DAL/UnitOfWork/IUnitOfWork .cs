@@ -24,11 +24,10 @@ namespace IMS.DAL.UnitOfWork
         IInventoryTransactionRepository InventoryTransactions { get; }
         IWarehouseTransfersRepository WarehouseTransfers { get; }
         IShipmentRepository Shipments { get; }
-        public InventoryDbContext Context { get; } // Changed from private to public to allow access to the context
-        Task<int> Save(); // Changed from Task to Task<int>
+        InventoryDbContext Context { get; }
         Task SaveAsync();
-        Task<IDbContextTransaction> BeginTransactionAsync(); // Changed from IDisposable to IDbContextTransaction
-        Task CommitAsync();
-        Task RollbackAsync();
+        Task<IDbContextTransaction> BeginTransactionAsync();
+        Task CommitTransactionAsync();
+        Task RollbackTransactionAsync();
     }
 }

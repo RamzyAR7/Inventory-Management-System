@@ -124,7 +124,7 @@ namespace IMS.BLL.Services.Implementation
                 }
             }
 
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task UpdateAsync(Guid id, ProductReqDto productDto)
@@ -186,7 +186,7 @@ namespace IMS.BLL.Services.Implementation
 
             try
             {
-                await _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
                 _logger.LogInformation("Changes saved successfully for ProductID: {ProductID}", id);
             }
             catch (Exception ex)
@@ -239,7 +239,7 @@ namespace IMS.BLL.Services.Implementation
             // Delete the Product
             await _unitOfWork.Products.DeleteAsync(id);
 
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task<List<ProductReqDto>> GetProductsByWarehouseAsync(Guid warehouseId)

@@ -84,7 +84,7 @@ namespace IMS.BLL.Services.Implementation
             }
 
             await _unitOfWork.Users.AddAsync(user);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
 
             return _mapper.Map<UserResDto>(user);
         }
@@ -131,7 +131,7 @@ namespace IMS.BLL.Services.Implementation
 
             // Update the user in the database
             await _unitOfWork.Users.UpdateAsync(existingUser);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
 
             return _mapper.Map<UserEditDto>(existingUser);
         }
@@ -212,7 +212,7 @@ namespace IMS.BLL.Services.Implementation
                 throw new KeyNotFoundException($"User with ID {id} not found.");
             }
             await _unitOfWork.Users.DeleteAsync(id);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
 
         public async Task DeleteUserbyName(string username)
@@ -223,7 +223,7 @@ namespace IMS.BLL.Services.Implementation
                 throw new KeyNotFoundException($"User with username {username} not found.");
             }
             await _unitOfWork.Users.DeleteAsync(user.UserID);
-            await _unitOfWork.Save();
+            await _unitOfWork.SaveAsync();
         }
     }
 }

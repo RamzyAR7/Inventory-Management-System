@@ -4,6 +4,7 @@ using IMS.BLL.Services.Interface;
 using IMS.DAL.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace IMS.Web.Controllers
@@ -12,13 +13,15 @@ namespace IMS.Web.Controllers
     {
         private readonly IShipmentService _shipmentService;
         private readonly IDeliveryManService _deliveryManService;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
         private readonly ILogger<ShipmentsController> _logger;
 
-        public ShipmentsController(IShipmentService shipmentService, IMapper mapper, ILogger<ShipmentsController> logger, IDeliveryManService deliveryManService)
+        public ShipmentsController(IShipmentService shipmentService, IMapper mapper, ILogger<ShipmentsController> logger, IDeliveryManService deliveryManService, IUserService userService)
         {
             _shipmentService = shipmentService;
             _mapper = mapper;
+            _userService = userService;
             _logger = logger;
             _deliveryManService = deliveryManService;
         }
@@ -127,8 +130,10 @@ namespace IMS.Web.Controllers
                     return RedirectToAction("Index");
                 }
 
+                var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
                 var freeDeliveryMen = await _deliveryManService.GetAllAsync();
-                freeDeliveryMen = freeDeliveryMen.Where(d => d.IsActive && d.Status == DeliveryManStatus.Free).ToList();
+                freeDeliveryMen = freeDeliveryMen.Where(d => d.IsActive && d.Status == DeliveryManStatus.Free && d.ManagerID == userId).ToList();
 
                 var shipmentReqDto = _mapper.Map<ShipmentReqDto>(shipment);
                 ViewBag.FreeDeliveryMen = new SelectList(

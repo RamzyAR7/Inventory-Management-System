@@ -42,13 +42,23 @@ namespace IMS.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SupplierReqDto supplier)
         {
-            if (ModelState.IsValid)
+            try
             {
-                await _supplierService.CreateAsync(supplier);
-                TempData["success"] = "Supplier created successfully.";
-                return RedirectToAction(nameof(Index));
+                if (ModelState.IsValid)
+                {
+                    await _supplierService.CreateAsync(supplier);
+                    TempData["success"] = "Supplier created successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(supplier);
+
             }
-            return View(supplier);
+            catch (InvalidOperationException ex)
+            {
+                TempData["error"] = "Email is Already Exist";
+                return RedirectToAction(nameof(Create));
+
+            }
         }
 
         [HttpGet]
