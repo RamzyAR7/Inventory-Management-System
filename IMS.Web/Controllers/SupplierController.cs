@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using IMS.BAL.DTOs.Supplier;
-using IMS.BAL.Services.Interface;
+using IMS.BLL.DTOs.Supplier;
+using IMS.BLL.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

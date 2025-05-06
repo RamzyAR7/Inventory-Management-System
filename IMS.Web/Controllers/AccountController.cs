@@ -1,5 +1,5 @@
-﻿using IMS.BAL.DTOs.User;
-using IMS.BAL.Services;
+﻿using IMS.BLL.DTOs.User;
+using IMS.BLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

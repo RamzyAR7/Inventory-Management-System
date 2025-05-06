@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using IMS.BAL.DTOs.Products;
-using IMS.BAL.DTOs.Warehouse;
-using IMS.BAL.Services.Interface;
+using IMS.BLL.DTOs.Products;
+using IMS.BLL.DTOs.Warehouse;
+using IMS.BLL.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;

@@ -1,13 +1,13 @@
 using AutoMapper; // Add this using directive at the top of the file
 using Microsoft.EntityFrameworkCore;
-using IMS.BAL.Services.Interface;
+using IMS.BLL.Services.Interface;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using IMS.DAL.Context;
 using IMS.DAL.UnitOfWork;
-using IMS.BAL.Services;
-using IMS.BAL.Mapping;
-using IMS.BAL.Services.Implementation;
-using IMS.BAL.Interfaces;
+using IMS.BLL.Services;
+using IMS.BLL.Mapping;
+using IMS.BLL.Services.Implementation;
+using IMS.BLL.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,8 +31,6 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IShipmentService, ShipmentService>();
 builder.Services.AddScoped<IDeliveryManService, DeliveryManService>();
-// Register the generic repository is optional
-// builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddHttpContextAccessor();

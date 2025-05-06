@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using IMS.BAL.DTOs.Shipment;
-using IMS.BAL.Services.Interface;
+using IMS.BLL.DTOs.Shipment;
+using IMS.BLL.Services.Interface;
 using IMS.DAL.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;

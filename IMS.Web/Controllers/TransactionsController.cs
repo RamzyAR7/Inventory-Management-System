@@ -1,7 +1,7 @@
-﻿using IMS.BAL.DTOs.Transactions;
-using IMS.BAL.DTOs.Warehouse;
-using IMS.BAL.Interfaces;
-using IMS.BAL.Services.Interface;
+﻿using IMS.BLL.DTOs.Transactions;
+using IMS.BLL.DTOs.Warehouse;
+using IMS.BLL.Interfaces;
+using IMS.BLL.Services.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;

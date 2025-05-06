@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using IMS.BAL.Models;
+using IMS.BLL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

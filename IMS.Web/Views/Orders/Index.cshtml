@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Orders";
-    var orders = ViewBag.Orders as IEnumerable<IMS.BAL.DTOs.Order.Responce.OrderResponseDto>;
+    var orders = ViewBag.Orders as IEnumerable<IMS.BLL.DTOs.Order.Responce.OrderResponseDto>;
     int totalCount = (int)ViewBag.TotalCount;
     int pageNumber = (int)ViewBag.PageNumber;
     int pageSize = (int)ViewBag.PageSize;

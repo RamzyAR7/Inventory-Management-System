@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using IMS.BAL.DTOs.Order.Request;
-using IMS.BAL.DTOs.Order.Responce;
-using IMS.BAL.Services.Interface;
+using IMS.BLL.DTOs.Order.Request;
+using IMS.BLL.DTOs.Order.Responce;
+using IMS.BLL.Services.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
@@ -184,8 +184,8 @@ namespace IMS.Web.Controllers
                     {
                         ProductID = od.ProductID,
                         Quantity = od.Quantity,
-                        ProductName = _unitOfWork.Products.GetByIdAsync(p => p.ProductID == od.ProductID).Result?.ProductName ?? "Unknown",
-                        UnitPrice = _unitOfWork.Products.GetByIdAsync(p => p.ProductID == od.ProductID).Result?.Price ?? 0m
+                        ProductName = _unitOfWork.Products.GetByExpressionAsync(p => p.ProductID == od.ProductID).Result?.ProductName ?? "Unknown",
+                        UnitPrice = _unitOfWork.Products.GetByExpressionAsync(p => p.ProductID == od.ProductID).Result?.Price ?? 0m
                     }).ToList()
                 };
 
