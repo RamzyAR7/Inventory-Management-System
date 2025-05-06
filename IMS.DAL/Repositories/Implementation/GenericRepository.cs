@@ -16,27 +16,6 @@ namespace IMS.DAL.Repositories.Implementation
             _dbSet = _context.Set<T>();
         }
 
-        //public IQueryable<T> GetQueryable()
-        //{
-        //    return _dbSet.AsQueryable();
-        //}
-
-        //public async Task<bool> ExistsAsync(Guid id)
-        //{
-        //    var keyName = _context.Model.FindEntityType(typeof(T))
-        //                    ?.FindPrimaryKey()
-        //                    ?.Properties
-        //                    ?.FirstOrDefault()
-        //                    ?.Name;
-
-        //    var propertyType = typeof(T).GetProperty(keyName!)?.PropertyType;
-        //    var convertedId = Convert.ChangeType(id, propertyType!);
-
-        //    var entity = await _dbSet.FindAsync(convertedId);
-        //    return entity != null;
-        //}
-
-
         public virtual async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;

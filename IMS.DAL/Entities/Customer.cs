@@ -20,6 +20,7 @@ namespace IMS.DAL.Entities
         [Required]
         public DateTime CreatedAt { get; set; }
         // Navigation properties
-        public ICollection<Order> Orders { get; set; }
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
+
     }
 }

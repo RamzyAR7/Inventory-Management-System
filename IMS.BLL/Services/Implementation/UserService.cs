@@ -40,7 +40,6 @@ namespace IMS.BLL.Services.Implementation
                 }
 
                 visited.Add(currentManagerId);
-                // Fix the predicate: Find the user whose UserID matches currentManagerId
                 var manager = await _unitOfWork.Users.GetByExpressionAsync(e => e.UserID == currentManagerId);
                 if (manager == null)
                 {
@@ -97,10 +96,8 @@ namespace IMS.BLL.Services.Implementation
                 throw new KeyNotFoundException($"User with ID '{id}' not found.");
             }
 
-            // Handle password separately
             if (!string.IsNullOrWhiteSpace(userDto.Password))
             {
-                // Hash the new password (assuming you have a PasswordHelper for hashing)
                 existingUser.HashedPassword = PasswordHelper.HashPassword(userDto.Password);
             }
             else
@@ -129,7 +126,6 @@ namespace IMS.BLL.Services.Implementation
                 await CheckForManagerCycle(id, existingUser.ManagerID);
             }
 
-            // Update the user in the database
             await _unitOfWork.Users.UpdateAsync(existingUser);
             await _unitOfWork.SaveAsync();
 
@@ -152,27 +148,23 @@ namespace IMS.BLL.Services.Implementation
             {
                 var managers = await _unitOfWork.Users.FindManagerAsync(u => u.Role == "Manager" || u.Role == "Admin");
 
-                // Assuming FindAsync never returns null (common in EF Core), simplify the check
                 if (!managers.Any())
                 {
-                    return new List<ManagerDto>(); // Return empty list if no managers are found
+                    return new List<ManagerDto>();
                 }
 
                 return _mapper.Map<List<ManagerDto>>(managers);
             }
             catch (Exception ex)
             {
-                // Log the error (you can use a logging framework like Serilog or ILogger)
-                // For now, we'll just rethrow a more specific exception
                 throw new InvalidOperationException("Failed to retrieve managers from the database.", ex);
             }
         }
 
         public async Task<IEnumerable<UserResDto>> GetAllEmployee(bool includeManager = false)
         {
-            // Use FindAsync to filter users by role
             var users = await _unitOfWork.Users.FindAsync(
-                u => u.Role == "Employee", // Filter for Employee role
+                u => u.Role == "Employee",
                 includeManager ? new Expression<Func<User, object>>[] { u => u.Manager } : Array.Empty<Expression<Func<User, object>>>()
             );
 
