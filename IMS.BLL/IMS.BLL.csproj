@@ -12,7 +12,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <ProjectReference Include="..\IMS.DAL\IMS.DAL.csproj" />
-	<ProjectReference Include="..\IMS.Data\IMS.DAL.csproj" />
   </ItemGroup>
 
 </Project>
