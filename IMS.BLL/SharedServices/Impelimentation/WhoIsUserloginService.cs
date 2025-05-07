@@ -1,4 +1,5 @@
 ﻿using IMS.BLL.SharedServices.Interface;
+using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -63,6 +64,45 @@ namespace IMS.BLL.SharedServices.Impelimentation
             }
 
             return user.Role;
+        }
+        public async Task<List<Guid>> GetAccessibleWarehouseIdsAsync(string role, Guid userId)
+        {
+            if (role == "Admin")
+            {
+                return (await _unitOfWork.Warehouses.GetAllAsync()).Select(w => w.WarehouseID).ToList();
+            }
+
+            if (role == "Manager")
+            {
+                var warehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == userId);
+                return warehouses.Select(w => w.WarehouseID).ToList();
+            }
+
+            if (role == "Employee")
+            {
+                var employee = await _unitOfWork.Users.GetByIdAsync(userId);
+                if (employee == null)
+                    throw new InvalidOperationException("User not found.");
+
+                if (employee.ManagerID.HasValue)
+                {
+                    var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == employee.ManagerID.Value);
+                    return managerWarehouses.Select(w => w.WarehouseID).ToList();
+                }
+
+                var managers = await _unitOfWork.Users.FindAsync(u => u.Role == "Manager");
+                var allManagerWarehouses = new List<Warehouse>();
+
+                foreach (var manager in managers)
+                {
+                    var warehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == manager.UserID);
+                    allManagerWarehouses.AddRange(warehouses);
+                }
+
+                return allManagerWarehouses.Select(w => w.WarehouseID).Distinct().ToList();
+            }
+
+            return new List<Guid>();
         }
     }
 }

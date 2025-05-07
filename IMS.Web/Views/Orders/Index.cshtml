@@ -114,8 +114,7 @@
                                             </a>
                                             <a asp-action="Delete" asp-route-id="@order.OrderID"
                                                class="btn btn-danger btn-sm delete-button" title="Delete"
-                                               style="@(order.Status == OrderStatus.Cancelled ? "" : "display:none;")"
-                                               onclick="return confirm('Are you sure you want to delete this order?');">
+                                               style="@(order.Status == OrderStatus.Cancelled ? "" : "display:none;")">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                             @if (order.Status != OrderStatus.Delivered)

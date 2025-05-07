@@ -10,5 +10,6 @@ namespace IMS.BLL.SharedServices.Interface
     {
         Task<string> GetCurrentUserId();
         Task<string> GetCurrentUserRole();
+        Task<List<Guid>> GetAccessibleWarehouseIdsAsync(string role, Guid userId);
     }
 }

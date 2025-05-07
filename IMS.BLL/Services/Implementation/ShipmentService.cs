@@ -8,21 +8,26 @@ using IMS.DAL.Entities;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using IMS.BLL.Services.Interface;
+using IMS.BLL.SharedServices.Interface;
 
 namespace IMS.BLL.Services.Implementation
 {
     public class ShipmentService : IShipmentService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IWhoIsUserLoginService _userLoginService;
         private readonly IOrderService _orderService;
+        private readonly IShipmentHelperService _shipmentHelperService;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<ShipmentService> _logger;
 
-        public ShipmentService(IUnitOfWork unitOfWork, IOrderService orderService, IMapper mapper, ILogger<ShipmentService> logger, IHttpContextAccessor httpContextAccessor)
+        public ShipmentService(IUnitOfWork unitOfWork, IWhoIsUserLoginService userLoginService,IOrderService orderService, IShipmentHelperService shipmentHelperService,IMapper mapper, ILogger<ShipmentService> logger, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
+            _userLoginService = userLoginService;
             _orderService = orderService;
+            _shipmentHelperService = shipmentHelperService;
             _mapper = mapper;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
@@ -37,9 +42,9 @@ namespace IMS.BLL.Services.Implementation
         {
             try
             {
-                var userRole = GetCurrentUserRole();
-                var userId = GetCurrentUserId();
-                var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
+                var userRole = await _userLoginService.GetCurrentUserRole();
+                var userId =  await _userLoginService.GetCurrentUserId();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
                 var includes = new Expression<Func<Shipment, object>>[]
                 {
@@ -59,7 +64,7 @@ namespace IMS.BLL.Services.Implementation
                 if (statusFilter.HasValue)
                 {
                     var statusPredicate = (Expression<Func<Shipment, bool>>)(s => s.Status == statusFilter.Value);
-                    predicate = predicate == null ? statusPredicate : CombinePredicates(predicate, statusPredicate);
+                    predicate = predicate == null ? statusPredicate : _unitOfWork.Shipments.CombinePredicates(predicate, statusPredicate);
                 }
 
                 // Define sorting
@@ -105,19 +110,6 @@ namespace IMS.BLL.Services.Implementation
             }
         }
 
-        // Helper method to combine predicates
-        private Expression<Func<T, bool>> CombinePredicates<T>(
-            Expression<Func<T, bool>> predicate1,
-            Expression<Func<T, bool>> predicate2)
-        {
-            var parameter = Expression.Parameter(typeof(T));
-            var body = Expression.AndAlso(
-                Expression.Invoke(predicate1, parameter),
-                Expression.Invoke(predicate2, parameter));
-            return Expression.Lambda<Func<T, bool>>(body, parameter);
-        }
-
-        // Other methods remain unchanged
         public async Task<Shipment> GetShipmentByIdAsync(Guid shipmentId)
         {
             try
@@ -130,7 +122,7 @@ namespace IMS.BLL.Services.Implementation
                     s => s.DeliveryMan
                 };
 
-                var shipment = await ValidateUserAccessAsync(shipmentId, includes);
+                var shipment = await _shipmentHelperService.ValidateUserAccessShipmentAsync(shipmentId, includes);
                 if (shipment == null)
                 {
                     _logger.LogWarning("GetShipmentByIdAsync - Shipment not found for ShipmentID: {ShipmentID}", shipmentId);
@@ -283,99 +275,6 @@ namespace IMS.BLL.Services.Implementation
                 _logger.LogError(ex, "DeleteShipmentAsync - Error deleting shipment: {Message}", ex.Message);
                 throw;
             }
-        }
-
-        public async Task<List<Guid>> GetAccessibleWarehouseIdsAsync(string role, Guid userId)
-        {
-            if (role == "Admin")
-            {
-                return (await _unitOfWork.Warehouses.GetAllAsync()).Select(w => w.WarehouseID).ToList();
-            }
-
-            if (role == "Manager")
-            {
-                var warehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == userId);
-                return warehouses.Select(w => w.WarehouseID).ToList();
-            }
-
-            if (role == "Employee")
-            {
-                var employee = await _unitOfWork.Users.GetByIdAsync(userId);
-                if (employee == null)
-                    throw new InvalidOperationException("User not found.");
-
-                if (employee.ManagerID.HasValue)
-                {
-                    var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == employee.ManagerID.Value);
-                    return managerWarehouses.Select(w => w.WarehouseID).ToList();
-                }
-
-                var managers = await _unitOfWork.Users.FindAsync(u => u.Role == "Manager");
-                var allManagerWarehouses = new List<Warehouse>();
-
-                foreach (var manager in managers)
-                {
-                    var warehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == manager.UserID);
-                    allManagerWarehouses.AddRange(warehouses);
-                }
-
-                return allManagerWarehouses.Select(w => w.WarehouseID).Distinct().ToList();
-            }
-
-            return new List<Guid>();
-        }
-
-        private async Task<Shipment> ValidateUserAccessAsync(Guid shipmentId, Expression<Func<Shipment, object>>[]? includes = null)
-        {
-            Shipment shipment;
-
-            if (includes == null)
-            {
-                shipment = await _unitOfWork.Shipments.GetByIdAsync(shipmentId);
-            }
-            else
-            {
-                shipment = await _unitOfWork.Shipments.GetByIdAsync(shipmentId, includes);
-            }
-            if (shipment == null)
-            {
-                _logger.LogWarning("GetShipmentByIdAsync - Shipment not found for ShipmentID: {ShipmentID}", shipmentId);
-                throw new KeyNotFoundException("Shipment not found.");
-            }
-
-            var userRole = GetCurrentUserRole();
-            var userId = GetCurrentUserId();
-            var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
-
-            if (userRole != "Admin" && !managerWarehouseIds.Contains(shipment.Order.WarehouseID))
-            {
-                _logger.LogWarning("Unauthorized access to shipment {ShipmentID} by user {UserID}.", shipmentId, userId);
-                throw new UnauthorizedAccessException("You can only view shipment for accessible warehouses.");
-            }
-            _logger.LogInformation("GetShipmentByIdAsync - Retrieved shipment for ShipmentID: {ShipmentID}", shipmentId);
-            return shipment;
-        }
-
-        private string GetCurrentUserRole()
-        {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                throw new InvalidOperationException("User not authenticated.");
-
-            var user = _unitOfWork.Users.GetByExpressionAsync(e => e.UserID == Guid.Parse(userId)).Result;
-            if (user == null)
-                throw new InvalidOperationException("User not found.");
-
-            return user.Role;
-        }
-
-        private string GetCurrentUserId()
-        {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                throw new InvalidOperationException("User not authenticated.");
-
-            return userId;
         }
     }
 }

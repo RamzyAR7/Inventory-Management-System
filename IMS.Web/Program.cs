@@ -37,6 +37,8 @@ builder.Services.AddScoped<IDeliveryManService, DeliveryManService>();
 // helper services
 builder.Services.AddScoped<IWhoIsUserLoginService, WhoIsUserloginService>();
 builder.Services.AddScoped<IProductHelperService, ProductHelperService>();
+builder.Services.AddScoped<IOrderHelperService, OrderHelperService>();
+builder.Services.AddScoped<IShipmentHelperService, ShipmentHelperService>();
 
 
 // Global services

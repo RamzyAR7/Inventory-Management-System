@@ -22,16 +22,14 @@ namespace IMS.BLL.Services.Implementation
         private readonly IMapper _mapper;
         private readonly IProductHelperService _productHelperService;
         private readonly IWhoIsUserLoginService _userLoginService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
 
-        public TransactionService(IUnitOfWork unitOfWork, IProductHelperService productHelperService, IMapper mapper,IWhoIsUserLoginService userLoginService, ILogger logger, IHttpContextAccessor httpContextAccessor)
+        public TransactionService(IUnitOfWork unitOfWork, IProductHelperService productHelperService, IMapper mapper,IWhoIsUserLoginService userLoginService, ILogger logger)
         {
             _unitOfWork = unitOfWork;
             _productHelperService = productHelperService;
             _mapper = mapper;
             _userLoginService = userLoginService;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
         public async Task<(IEnumerable<InventoryTransaction> Items, int TotalCount)> GetPagedTransactionsAsync(Guid? warehouseId, int pageNumber, int pageSize)
@@ -55,8 +53,7 @@ namespace IMS.BLL.Services.Implementation
 
             if (userRole == "Manager")
             {
-                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
                 if (!managerWarehouseIds.Any())
                 {
@@ -109,8 +106,7 @@ namespace IMS.BLL.Services.Implementation
             var userId = await _userLoginService.GetCurrentUserId();
             if (userRole == "Manager")
             {
-                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
                 if (!managerWarehouseIds.Contains(transaction.WarehouseID))
                 {
@@ -139,8 +135,7 @@ namespace IMS.BLL.Services.Implementation
 
             if (userRole == "Manager")
             {
-                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
                 _logger.LogInformation("GetAllTransfersAsync - Manager Warehouse IDs: {WarehouseIds}", string.Join(", ", managerWarehouseIds));
 
                 if (!managerWarehouseIds.Any())
@@ -184,8 +179,7 @@ namespace IMS.BLL.Services.Implementation
             var userId = await _userLoginService.GetCurrentUserId();
             if (userRole == "Manager")
             {
-                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
                 if (!managerWarehouseIds.Contains(transfer.FromWarehouseID) && !managerWarehouseIds.Contains(transfer.ToWarehouseID))
                 {

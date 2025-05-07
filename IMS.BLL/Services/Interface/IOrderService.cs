@@ -14,14 +14,10 @@ namespace IMS.BLL.Services.Interface
                     OrderStatus? statusFilter = null,
                     string sortBy = "OrderDate",
                     bool sortDescending = false);
-        //Task<IEnumerable<OrderResponseDto>> GetAllAsync();
         Task<OrderDetailResponseDto?> GetByIdAsync(Guid id);
-        Task CreateAsync(OrderReqDto orderDto, Guid userId);
+        Task CreateAsync(OrderReqDto orderDto);
         Task UpdateStatusAsync(Guid orderId, OrderStatus newStatus);
         Task EditAsync(Guid orderId, OrderReqDto orderDto);
         Task DeleteAsync(Guid id);
-        Task<List<Guid>> GetAccessibleWarehouseIdsAsync(string role, Guid userId);
-        Task<List<Product>> GetProductsByWarehouseAndCategoryAsync(Guid warehouseId, Guid? categoryId);
-        Task<(bool isValid, string errorMessage, OrderDetail orderDetail)> ValidateAndAddProductAsync(Guid warehouseId, Guid productId, int quantity, Guid userId);
     }
 }

@@ -2,6 +2,7 @@
 using IMS.BLL.DTOs.Order.Request;
 using IMS.BLL.DTOs.Order.Responce;
 using IMS.BLL.Services.Interface;
+using IMS.BLL.SharedServices.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Http;
@@ -16,19 +17,22 @@ namespace IMS.BLL.Services.Implementation
     public class OrderService : IOrderService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IWhoIsUserLoginService _userLoginService;
+        private readonly IOrderHelperService _orderHelperService;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<OrderService> _logger;
 
         public OrderService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor,
+            IWhoIsUserLoginService userLoginService,
+            IOrderHelperService orderHelperService,
             ILogger<OrderService> logger)
         {
             _unitOfWork = unitOfWork;
+            _userLoginService = userLoginService;
+            _orderHelperService = orderHelperService;
             _mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
             _logger = logger;
         }
         public async Task<(IEnumerable<OrderResponseDto> Items, int TotalCount)> GetPagedOrdersAsync(
@@ -40,18 +44,17 @@ namespace IMS.BLL.Services.Implementation
         {
             try
             {
-                var userRole = GetCurrentUserRole();
-                var userId = GetCurrentUserId();
-                var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
+                var userRole = await _userLoginService.GetCurrentUserRole();
+                var userId = await _userLoginService.GetCurrentUserId();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
                 var includes = new Expression<Func<Order, object>>[]
                 {
-            o => o.Customer,
-            o => o.Warehouse,
-            o => o.CreatedByUser
+                    o => o.Customer,
+                    o => o.Warehouse,
+                    o => o.CreatedByUser
                 };
 
-                // Build the predicate based on user role and status filter
                 Expression<Func<Order, bool>> predicate = null;
 
                 if (userRole != "Admin")
@@ -65,7 +68,6 @@ namespace IMS.BLL.Services.Implementation
                     predicate = predicate == null ? statusPredicate : CombinePredicates(predicate, statusPredicate);
                 }
 
-                // Define sorting
                 Expression<Func<Order, object>> orderBy;
                 switch (sortBy.ToLower())
                 {
@@ -88,8 +90,6 @@ namespace IMS.BLL.Services.Implementation
                         orderBy = o => o.OrderDate;
                         break;
                 }
-
-                // Fetch paged orders
                 var (orders, totalCount) = await _unitOfWork.Orders.GetPagedAsync(
                     pageNumber,
                     pageSize,
@@ -109,7 +109,6 @@ namespace IMS.BLL.Services.Implementation
             }
         }
 
-        // Helper method to combine predicates
         private Expression<Func<T, bool>> CombinePredicates<T>(
             Expression<Func<T, bool>> predicate1,
             Expression<Func<T, bool>> predicate2)
@@ -130,9 +129,9 @@ namespace IMS.BLL.Services.Implementation
                 return null;
             }
 
-            var userRole = GetCurrentUserRole();
-            var userId = GetCurrentUserId();
-            var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
+            var userRole = await _userLoginService.GetCurrentUserRole();
+            var userId = await _userLoginService.GetCurrentUserId();
+            var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
             if (userRole != "Admin" && !managerWarehouseIds.Contains(order.WarehouseID))
             {
@@ -143,7 +142,7 @@ namespace IMS.BLL.Services.Implementation
             return _mapper.Map<OrderDetailResponseDto>(order);
         }
 
-        public async Task CreateAsync(OrderReqDto orderDto, Guid userId)
+        public async Task CreateAsync(OrderReqDto orderDto)
         {
             try
             {
@@ -157,8 +156,9 @@ namespace IMS.BLL.Services.Implementation
                     throw new InvalidOperationException("Duplicate products are not allowed in the order.");
 
                 // Mapping OrderReqDto to Order
+                var userId = await _userLoginService.GetCurrentUserId();
                 var order = _mapper.Map<Order>(orderDto);
-                order.CreatedByUserID = userId;
+                order.CreatedByUserID = Guid.Parse(userId);
 
                 // Clear OrderDetails to avoid duplicates from AutoMapper
                 order.OrderDetails = new List<OrderDetail>();
@@ -168,7 +168,7 @@ namespace IMS.BLL.Services.Implementation
                 if (user == null)
                     throw new InvalidOperationException("User not found.");
 
-                var accessibleWarehouseIds = await GetAccessibleWarehouseIdsAsync(user.Role, order.CreatedByUserID);
+                var accessibleWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(user.Role, order.CreatedByUserID);
                 if (!accessibleWarehouseIds.Contains(order.WarehouseID))
                     throw new UnauthorizedAccessException("You do not have access to this warehouse.");
 
@@ -185,7 +185,7 @@ namespace IMS.BLL.Services.Implementation
                 decimal totalAmount = 0;
                 foreach (var detailDto in orderDto.OrderDetails)
                 {
-                    var (isValid, errorMessage, orderDetail) = await ValidateAndAddProductAsync(
+                    var (isValid, errorMessage, orderDetail) = await _orderHelperService.ValidateAndAddProductAsync(
                         order.WarehouseID, detailDto.ProductID, detailDto.Quantity, order.CreatedByUserID);
                     if (!isValid)
                         throw new InvalidOperationException(errorMessage);
@@ -222,9 +222,10 @@ namespace IMS.BLL.Services.Implementation
             if (order == null)
                 throw new InvalidOperationException("Order not found.");
 
-            await ValidateUserAccessAsync(order.WarehouseID);
+            await _orderHelperService.ValidateUserAccessAsync(order.WarehouseID);
+            var isValidStatus = _orderHelperService.IsValidStatusTransition(order.Status, newStatus);
 
-            if (!IsValidStatusTransition(order.Status, newStatus))
+            if (!isValidStatus)
                 throw new InvalidOperationException($"Invalid status transition from {order.Status} to {newStatus}.");
 
             using var transaction = await _unitOfWork.BeginTransactionAsync();
@@ -342,8 +343,8 @@ namespace IMS.BLL.Services.Implementation
             if (orderId != orderDto.OrderID)
                 throw new InvalidOperationException("Order ID mismatch.");
 
-            await ValidateUserAccessAsync(orderDto.WarehouseID);
-            await ValidateOrderDtoAsync(orderDto);
+            await _orderHelperService.ValidateUserAccessAsync(orderDto.WarehouseID);
+            await _orderHelperService.ValidateOrderDtoAsync(orderDto);
 
             var order = await _unitOfWork.Orders.GetByExpressionAsync(o => o.OrderID == orderId, o => o.OrderDetails);
             if (order == null)
@@ -410,9 +411,9 @@ namespace IMS.BLL.Services.Implementation
                 throw new InvalidOperationException("Only cancelled orders can be deleted.");
 
 
-            var userRole = GetCurrentUserRole();
-            var userId = GetCurrentUserId();
-            var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
+            var userRole = await _userLoginService.GetCurrentUserRole();
+            var userId = await _userLoginService.GetCurrentUserId();
+            var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
             if (userRole != "Admin" && !managerWarehouseIds.Contains(order.WarehouseID))
             {
@@ -426,198 +427,6 @@ namespace IMS.BLL.Services.Implementation
             }
             await _unitOfWork.Orders.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
-        }
-        public async Task<(bool isValid, string errorMessage, OrderDetail orderDetail)> ValidateAndAddProductAsync(Guid warehouseId, Guid productId, int quantity, Guid userId)
-        {
-            try
-            {
-                // Validate warehouse access
-                var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserID == userId);
-                if (user == null)
-                    return (false, "User not found.", null);
-
-                var accessibleWarehouseIds = await GetAccessibleWarehouseIdsAsync(user.Role, userId);
-                if (!accessibleWarehouseIds.Contains(warehouseId))
-                    return (false, "You do not have access to this warehouse.", null);
-
-                // Validate product
-                var product = await _unitOfWork.Products.FirstOrDefaultAsync(p => p.ProductID == productId);
-                if (product == null || !product.IsActive)
-                    return (false, "Product is invalid or inactive.", null);
-
-                // Validate stock
-                var stock = await _unitOfWork.WarehouseStocks
-                    .FirstOrDefaultAsync(ws => ws.WarehouseID == warehouseId && ws.ProductID == productId);
-                if (stock == null || stock.StockQuantity < quantity)
-                    return (false, $"Insufficient stock for product {product.ProductName}. Available: {stock?.StockQuantity ?? 0}, Requested: {quantity}", null);
-
-                if (quantity <= 0)
-                    return (false, "Quantity must be greater than 0.", null);
-
-                // Create OrderDetail
-                var orderDetail = new OrderDetail
-                {
-                    ProductID = productId,
-                    Quantity = quantity,
-                    UnitPrice = product.Price,
-                    TotalPrice = product.Price * quantity
-                };
-
-                return (true, string.Empty, orderDetail);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error validating product addition: ProductID {ProductID}, WarehouseID {WarehouseID}.", productId, warehouseId);
-                return (false, "An error occurred: " + ex.Message, null);
-            }
-        }
-
-        public async Task<List<Product>> GetProductsByWarehouseAndCategoryAsync(Guid warehouseId, Guid? categoryId)
-        {
-            try
-            {
-                // Validate warehouse access
-                var userRole = GetCurrentUserRole();
-                var userId = Guid.Parse(GetCurrentUserId());
-                var accessibleWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, userId);
-
-                if (!accessibleWarehouseIds.Contains(warehouseId))
-                    throw new UnauthorizedAccessException("You do not have access to this warehouse.");
-
-                // Fetch products available in the warehouse
-                var stocks = await _unitOfWork.WarehouseStocks
-                    .FindAsync(ws => ws.WarehouseID == warehouseId && ws.StockQuantity > 0);
-
-                var productIds = stocks.Select(ws => ws.ProductID).ToList();
-
-                // Fetch products that are active and in stock
-                Expression<Func<Product, bool>> predicate = p =>
-                    productIds.Contains(p.ProductID) &&
-                    p.IsActive;
-
-                if (categoryId.HasValue)
-                    predicate = p => productIds.Contains(p.ProductID) && p.IsActive && p.CategoryID == categoryId;
-
-                var products = await _unitOfWork.Products.FindAsync(predicate, p => p.Category);
-
-                return products.ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching products for WarehouseID {WarehouseID}, CategoryID {CategoryID}.", warehouseId, categoryId);
-                throw;
-            }
-        }
-
-        private async Task ValidateOrderDtoAsync(OrderReqDto orderDto)
-        {
-            if (orderDto.OrderDetails == null || !orderDto.OrderDetails.Any())
-                throw new InvalidOperationException("At least one order detail is required.");
-
-            var warehouse = await _unitOfWork.Warehouses.GetByExpressionAsync(w => w.WarehouseID == orderDto.WarehouseID);
-            if (warehouse == null)
-                throw new InvalidOperationException("Warehouse not found.");
-
-            var customer = await _unitOfWork.Customers.GetByExpressionAsync(c => c.CustomerID == orderDto.CustomerID);
-            if (customer == null)
-                throw new InvalidOperationException("Customer not found.");
-
-            var productIds = orderDto.OrderDetails.Select(d => d.ProductID).Distinct().ToList();
-            var products = await _unitOfWork.Products.FindAsync(p => productIds.Contains(p.ProductID));
-            if (products.Count() != productIds.Count)
-                throw new InvalidOperationException("One or more products not found.");
-        }
-
-        private async Task ValidateUserAccessAsync(Guid warehouseId)
-        {
-            var userRole = GetCurrentUserRole();
-            var userId = GetCurrentUserId();
-            var managerWarehouseIds = await GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
-
-            if (userRole != "Admin" && !managerWarehouseIds.Contains(warehouseId))
-                throw new UnauthorizedAccessException("You can only access your assigned warehouses.");
-        }
-
-        public async Task<List<Guid>> GetAccessibleWarehouseIdsAsync(string role, Guid userId)
-        {
-            if (role == "Admin")
-            {
-                return (await _unitOfWork.Warehouses.GetAllAsync()).Select(w => w.WarehouseID).ToList();
-            }
-
-            if (role == "Manager")
-            {
-                var warehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == userId);
-                return warehouses.Select(w => w.WarehouseID).ToList();
-            }
-
-            if (role == "Employee")
-            {
-                // Get the employee's manager
-                var employee = await _unitOfWork.Users.GetByIdAsync(userId);
-                if (employee == null)
-                    throw new InvalidOperationException("User not found.");
-
-                // If employee has a direct manager assigned
-                if (employee.ManagerID.HasValue)
-                {
-                    var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == employee.ManagerID.Value);
-                    return managerWarehouses.Select(w => w.WarehouseID).ToList();
-                }
-
-                // Fallback: Get all managers' warehouses if no direct manager assigned
-                var managers = await _unitOfWork.Users.FindAsync(u => u.Role == "Manager");
-                var allManagerWarehouses = new List<Warehouse>();
-
-                foreach (var manager in managers)
-                {
-                    var warehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == manager.UserID);
-                    allManagerWarehouses.AddRange(warehouses);
-                }
-
-                return allManagerWarehouses.Select(w => w.WarehouseID).Distinct().ToList();
-            }
-
-            return new List<Guid>();
-        }
-
-        private bool IsValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus)
-        {
-            return (currentStatus, newStatus) switch
-            {
-                (OrderStatus.Pending, OrderStatus.Confirmed) => true,
-                (OrderStatus.Pending, OrderStatus.Cancelled) => true,
-                (OrderStatus.Confirmed, OrderStatus.Pending) => true,
-                (OrderStatus.Confirmed, OrderStatus.Shipped) => true,
-                (OrderStatus.Confirmed, OrderStatus.Cancelled) => true,
-                (OrderStatus.Shipped, OrderStatus.Delivered) => true,
-                (OrderStatus.Shipped, OrderStatus.Pending) => true,
-                (OrderStatus.Shipped, OrderStatus.Confirmed) => true,
-                (OrderStatus.Cancelled, OrderStatus.Pending) => true,
-                _ => false
-            };
-        }
-
-        private string GetCurrentUserRole()
-        {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                throw new InvalidOperationException("User not authenticated.");
-
-            var user = _unitOfWork.Users.GetByExpressionAsync(e => e.UserID == Guid.Parse(userId)).Result;
-            if (user == null)
-                throw new InvalidOperationException("User not found.");
-
-            return user.Role;
-        }
-
-        private string GetCurrentUserId()
-        {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                throw new InvalidOperationException("User not authenticated.");
-
-            return userId;
         }
     }
 }

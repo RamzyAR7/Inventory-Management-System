@@ -17,14 +17,14 @@ namespace IMS.BLL.Services.Implementation
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IWhoIsUserLoginService _whoIsUserLoginService;
+        private readonly IWhoIsUserLoginService _userLoginService;
         private readonly ILogger<ProductService> _logger;
         
 
         public ProductService(IUnitOfWork unitOfWork, IMapper mapper,IWhoIsUserLoginService whoIsUserLoginService, ILogger<ProductService> logger)
         {
             _unitOfWork = unitOfWork;
-            _whoIsUserLoginService = whoIsUserLoginService;
+            _userLoginService = whoIsUserLoginService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -40,14 +40,13 @@ namespace IMS.BLL.Services.Implementation
         {
             try
             {
-                userRole ??= await _whoIsUserLoginService.GetCurrentUserRole();
-                userId ??= await _whoIsUserLoginService.GetCurrentUserId();
+                userRole ??= await _userLoginService.GetCurrentUserRole();
+                userId ??= await _userLoginService.GetCurrentUserId();
                 var managerWarehouseIds = new List<Guid>();
 
                 if (userRole == "Manager")
                 {
-                    var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                    managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                    managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
                     if (!managerWarehouseIds.Any())
                     {
@@ -116,12 +115,11 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            var userRole = await _whoIsUserLoginService.GetCurrentUserRole();
+            var userRole = await _userLoginService.GetCurrentUserRole();
             if (userRole == "Manager")
             {
-                var userId = await _whoIsUserLoginService.GetCurrentUserId();
-                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                var userId = await _userLoginService.GetCurrentUserId();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
                 if (!managerWarehouseIds.Any())
                 {
@@ -137,13 +135,12 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task<Product?> GetByIdAsync(Guid id)
         {
-            var userRole = await _whoIsUserLoginService.GetCurrentUserRole();
-            var userId = await _whoIsUserLoginService.GetCurrentUserId();
+            var userRole = await _userLoginService.GetCurrentUserRole();
+            var userId = await _userLoginService.GetCurrentUserId();
 
             if (userRole == "Manager")
             {
-                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
 
                 if (!managerWarehouseIds.Any())
                 {
@@ -159,8 +156,8 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task CreateAsync(ProductReqDto productDto)
         {
-            var userRole = await _whoIsUserLoginService.GetCurrentUserRole();
-            var userId = await _whoIsUserLoginService.GetCurrentUserId();
+            var userRole = await _userLoginService.GetCurrentUserRole();
+            var userId = await _userLoginService.GetCurrentUserId();
 
             // Validate warehouses
             var warehouses = await _unitOfWork.Warehouses.FindAsync(w => productDto.WarehouseIds.Contains(w.WarehouseID));
@@ -171,8 +168,7 @@ namespace IMS.BLL.Services.Implementation
 
             if (userRole == "Manager")
             {
-                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
                 if (productDto.WarehouseIds.Any(wid => !managerWarehouseIds.Contains(wid)))
                 {
                     throw new Exception("Manager can only create products in their assigned warehouses.");
@@ -220,8 +216,8 @@ namespace IMS.BLL.Services.Implementation
         {
             _logger.LogInformation("Starting UpdateAsync for ProductID: {ProductID}", id);
 
-            var userRole = await _whoIsUserLoginService.GetCurrentUserRole();
-            var userId = await _whoIsUserLoginService.GetCurrentUserId();
+            var userRole = await _userLoginService.GetCurrentUserRole();
+            var userId = await _userLoginService.GetCurrentUserId();
 
             var existingProduct = await _unitOfWork.Products.GetAsyncWithNestedIncludesBy(e => e.ProductID == id);
             if (existingProduct == null)
@@ -232,8 +228,7 @@ namespace IMS.BLL.Services.Implementation
 
             if (userRole == "Manager")
             {
-                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
                 if (productDto.WarehouseIds.Any(wid => !managerWarehouseIds.Contains(wid)))
                 {
                     throw new Exception("Manager can only update products in their assigned warehouses.");
@@ -288,8 +283,8 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task DeleteAsync(Guid id)
         {
-            var userRole = await _whoIsUserLoginService.GetCurrentUserRole();
-            var userId = await _whoIsUserLoginService.GetCurrentUserId();
+            var userRole = await _userLoginService.GetCurrentUserRole();
+            var userId = await _userLoginService.GetCurrentUserId();
 
             var existingProduct = await _unitOfWork.Products.GetAsyncWithNestedIncludesBy(e => e.ProductID == id);
             if (existingProduct == null)
@@ -299,9 +294,7 @@ namespace IMS.BLL.Services.Implementation
 
             if (userRole == "Manager")
             {
-                var managerWarehouses = await _unitOfWork.Warehouses.FindAsync(w => w.ManagerID == Guid.Parse(userId));
-                var managerWarehouseIds = managerWarehouses.Select(w => w.WarehouseID).ToList();
-
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
                 if (!managerWarehouseIds.Any())
                 {
                     throw new Exception("No warehouses assigned to this manager.");

@@ -87,8 +87,9 @@ namespace IMS.BLL.Mapping
                 .ForMember(dest => dest.CreatedByUserID, opt => opt.MapFrom(src => src.CreatedByUserID))
                 .ForMember(dest => dest.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails));
 
-            // fix when delete
             CreateMap<OrderDetailResponseDto, OrderResponseDto>();
+
+                
 
             // OrderDetail to OrderDetailResponseItem
             CreateMap<OrderDetail, OrderDetailResponseItem>()

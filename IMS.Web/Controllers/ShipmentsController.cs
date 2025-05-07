@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.Shipment;
 using IMS.BLL.Services.Interface;
+using IMS.BLL.SharedServices.Interface;
 using IMS.DAL.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -14,6 +15,7 @@ namespace IMS.Web.Controllers
         private readonly IShipmentService _shipmentService;
         private readonly IDeliveryManService _deliveryManService;
         private readonly IUserService _userService;
+        private readonly IShipmentHelperService _shipmentHelperService;
         private readonly IMapper _mapper;
         private readonly ILogger<ShipmentsController> _logger;
 
@@ -22,11 +24,13 @@ namespace IMS.Web.Controllers
             IMapper mapper,
             ILogger<ShipmentsController> logger,
             IDeliveryManService deliveryManService,
+            IShipmentHelperService shipmentHelperService,
             IUserService userService)
         {
             _shipmentService = shipmentService;
             _mapper = mapper;
             _userService = userService;
+            _shipmentHelperService = shipmentHelperService;
             _logger = logger;
             _deliveryManService = deliveryManService;
         }
@@ -151,10 +155,7 @@ namespace IMS.Web.Controllers
                     return RedirectToAction("Index");
                 }
 
-                var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
-                var freeDeliveryMen = await _deliveryManService.GetAllAsync();
-                freeDeliveryMen = freeDeliveryMen.Where(d => d.IsActive && d.Status == DeliveryManStatus.Free && d.ManagerID == userId).ToList();
+                var freeDeliveryMen = await _shipmentHelperService.GetAllFreeDeliveryMen();
 
                 var shipmentReqDto = _mapper.Map<ShipmentReqDto>(shipment);
                 ViewBag.FreeDeliveryMen = new SelectList(
@@ -192,8 +193,7 @@ namespace IMS.Web.Controllers
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
                     _logger.LogWarning("Validation failed: {Errors}", string.Join(", ", errors));
-                    var freeDeliveryMen = await _deliveryManService.GetAllAsync();
-                    freeDeliveryMen = freeDeliveryMen.Where(d => d.IsActive && d.Status == DeliveryManStatus.Free).ToList();
+                    var freeDeliveryMen = await _shipmentHelperService.GetAllFreeDeliveryMen();
                     var deliveryMethods = Enum.GetValues(typeof(DeliveryMethod)).Cast<DeliveryMethod>().ToList();
 
                     ViewBag.DeliveryMethods = new SelectList(deliveryMethods);
