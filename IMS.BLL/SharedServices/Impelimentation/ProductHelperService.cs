@@ -1,9 +1,13 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.Products;
+using IMS.BLL.Models;
+using IMS.BLL.Services.Interface;
 using IMS.BLL.SharedServices.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 
 namespace IMS.BLL.SharedServices.Impelimentation
@@ -11,12 +15,14 @@ namespace IMS.BLL.SharedServices.Impelimentation
     public class ProductHelperService : IProductHelperService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IProductService _productService;
         private readonly IMapper _mapper;
         private readonly ILogger<ProductHelperService> _logger;
 
-        public ProductHelperService(IUnitOfWork unitOfWork,IMapper mapper ,ILogger<ProductHelperService> logger)
+        public ProductHelperService(IUnitOfWork unitOfWork, IProductService productService, IMapper mapper ,ILogger<ProductHelperService> logger)
         {
             _unitOfWork = unitOfWork;
+            _productService = productService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -63,22 +69,113 @@ namespace IMS.BLL.SharedServices.Impelimentation
             _logger.LogInformation("Assigned suppliers from ProductID {SourceProductId} to ProductID {TargetProductId}", sourceProductId, targetProductId);
         }
 
-        public async Task<List<ProductReqDto>> GetProductsByWarehouseAsync(Guid warehouseId) // Mark method as async
+        public async Task UpdateWarehouseStockAsync(Guid warehouseId, Guid productId, int quantityChange)
         {
-            // Fetch warehouse stocks for the given warehouse ID
-            var warehouseStocks = await _unitOfWork.WarehouseStocks.FindAsync(ws => ws.WarehouseID == warehouseId);
+            var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(warehouseId);
+            if (warehouse == null)
+            {
+                _logger.LogWarning("Warehouse not found for WarehouseID: {WarehouseID}", warehouseId);
+                throw new KeyNotFoundException($"Warehouse with ID {warehouseId} not found.");
+            }
 
-            // Convert the result to a list
-            var warehouseStocksList = warehouseStocks.ToList();
+            var product = await _unitOfWork.Products.GetByIdAsync(productId);
+            if (product == null)
+            {
+                _logger.LogWarning("Product not found for ProductID: {ProductID}", productId);
+                throw new KeyNotFoundException($"Product with ID {productId} not found.");
+            }
 
-            // Extract distinct products from the warehouse stocks
-            var products = warehouseStocksList
-                .Select(ws => ws.Product)
-                .Distinct()
+            var stock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(warehouseId, productId);
+            if (stock == null)
+            {
+                _logger.LogInformation("Creating new WarehouseStock for WarehouseID: {WarehouseID}, ProductID: {ProductID}", warehouseId, productId);
+                stock = new WarehouseStock
+                {
+                    WarehouseID = warehouseId,
+                    ProductID = productId,
+                    StockQuantity = 0
+                };
+                try
+                {
+                    await _unitOfWork.WarehouseStocks.AddAsync(stock);
+                    await _unitOfWork.SaveAsync();
+                    _logger.LogInformation("New WarehouseStock created successfully for WarehouseID: {WarehouseID}, ProductID: {ProductID}", warehouseId, productId);
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "Failed to create WarehouseStock for WarehouseID: {WarehouseID}, ProductID: {ProductID}. InnerException: {InnerException}",
+                        warehouseId, productId, ex.InnerException?.Message);
+                    throw new Exception($"Failed to create WarehouseStock for WarehouseID: {warehouseId}, ProductID: {productId}. Ensure the warehouse and product exist.", ex);
+                }
+            }
+
+            stock.StockQuantity += quantityChange;
+            if (stock.StockQuantity < 0)
+            {
+                _logger.LogWarning("Insufficient stock in warehouse {WarehouseID} for product {ProductID}. Available: {Available}, Requested: {Requested}", warehouseId, productId, stock.StockQuantity - quantityChange, -quantityChange);
+                throw new InvalidOperationException($"Insufficient stock in warehouse {warehouseId} for product {productId}. Available: {stock.StockQuantity - quantityChange}, Requested: {-quantityChange}");
+            }
+
+            try
+            {
+                await _unitOfWork.WarehouseStocks.UpdateAsync(stock);
+                await _unitOfWork.SaveAsync();
+                _logger.LogInformation("WarehouseStock updated successfully for WarehouseID: {WarehouseID}, ProductID: {ProductID}, New StockQuantity: {StockQuantity}",
+                    warehouseId, productId, stock.StockQuantity);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Failed to update WarehouseStock for WarehouseID: {WarehouseID}, ProductID: {ProductID}. InnerException: {InnerException}",
+                    warehouseId, productId, ex.InnerException?.Message);
+                throw new Exception($"Failed to update WarehouseStock for WarehouseID: {warehouseId}, ProductID: {productId}.", ex);
+            }
+        }
+
+        public async Task<List<ProductViewModel>> GetAllProductsThatInThisWarehouse(Guid warehouseId)
+        {
+            var warehouseStocks = await _unitOfWork.WarehouseStocks
+                .FindAsync(ws => ws.WarehouseID == warehouseId, ws => ws.Product);
+
+            var products = warehouseStocks
+                .GroupBy(ws => ws.Product.ProductName.ToLower())
+                .Select(g => g.First())
+                .Select(ws => new ProductViewModel
+                {
+                    ProductID = ws.Product.ProductID,
+                    DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
+                })
+                .OrderBy(p => p.DisplayText)
                 .ToList();
 
-            // Map the products to ProductReqDto and return
-            return _mapper.Map<List<ProductReqDto>>(products);
+            return products;
+        }
+
+        public async Task<List<ProductViewModel>> GetAllProductsThatMatching(Guid productId, Guid toWarehouseId)
+        {
+            var products = await _productService.GetAllAsync();
+            var fromProduct = products.FirstOrDefault(p => p.ProductID == productId);
+            if (fromProduct == null)
+            {
+                _logger.LogWarning("GetMatchingProducts - Source product not found for ProductID {ProductID}", productId);
+                return new List<ProductViewModel>();
+            }
+
+            var toWarehouseStocks = await _unitOfWork.WarehouseStocks
+                .FindAsync(ws => ws.WarehouseID == toWarehouseId, ws => ws.Product);
+
+            var matchingProducts = toWarehouseStocks
+                .Where(ws => ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())
+                .Select(ws => new ProductViewModel
+                {
+                    ProductID = ws.Product.ProductID,
+                    DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
+                })
+                .DistinctBy(p => p.ProductID)
+                .OrderBy(p => p.DisplayText)
+                .ToList();
+
+            return matchingProducts;
         }
     }
+
 }
