@@ -37,7 +37,9 @@ namespace IMS.BLL.Services.Implementation
             int pageNumber,
             int pageSize,
             string searchSupplier = null,
-            string searchCustomer = null)
+            string searchCustomer = null,
+            string sortColumn = "TransactionDate",
+            bool sortAscending = false)
         {
             var includes = new Expression<Func<InventoryTransaction, object>>[]
             {
@@ -54,7 +56,7 @@ namespace IMS.BLL.Services.Implementation
 
             var userRole = await _userLoginService.GetCurrentUserRole();
             var userId = await _userLoginService.GetCurrentUserId();
-            _logger.LogInformation("GetPagedTransactionsAsync - User role: {UserRole}", userRole);
+            _logger.LogInformation("GetPagedTransactionsAsync - User role: {UserRole}, SortColumn: {SortColumn}, SortAscending: {SortAscending}", userRole, sortColumn, sortAscending);
 
             if (userRole == "Manager")
             {
@@ -83,10 +85,9 @@ namespace IMS.BLL.Services.Implementation
                 predicate = t => t.WarehouseID == warehouseId.Value;
             }
 
-            // If predicate is null, fetch all transactions (no filtering by warehouse)
             var transactionsQuery = predicate != null
-                ? await _unitOfWork.InventoryTransactions.FindAsync(predicate, includes)
-                : await _unitOfWork.InventoryTransactions.GetAllAsync(includes);
+                ? (await _unitOfWork.InventoryTransactions.FindAsync(predicate, includes)).AsQueryable()
+                : (await _unitOfWork.InventoryTransactions.GetAllAsync(includes)).AsQueryable();
 
             // Apply search filters
             if (!string.IsNullOrEmpty(searchSupplier))
@@ -98,16 +99,33 @@ namespace IMS.BLL.Services.Implementation
                 transactionsQuery = transactionsQuery.Where(t => t.Type == TransactionType.Out && t.Order != null && t.Order.Customer != null && t.Order.Customer.FullName.ToLower().Contains(searchCustomer.ToLower()));
             }
 
-            // Apply pagination manually since we need to filter after includes
-            var totalCount = transactionsQuery.Count();
-            var paginatedTransactions = transactionsQuery
-                .OrderByDescending(t => t.TransactionDate)
+            // Apply dynamic sorting
+            IOrderedQueryable<InventoryTransaction> orderedQuery = sortAscending
+                ? transactionsQuery.OrderBy(GetSortExpression(sortColumn))
+                : transactionsQuery.OrderByDescending(GetSortExpression(sortColumn));
+
+            var totalCount = orderedQuery.Count();
+            var paginatedTransactions = orderedQuery
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
             _logger.LogInformation("GetPagedTransactionsAsync - Retrieved {ItemCount} transactions, TotalCount: {TotalCount}", paginatedTransactions.Count, totalCount);
             return (paginatedTransactions, totalCount);
+
+            Expression<Func<InventoryTransaction, object>> GetSortExpression(string column)
+            {
+                return column.ToLower() switch
+                {
+                    "transactionid" => t => t.TransactionID,
+                    "supplier" => t => t.Suppliers.SupplierName ?? string.Empty,
+                    "product" => t => t.Product.ProductName,
+                    "warehouse" => t => t.Warehouse.WarehouseName,
+                    "quantity" => t => t.Quantity,
+                    "transactiondate" => t => t.TransactionDate,
+                    _ => t => t.TransactionDate
+                };
+            }
         }
 
         public async Task<(IEnumerable<InventoryTransaction> InTransactions, IEnumerable<InventoryTransaction> OutTransactions, IEnumerable<WarehouseTransfers> Transfers)> GetLimitedTransactionsAndTransfersAsync(Guid? warehouseId)
@@ -156,14 +174,12 @@ namespace IMS.BLL.Services.Implementation
                 predicate = t => t.WarehouseID == warehouseId.Value;
             }
 
-            // If predicate is null, fetch all transactions (no filtering by warehouse)
             var transactionsQuery = predicate != null
                 ? await _unitOfWork.InventoryTransactions.FindAsync(predicate, includes)
                 : await _unitOfWork.InventoryTransactions.GetAllAsync(includes);
 
             var allTransactions = transactionsQuery.OrderByDescending(t => t.TransactionDate).ToList();
 
-            // Split into In and Out transactions
             var supplierInTransactions = allTransactions
                 .Where(t => t.Type == TransactionType.In && t.SuppliersID != null)
                 .Take(4)
@@ -173,7 +189,6 @@ namespace IMS.BLL.Services.Implementation
                 .Take(3)
                 .ToList();
 
-            // Fetch transfers
             var transfersQuery = await GetAllTransfersAsync();
             if (warehouseId.HasValue)
             {
@@ -184,7 +199,12 @@ namespace IMS.BLL.Services.Implementation
             return (supplierInTransactions, customerOutTransactions, limitedTransfers);
         }
 
-        public async Task<(IEnumerable<WarehouseTransfers> Items, int TotalCount)> GetPagedTransfersAsync(Guid? warehouseId, int pageNumber, int pageSize)
+        public async Task<(IEnumerable<WarehouseTransfers> Items, int TotalCount)> GetPagedTransfersAsync(
+            Guid? warehouseId,
+            int pageNumber,
+            int pageSize,
+            string sortColumn = "TransferDate",
+            bool sortAscending = false)
         {
             var includes = new Expression<Func<WarehouseTransfers, object>>[]
             {
@@ -197,7 +217,7 @@ namespace IMS.BLL.Services.Implementation
             Expression<Func<WarehouseTransfers, bool>> predicate = null;
             var userRole = await _userLoginService.GetCurrentUserRole();
             var userId = await _userLoginService.GetCurrentUserId();
-            _logger.LogInformation("GetPagedTransfersAsync - User role: {UserRole}", userRole);
+            _logger.LogInformation("GetPagedTransfersAsync - User role: {UserRole}, SortColumn: {SortColumn}, SortAscending: {SortAscending}", userRole, sortColumn, sortAscending);
 
             if (userRole == "Manager")
             {
@@ -225,20 +245,38 @@ namespace IMS.BLL.Services.Implementation
                 predicate = t => t.FromWarehouseID == warehouseId.Value || t.ToWarehouseID == warehouseId.Value;
             }
 
-            // If predicate is null, fetch all transfers (no filtering by warehouse)
             var transfersQuery = predicate != null
-                ? await _unitOfWork.WarehouseTransfers.FindAsync(predicate, includes)
-                : await _unitOfWork.WarehouseTransfers.GetAllAsync(includes);
+                ? (await _unitOfWork.WarehouseTransfers.FindAsync(predicate, includes)).AsQueryable()
+                : (await _unitOfWork.WarehouseTransfers.GetAllAsync(includes)).AsQueryable();
 
-            var totalCount = transfersQuery.Count();
-            var paginatedTransfers = transfersQuery
-                .OrderByDescending(t => t.TransferDate)
+            // Apply dynamic sorting
+            IOrderedQueryable<WarehouseTransfers> orderedQuery = sortAscending
+                ? transfersQuery.OrderBy(GetSortExpression(sortColumn))
+                : transfersQuery.OrderByDescending(GetSortExpression(sortColumn));
+
+            var totalCount = orderedQuery.Count();
+            var paginatedTransfers = orderedQuery
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
             _logger.LogInformation("GetPagedTransfersAsync - Retrieved {ItemCount} transfers, TotalCount: {TotalCount}", paginatedTransfers.Count, totalCount);
             return (paginatedTransfers, totalCount);
+
+            Expression<Func<WarehouseTransfers, object>> GetSortExpression(string column)
+            {
+                return column.ToLower() switch
+                {
+                    "warehousetransferid" => t => t.WarehouseTransferID,
+                    "fromwarehouse" => t => t.FromWarehouse.WarehouseName,
+                    "fromproduct" => t => t.FromProduct.ProductName,
+                    "towarehouse" => t => t.ToWarehouse.WarehouseName,
+                    "toproduct" => t => t.ToProduct.ProductName,
+                    "quantity" => t => t.Quantity,
+                    "transferdate" => t => t.TransferDate,
+                    _ => t => t.TransferDate
+                };
+            }
         }
 
         public async Task<InventoryTransaction> GetTransactionByIdAsync(Guid transactionId)

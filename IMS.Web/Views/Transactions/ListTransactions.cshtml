@@ -1,4 +1,4 @@
-@model dynamic
+﻿@model dynamic
 @{
     ViewData["Title"] = "In/Out Transactions";
     var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<IMS.DAL.Entities.InventoryTransaction>;
@@ -10,18 +10,18 @@
     string searchSupplier = ViewBag.SearchSupplier ?? "";
     string searchCustomer = ViewBag.SearchCustomer ?? "";
     Guid? warehouseId = ViewBag.WarehouseId;
+    string sortColumn = ViewBag.SortColumn ?? "TransactionDate";
+    bool sortAscending = ViewBag.SortAscending ?? false;
 }
 
 <div class="container py-4">
     <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
-        <!-- Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-semibold text-primary mb-0 d-flex align-items-center">
                 <i class="fas fa-random me-2"></i> In/Out Transactions
             </h3>
         </div>
 
-        <!-- Alerts -->
         @if (TempData["Success"] != null)
         {
             <div class="alert alert-success rounded-3 small fw-semibold">@TempData["Success"]</div>
@@ -31,7 +31,6 @@
             <div class="alert alert-danger rounded-3 small fw-semibold">@TempData["error"]</div>
         }
 
-        <!-- Filters -->
         <form asp-action="ListTransactions" method="get" class="mb-4">
             <div class="row g-3 align-items-end">
                 <div class="col-md-4">
@@ -69,9 +68,10 @@
             </div>
             <input type="hidden" name="pageNumber" value="1" />
             <input type="hidden" name="pageSize" value="@pageSize" />
+            <input type="hidden" name="sortColumn" value="@sortColumn" />
+            <input type="hidden" name="sortAscending" value="@sortAscending.ToString().ToLower()" />
         </form>
 
-        <!-- In Transactions -->
         <h5 class="fw-semibold text-primary mb-3 mt-5 d-flex align-items-center">
             <i class="fas fa-arrow-down me-2"></i> In Transactions (From Suppliers)
         </h5>
@@ -79,12 +79,12 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr class="text-muted small">
-                        <th>Transaction ID</th>
-                        <th>Supplier</th>
-                        <th>Product</th>
-                        <th>Warehouse</th>
-                        <th>Quantity</th>
-                        <th>Date</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('TransactionID')">Transaction ID</a>@(sortColumn == "TransactionID" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('Supplier')">Supplier</a>@(sortColumn == "Supplier" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('Product')">Product</a>@(sortColumn == "Product" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('Warehouse')">Warehouse</a>@(sortColumn == "Warehouse" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('Quantity')">Quantity</a>@(sortColumn == "Quantity" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('TransactionDate')">Date</a>@(sortColumn == "TransactionDate" ? (sortAscending ? " ↑" : " ↓") : "")</th>
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
@@ -121,7 +121,6 @@
             </table>
         </div>
 
-        <!-- Out Transactions -->
         <h5 class="fw-semibold text-primary mb-3 mt-5 d-flex align-items-center">
             <i class="fas fa-arrow-up me-2"></i> Out Transactions (To Customers)
         </h5>
@@ -129,12 +128,12 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr class="text-muted small">
-                        <th>Transaction ID</th>
-                        <th>Customer</th>
-                        <th>Product</th>
-                        <th>Warehouse</th>
-                        <th>Quantity</th>
-                        <th>Date</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('TransactionID')">Transaction ID</a>@(sortColumn == "TransactionID" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('Customer')">Customer</a>@(sortColumn == "Customer" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('Product')">Product</a>@(sortColumn == "Product" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('Warehouse')">Warehouse</a>@(sortColumn == "Warehouse" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('Quantity')">Quantity</a>@(sortColumn == "Quantity" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('TransactionDate')">Date</a>@(sortColumn == "TransactionDate" ? (sortAscending ? " ↑" : " ↓") : "")</th>
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
@@ -171,11 +170,9 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         @if (totalPages > 1)
         {
             <div class="d-flex justify-content-between align-items-center mt-4">
-                <!-- Left-aligned Previous Button -->
                 <nav aria-label="Previous page">
                     <ul class="pagination mb-0">
                         <li class="page-item @(pageNumber <= 1 ? "disabled" : "")">
@@ -184,18 +181,19 @@
                                asp-route-searchSupplier="@searchSupplier"
                                asp-route-searchCustomer="@searchCustomer"
                                asp-route-pageNumber="@(pageNumber - 1)"
-                               asp-route-pageSize="@pageSize">
+                               asp-route-pageSize="@pageSize"
+                               asp-route-sortColumn="@sortColumn"
+                               asp-route-sortAscending="@sortAscending">
                                 <i class="bi bi-chevron-left me-1"></i> Previous
                             </a>
                         </li>
                     </ul>
                 </nav>
-                <!-- Center-aligned Page Size Selector and Page Indicator -->
                 <div class="d-flex align-items-center gap-3">
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-muted small">Items per page:</span>
                         <select class="form-select form-select-sm" style="width: 70px;"
-                                onchange="window.location.href = '@Url.Action("ListTransactions", new { warehouseId = warehouseId, searchSupplier = searchSupplier, searchCustomer = searchCustomer, pageNumber = 1 })&pageSize=' + this.value">
+                                onchange="window.location.href = '@Url.Action("ListTransactions", new { warehouseId = warehouseId, searchSupplier = searchSupplier, searchCustomer = searchCustomer, pageNumber = 1, sortColumn = sortColumn, sortAscending = sortAscending })&pageSize=' + this.value">
                             <option value="5" selected="@(pageSize == 5)">5</option>
                             <option value="10" selected="@(pageSize == 10)">10</option>
                             <option value="25" selected="@(pageSize == 25)">25</option>
@@ -205,7 +203,6 @@
                     </div>
                     <span class="text-muted small">Page @pageNumber of @totalPages</span>
                 </div>
-                <!-- Right-aligned Next Button -->
                 <nav aria-label="Next page">
                     <ul class="pagination mb-0">
                         <li class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
@@ -214,7 +211,9 @@
                                asp-route-searchSupplier="@searchSupplier"
                                asp-route-searchCustomer="@searchCustomer"
                                asp-route-pageNumber="@(pageNumber + 1)"
-                               asp-route-pageSize="@pageSize">
+                               asp-route-pageSize="@pageSize"
+                               asp-route-sortColumn="@sortColumn"
+                               asp-route-sortAscending="@sortAscending">
                                 Next <i class="bi bi-chevron-right ms-1"></i>
                             </a>
                         </li>
@@ -223,7 +222,6 @@
             </div>
         }
 
-        <!-- Footer Buttons -->
         <div class="d-flex justify-content-between mt-4">
             <a asp-action="CreateInTransaction" class="btn btn-primary rounded-pill px-4 fw-semibold">
                 <i class="fas fa-plus-circle me-2"></i> Create In Transaction
@@ -237,11 +235,18 @@
 
 @section Styles {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 }
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script>
+        function sortTable(column) {
+            var currentSort = '@sortColumn';
+            var currentAscending = '@sortAscending';
+            var newAscending = (currentSort === column) ? !JSON.parse(currentAscending) : true;
+            window.location.href = '@Url.Action("ListTransactions", new { warehouseId = warehouseId, searchSupplier = searchSupplier, searchCustomer = searchCustomer, pageNumber = 1, pageSize = pageSize })&sortColumn=' + column + '&sortAscending=' + newAscending;
+        }
+    </script>
 }

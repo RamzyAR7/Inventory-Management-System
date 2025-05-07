@@ -46,7 +46,6 @@ namespace IMS.Web.Controllers
             {
                 var (supplierInTransactions, customerOutTransactions, transfers) = await _transactionService.GetLimitedTransactionsAndTransfersAsync(warehouseId);
 
-                // Populate warehouses dropdown
                 var warehouses = await _warehouseService.GetAllAsync();
                 if (User.IsInRole("Manager"))
                 {
@@ -81,17 +80,15 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ListTransactions(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10, string searchSupplier = null, string searchCustomer = null)
+        public async Task<IActionResult> ListTransactions(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10, string searchSupplier = null, string searchCustomer = null, string sortColumn = "TransactionDate", bool sortAscending = false)
         {
             try
             {
-                _logger.LogInformation("ListTransactions - Retrieving transactions for WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}, SearchSupplier: {SearchSupplier}, SearchCustomer: {SearchCustomer}", warehouseId, pageNumber, pageSize, searchSupplier, searchCustomer);
+                _logger.LogInformation("ListTransactions - Retrieving transactions for WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}, SearchSupplier: {SearchSupplier}, SearchCustomer: {SearchCustomer}, SortColumn: {SortColumn}, SortAscending: {SortAscending}", warehouseId, pageNumber, pageSize, searchSupplier, searchCustomer, sortColumn, sortAscending);
 
-                // Get paginated transactions
-                var (transactions, totalCount) = await _transactionService.GetPagedTransactionsAsync(warehouseId, pageNumber, pageSize, searchSupplier, searchCustomer);
+                var (transactions, totalCount) = await _transactionService.GetPagedTransactionsAsync(warehouseId, pageNumber, pageSize, searchSupplier, searchCustomer, sortColumn, sortAscending);
                 _logger.LogInformation("ListTransactions - Retrieved {TransactionCount} transactions, TotalCount: {TotalCount}", transactions.Count(), totalCount);
 
-                // Separate transactions
                 var supplierInTransactions = transactions
                     .Where(t => t.Type == TransactionType.In && t.SuppliersID != null)
                     .ToList();
@@ -107,6 +104,8 @@ namespace IMS.Web.Controllers
                 ViewBag.WarehouseId = warehouseId;
                 ViewBag.SearchSupplier = searchSupplier;
                 ViewBag.SearchCustomer = searchCustomer;
+                ViewBag.SortColumn = sortColumn;
+                ViewBag.SortAscending = sortAscending;
                 await PopulateViewBagAsync(warehouseId);
 
                 return View();
@@ -123,26 +122,29 @@ namespace IMS.Web.Controllers
                 ViewBag.WarehouseId = warehouseId;
                 ViewBag.SearchSupplier = searchSupplier;
                 ViewBag.SearchCustomer = searchCustomer;
+                ViewBag.SortColumn = sortColumn;
+                ViewBag.SortAscending = sortAscending;
                 await PopulateViewBagAsync(warehouseId);
                 return View();
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> ListTransfers(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> ListTransfers(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10, string sortColumn = "TransferDate", bool sortAscending = false)
         {
             try
             {
-                _logger.LogInformation("ListTransfers - Retrieving transfers, WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}", warehouseId, pageNumber, pageSize);
+                _logger.LogInformation("ListTransfers - Retrieving transfers, WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}, SortColumn: {SortColumn}, SortAscending: {SortAscending}", warehouseId, pageNumber, pageSize, sortColumn, sortAscending);
 
-                // Get paginated transfers
-                var (transfers, totalCount) = await _transactionService.GetPagedTransfersAsync(warehouseId, pageNumber, pageSize);
+                var (transfers, totalCount) = await _transactionService.GetPagedTransfersAsync(warehouseId, pageNumber, pageSize, sortColumn, sortAscending);
                 _logger.LogInformation("ListTransfers - Retrieved {TransferCount} transfers, TotalCount: {TotalCount}", transfers.Count(), totalCount);
 
                 ViewBag.TotalCount = totalCount;
                 ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
                 ViewBag.WarehouseId = warehouseId;
+                ViewBag.SortColumn = sortColumn;
+                ViewBag.SortAscending = sortAscending;
                 await PopulateViewBagAsync(warehouseId);
 
                 return View(transfers);
@@ -155,6 +157,8 @@ namespace IMS.Web.Controllers
                 ViewBag.PageNumber = 1;
                 ViewBag.PageSize = pageSize;
                 ViewBag.WarehouseId = warehouseId;
+                ViewBag.SortColumn = sortColumn;
+                ViewBag.SortAscending = sortAscending;
                 await PopulateViewBagAsync(warehouseId);
                 return View(new List<WarehouseTransfers>());
             }

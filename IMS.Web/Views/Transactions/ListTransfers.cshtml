@@ -7,6 +7,8 @@
     int pageSize = (int)ViewBag.PageSize;
     int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
     Guid? warehouseId = ViewBag.WarehouseId;
+    string sortColumn = ViewBag.SortColumn ?? "TransferDate";
+    bool sortAscending = ViewBag.SortAscending ?? false;
 }
 
 <div class="container py-4">
@@ -43,6 +45,8 @@
                 </div>
                 <input type="hidden" name="pageNumber" value="1" />
                 <input type="hidden" name="pageSize" value="@pageSize" />
+                <input type="hidden" name="sortColumn" value="@sortColumn" />
+                <input type="hidden" name="sortAscending" value="@sortAscending.ToString().ToLower()" />
             </div>
         </form>
 
@@ -50,13 +54,13 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr class="text-muted small">
-                        <th>Transfer ID</th>
-                        <th>From Warehouse</th>
-                        <th>From Product</th>
-                        <th>To Warehouse</th>
-                        <th>To Product</th>
-                        <th>Quantity</th>
-                        <th>Date</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('WarehouseTransferID')">Transfer ID</a>@(sortColumn == "WarehouseTransferID" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('FromWarehouse')">From Warehouse</a>@(sortColumn == "FromWarehouse" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('FromProduct')">From Product</a>@(sortColumn == "FromProduct" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('ToWarehouse')">To Warehouse</a>@(sortColumn == "ToWarehouse" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('ToProduct')">To Product</a>@(sortColumn == "ToProduct" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('Quantity')">Quantity</a>@(sortColumn == "Quantity" ? (sortAscending ? " ↑" : " ↓") : "")</th>
+                        <th><a href="javascript:void(0)" onclick="sortTable('TransferDate')">Date</a>@(sortColumn == "TransferDate" ? (sortAscending ? " ↑" : " ↓") : "")</th>
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
@@ -99,29 +103,28 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         @if (totalPages > 1)
         {
             <div class="d-flex justify-content-between align-items-center mt-4">
-                <!-- Left-aligned Previous Button -->
                 <nav aria-label="Previous page">
                     <ul class="pagination mb-0">
                         <li class="page-item @(pageNumber <= 1 ? "disabled" : "")">
                             <a class="page-link rounded-pill px-3" asp-action="ListTransfers"
                                asp-route-warehouseId="@warehouseId"
                                asp-route-pageNumber="@(pageNumber - 1)"
-                               asp-route-pageSize="@pageSize">
+                               asp-route-pageSize="@pageSize"
+                               asp-route-sortColumn="@sortColumn"
+                               asp-route-sortAscending="@sortAscending">
                                 <i class="bi bi-chevron-left me-1"></i> Previous
                             </a>
                         </li>
                     </ul>
                 </nav>
-                <!-- Center-aligned Page Size Selector and Page Indicator -->
                 <div class="d-flex align-items-center gap-3">
                     <div class="d-flex align-items-center gap-2">
                         <span class="text-muted small">Items per page:</span>
                         <select class="form-select form-select-sm" style="width: 70px;"
-                                onchange="window.location.href = '@Url.Action("ListTransfers", new { warehouseId = warehouseId, pageNumber = 1 })&pageSize=' + this.value">
+                                onchange="window.location.href = '@Url.Action("ListTransfers", new { warehouseId = warehouseId, pageNumber = 1, sortColumn = sortColumn, sortAscending = sortAscending })&pageSize=' + this.value">
                             <option value="5" selected="@(pageSize == 5)">5</option>
                             <option value="10" selected="@(pageSize == 10)">10</option>
                             <option value="25" selected="@(pageSize == 25)">25</option>
@@ -131,14 +134,15 @@
                     </div>
                     <span class="text-muted small">Page @pageNumber of @totalPages</span>
                 </div>
-                <!-- Right-aligned Next Button -->
                 <nav aria-label="Next page">
                     <ul class="pagination mb-0">
                         <li class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
                             <a class="page-link rounded-pill px-3" asp-action="ListTransfers"
                                asp-route-warehouseId="@warehouseId"
                                asp-route-pageNumber="@(pageNumber + 1)"
-                               asp-route-pageSize="@pageSize">
+                               asp-route-pageSize="@pageSize"
+                               asp-route-sortColumn="@sortColumn"
+                               asp-route-sortAscending="@sortAscending">
                                 Next <i class="bi bi-chevron-right ms-1"></i>
                             </a>
                         </li>
@@ -147,7 +151,6 @@
             </div>
         }
 
-        <!-- Footer Buttons -->
         <div class="d-flex justify-content-between mt-4">
             <a asp-action="TransferBetweenWarehouses" class="btn btn-primary rounded-pill px-4 fw-semibold">
                 <i class="bi bi-truck me-2"></i> Create Transfer
@@ -166,4 +169,12 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script>
+        function sortTable(column) {
+            var currentSort = '@sortColumn';
+            var currentAscending = '@sortAscending';
+            var newAscending = (currentSort === column) ? !JSON.parse(currentAscending) : true;
+            window.location.href = '@Url.Action("ListTransfers", new { warehouseId = warehouseId, pageNumber = 1, pageSize = pageSize })&sortColumn=' + column + '&sortAscending=' + newAscending;
+        }
+    </script>
 }
