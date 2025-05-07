@@ -1,8 +1,10 @@
-﻿@model IEnumerable<IMS.DAL.Entities.Customer>
+﻿@using IMS.Domain
+@using IMS.Domain.Entities
+@model IEnumerable<Customer>
 
 @{
     ViewData["Title"] = "Customers";
-    var customers = Model ?? Enumerable.Empty<IMS.DAL.Entities.Customer>();
+    var customers = Model ?? Enumerable.Empty<Customer>();
     var totalCount = ViewBag.TotalCount ?? 0;
     var pageNumber = ViewBag.PageNumber ?? 1;
     var pageSize = ViewBag.PageSize ?? 10;

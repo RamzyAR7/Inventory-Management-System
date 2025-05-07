@@ -1,6 +1,6 @@
 ﻿using IMS.DAL.Context;
-using IMS.DAL.Entities;
 using IMS.DAL.Repositories.Interface;
+using IMS.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

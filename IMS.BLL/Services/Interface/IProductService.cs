@@ -1,5 +1,5 @@
 ﻿using IMS.BLL.DTOs.Products;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
 
 namespace IMS.BLL.Services.Interface
 {

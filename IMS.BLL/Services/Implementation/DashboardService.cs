@@ -1,7 +1,7 @@
 ﻿using IMS.BLL.DTOs;
 using IMS.BLL.Services.Interface;
 using IMS.DAL.Context;
-using IMS.DAL.Entities;
+using IMS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace IMS.BLL.Services.Implementation

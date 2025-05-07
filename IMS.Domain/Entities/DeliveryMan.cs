@@ -1,4 +1,6 @@
-﻿namespace IMS.DAL.Entities
+﻿using IMS.Domain.Enums;
+
+namespace IMS.Domain.Entities
 {
     public class DeliveryMan
     {

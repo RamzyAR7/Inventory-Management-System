@@ -1,5 +1,6 @@
 ﻿using IMS.BLL.DTOs.Shipment;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
+using IMS.Domain.Enums;
 
 namespace IMS.BLL.Services.Interface
 {

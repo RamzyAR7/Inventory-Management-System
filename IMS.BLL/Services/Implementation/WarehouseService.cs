@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.Warehouse;
 using IMS.BLL.Services.Interface;
-using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
+using IMS.Domain.Entities;
 using System.Linq.Expressions;
 
 namespace IMS.BLL.Services.Implementation

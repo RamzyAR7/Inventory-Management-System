@@ -1,6 +1,6 @@
 ﻿using IMS.DAL.Context;
-using IMS.DAL.Entities;
 using IMS.DAL.Repositories.Interfaces;
+using IMS.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;

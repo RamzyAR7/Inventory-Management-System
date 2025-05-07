@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 using System;
-using IMS.DAL.Entities;
+using IMS.Domain.Enums;
 
 namespace IMS.BLL.DTOs.Order.Responce
 {

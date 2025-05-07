@@ -1,5 +1,4 @@
-﻿
-using IMS.DAL.Entities;
+﻿using IMS.Domain.Entities;
 
 namespace IMS.DAL.Repositories.Interfaces
 {

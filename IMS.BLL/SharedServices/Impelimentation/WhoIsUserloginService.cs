@@ -1,6 +1,6 @@
 ﻿using IMS.BLL.SharedServices.Interface;
-using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
+using IMS.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;

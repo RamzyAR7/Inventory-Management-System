@@ -10,8 +10,7 @@ using IMS.BLL.DTOs.Supplier;
 using IMS.BLL.DTOs.Transactions;
 using IMS.BLL.DTOs.User;
 using IMS.BLL.DTOs.Warehouse;
-using IMS.BLL.Hashing;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
 
 namespace IMS.BLL.Mapping
 {

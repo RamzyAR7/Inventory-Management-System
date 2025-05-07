@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace IMS.DAL.Entities
+namespace IMS.Domain.Entities
 {
 
     public class Customer

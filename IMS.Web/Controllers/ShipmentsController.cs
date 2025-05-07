@@ -2,7 +2,8 @@
 using IMS.BLL.DTOs.Shipment;
 using IMS.BLL.Services.Interface;
 using IMS.BLL.SharedServices.Interface;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
+using IMS.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;

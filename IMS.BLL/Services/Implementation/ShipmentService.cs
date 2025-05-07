@@ -4,11 +4,12 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using IMS.BLL.DTOs.Shipment;
 using IMS.DAL.UnitOfWork;
-using IMS.DAL.Entities;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using IMS.BLL.Services.Interface;
 using IMS.BLL.SharedServices.Interface;
+using IMS.Domain.Entities;
+using IMS.Domain.Enums;
 
 namespace IMS.BLL.Services.Implementation
 {

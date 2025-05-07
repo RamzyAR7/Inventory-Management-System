@@ -1,5 +1,5 @@
 ﻿using IMS.BLL.DTOs.User;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 

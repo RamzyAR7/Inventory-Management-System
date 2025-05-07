@@ -1,5 +1,5 @@
 ﻿using IMS.BLL.DTOs.Transactions;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
 
 namespace IMS.BLL.Interfaces
 {

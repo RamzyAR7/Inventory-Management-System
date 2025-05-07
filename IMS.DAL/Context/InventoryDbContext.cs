@@ -1,5 +1,5 @@
 ﻿using IMS.DAL.ConfigurationCalsses;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace IMS.DAL.Context

@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.Supplier;
-using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using IMS.BLL.Services.Interface;
+using IMS.Domain.Entities;
 
 namespace IMS.BLL.Services.Implementation
 {

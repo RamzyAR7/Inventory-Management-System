@@ -2,7 +2,7 @@
 using IMS.BLL.DTOs.DeliveryMan;
 using IMS.BLL.Services.Implementation;
 using IMS.BLL.Services.Interface;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;

@@ -5,11 +5,12 @@ using Microsoft.Extensions.Logging;
 using IMS.BLL.DTOs.Products;
 using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Http;
-using IMS.DAL.Entities;
 using IMS.BLL.Services.Interface;
 using System.Linq.Expressions;
 using System.Linq;
 using IMS.BLL.SharedServices.Interface;
+using IMS.Domain;
+using IMS.Domain.Entities;
 
 namespace IMS.BLL.Services.Implementation
 {

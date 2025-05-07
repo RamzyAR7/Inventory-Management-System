@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
 
 namespace IMS.BLL.DTOs.Category
 {

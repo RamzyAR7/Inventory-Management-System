@@ -1,5 +1,5 @@
 ﻿using IMS.BLL.DTOs.User;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
 
 namespace IMS.BLL.DTOs.Warehouse
 {

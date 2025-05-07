@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.Order.Request;
 using IMS.BLL.DTOs.Order.Responce;
-using IMS.DAL.Entities;
+using IMS.Domain.Enums;
 using IMS.BLL.Services.Interface;
 
 namespace IMS.BLL.Services.Interface

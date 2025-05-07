@@ -1,5 +1,4 @@
 ﻿using IMS.DAL.Context;
-using IMS.DAL.Entities;
 using IMS.DAL.Repositories.Implementation;
 using IMS.DAL.Repositories.Interface;
 using IMS.DAL.Repositories.Interfaces;

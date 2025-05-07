@@ -1,6 +1,7 @@
 ﻿using IMS.BLL.DTOs.Order.Request;
 using IMS.BLL.Models;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
+using IMS.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

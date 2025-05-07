@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.DeliveryMan;
 using IMS.BLL.Services.Interface;
-using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
+using IMS.Domain.Entities;
+using IMS.Domain.Enums;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using System.Linq.Expressions;
 

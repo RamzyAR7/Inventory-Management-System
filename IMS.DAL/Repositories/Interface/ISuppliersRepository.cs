@@ -1,5 +1,5 @@
-﻿using IMS.DAL.Entities;
-using IMS.DAL.Repositories.Interfaces;
+﻿using IMS.DAL.Repositories.Interfaces;
+using IMS.Domain.Entities;
 using System.Linq.Expressions;
 
 namespace IMS.DAL.Repositories.Interfaces

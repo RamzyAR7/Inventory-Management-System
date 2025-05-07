@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.Category;
 using IMS.BLL.Services.Interface;
-using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
+using IMS.Domain.Entities;
 using System.CodeDom;
 
 namespace IMS.BLL.Services.Implementation

@@ -73,6 +73,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\IMS.BLL\IMS.BLL.csproj" />
 	  <ProjectReference Include="..\IMS.DAL\IMS.DAL.csproj" />
+	  <ProjectReference Include="..\IMS.Domain\IMS.Domain.csproj" />
 	</ItemGroup>
 
 </Project>

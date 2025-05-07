@@ -2,9 +2,9 @@
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using IMS.DAL.Entities;
 using IMS.DAL.Repositories.Interfaces;
 using IMS.DAL.Context;
+using IMS.Domain.Entities;
 
 namespace IMS.DAL.Repositories.Implementation
 {

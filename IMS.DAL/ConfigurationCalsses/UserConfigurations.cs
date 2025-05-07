@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using IMS.DAL.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using IMS.Domain.Entities;
 
 namespace IMS.DAL.ConfigurationCalsses
 {

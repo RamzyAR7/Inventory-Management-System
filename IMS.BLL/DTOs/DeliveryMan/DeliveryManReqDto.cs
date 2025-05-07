@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using IMS.DAL.Entities;
+﻿using IMS.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
+
 
 namespace IMS.BLL.DTOs.DeliveryMan
 {

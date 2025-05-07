@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using IMS.Domain.Enums;
+using System.ComponentModel.DataAnnotations;
 
-namespace IMS.DAL.Entities
+namespace IMS.Domain.Entities
 {
 
     public class Shipment

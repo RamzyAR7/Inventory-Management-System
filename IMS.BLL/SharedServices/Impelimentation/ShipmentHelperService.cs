@@ -1,7 +1,8 @@
 ﻿using IMS.BLL.Services.Interface;
 using IMS.BLL.SharedServices.Interface;
-using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
+using IMS.Domain.Entities;
+using IMS.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

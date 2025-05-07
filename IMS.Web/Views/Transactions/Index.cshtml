@@ -1,9 +1,11 @@
-﻿@model dynamic
+﻿@using IMS.Domain
+@using IMS.Domain.Entities
+@model dynamic
 @{
     ViewData["Title"] = "Transactions Dashboard";
-    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<IMS.DAL.Entities.InventoryTransaction>;
-    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<IMS.DAL.Entities.InventoryTransaction>;
-    var transfers = ViewBag.Transfers as IEnumerable<IMS.DAL.Entities.WarehouseTransfers>;
+    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<InventoryTransaction>;
+    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<InventoryTransaction>;
+    var transfers = ViewBag.Transfers as IEnumerable<WarehouseTransfers>;
 }
 
 <div class="container py-4">

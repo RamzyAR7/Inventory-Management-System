@@ -1,4 +1,4 @@
-﻿using IMS.DAL.Entities;
+﻿using IMS.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

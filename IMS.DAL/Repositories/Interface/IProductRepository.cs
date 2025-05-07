@@ -1,4 +1,4 @@
-﻿using IMS.DAL.Entities;
+﻿using IMS.Domain.Entities;
 using System.Linq.Expressions;
 
 namespace IMS.DAL.Repositories.Interfaces

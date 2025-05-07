@@ -1,5 +1,5 @@
 ﻿using IMS.BLL.DTOs.Warehouse;
-using IMS.DAL.Entities;
+using IMS.Domain.Entities;
 using System.Linq.Expressions;
 
 namespace IMS.BLL.Services.Interface

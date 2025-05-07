@@ -1,8 +1,10 @@
-﻿@model IEnumerable<IMS.DAL.Entities.Product>
+﻿@using IMS.Domain
+@using IMS.Domain.Entities
+@model IEnumerable<Product>
 
 @{
     ViewData["Title"] = "Inventory";
-    var products = Model ?? ViewBag.Products as IEnumerable<IMS.DAL.Entities.Product> ?? Enumerable.Empty<IMS.DAL.Entities.Product>();
+    var products = Model ?? ViewBag.Products as IEnumerable<Product> ?? Enumerable.Empty<Product>();
     var totalCount = ViewBag.TotalCount ?? 0;
     var pageNumber = ViewBag.PageNumber ?? 1;
     var pageSize = ViewBag.PageSize ?? 10;

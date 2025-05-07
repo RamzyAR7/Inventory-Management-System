@@ -2,8 +2,9 @@
 using IMS.BLL.DTOs.Transactions;
 using IMS.BLL.Interfaces;
 using IMS.BLL.SharedServices.Interface;
-using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
+using IMS.Domain.Entities;
+using IMS.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

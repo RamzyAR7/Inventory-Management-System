@@ -4,8 +4,8 @@ using IMS.BLL.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
-using IMS.DAL.Entities;
 using IMS.BLL.Services.Implementation;
+using IMS.Domain.Entities;
 
 namespace IMS.Web.Controllers
 {

@@ -1,8 +1,10 @@
-﻿@model dynamic
+﻿@using IMS.Domain
+@using IMS.Domain.Entities
+@model dynamic
 @{
     ViewData["Title"] = "In/Out Transactions";
-    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<IMS.DAL.Entities.InventoryTransaction>;
-    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<IMS.DAL.Entities.InventoryTransaction>;
+    var supplierInTransactions = ViewBag.SupplierInTransactions as IEnumerable<InventoryTransaction>;
+    var customerOutTransactions = ViewBag.CustomerOutTransactions as IEnumerable<InventoryTransaction>;
     int totalCount = (int)ViewBag.TotalCount;
     int pageNumber = (int)ViewBag.PageNumber;
     int pageSize = (int)ViewBag.PageSize;
