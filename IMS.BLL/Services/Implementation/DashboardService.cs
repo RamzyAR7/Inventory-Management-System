@@ -54,11 +54,21 @@ namespace IMS.BLL.Services.Implementation
                     p => p.ProductID,
                     (ws, p) => new { Stock = ws, Product = p })
                 .CountAsync(x => x.Stock.StockQuantity < x.Product.RecoderLevel); // Fixed typo: Changed 'ReorderLevel' to 'RecoderLevel'
+          
             int pendingOrders = await _context.Orders
                 .CountAsync(o => o.Status == OrderStatus.Pending);
+            // Get recent transactions in the last 7 days
             var oneWeekAgo = DateTime.Now.AddDays(-7);
             int recentTransactions = await _context.InventoryTransactions
                 .CountAsync(t => t.TransactionDate >= oneWeekAgo);
+
+            // Get total inventory value
+            int totalInventory = await _context.WarehouseStocks
+                .SumAsync(ws => ws.StockQuantity);
+
+            // Get completed orders
+            int completedOrders = await _context.Orders
+                .CountAsync(o => o.Status == OrderStatus.Confirmed);
 
             var dto = new DashboardDto
             {
