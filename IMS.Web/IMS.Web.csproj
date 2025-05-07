@@ -71,8 +71,8 @@
 
 
 	<ItemGroup>
-	  <ProjectReference Include="..\IMS.BAL\IMS.BAL.csproj" />
-	  <ProjectReference Include="..\IMS.Data\IMS.DAL.csproj" />
+	  <ProjectReference Include="..\IMS.BLL\IMS.BLL.csproj" />
+	  <ProjectReference Include="..\IMS.DAL\IMS.DAL.csproj" />
 	</ItemGroup>
 
 </Project>

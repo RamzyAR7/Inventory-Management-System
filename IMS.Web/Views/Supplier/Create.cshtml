@@ -1,4 +1,4 @@
-﻿@model IMS.BAL.DTOs.Supplier.SupplierReqDto
+﻿@model IMS.BLL.DTOs.Supplier.SupplierReqDto
 
 @{
     ViewData["Title"] = "Create Supplier";
@@ -14,6 +14,14 @@
         {
             <div class="text-danger small fw-semibold mb-3">
                 @Html.ValidationSummary(false)
+            </div>
+        }
+
+        @if (TempData["error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         }
 

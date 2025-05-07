@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using IMS.BAL.DTOs.Category;
-using IMS.BAL.Services.Interface;
+using IMS.BLL.DTOs.Category;
+using IMS.BLL.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;

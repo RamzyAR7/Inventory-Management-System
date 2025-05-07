@@ -1,7 +1,8 @@
-﻿using IMS.BAL.DTOs.Transactions;
-using IMS.BAL.DTOs.Warehouse;
-using IMS.BAL.Interfaces;
-using IMS.BAL.Services.Interface;
+﻿using IMS.BLL.DTOs.Transactions;
+using IMS.BLL.DTOs.Warehouse;
+using IMS.BLL.Interfaces;
+using IMS.BLL.Services.Interface;
+using IMS.BLL.SharedServices.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
@@ -23,14 +24,16 @@ namespace IMS.Web.Controllers
         private readonly IWarehouseService _warehouseService;
         private readonly IProductService _productService;
         private readonly ISupplierService _supplierService;
+        private readonly IProductHelperService _productHelperService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TransactionsController> _logger;
 
-        public TransactionsController(ITransactionService transactionService, IWarehouseService warehouseService, IProductService productService, ISupplierService supplierService, IUnitOfWork unitOfWork, ILogger<TransactionsController> logger)
+        public TransactionsController(ITransactionService transactionService, IWarehouseService warehouseService,IProductHelperService productHelperService ,IProductService productService, ISupplierService supplierService, IUnitOfWork unitOfWork, ILogger<TransactionsController> logger)
         {
             _transactionService = transactionService;
             _warehouseService = warehouseService;
             _productService = productService;
+            _productHelperService = productHelperService;
             _supplierService = supplierService;
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -41,13 +44,8 @@ namespace IMS.Web.Controllers
         {
             try
             {
-                _logger.LogInformation("Index - Retrieving transactions for WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}", warehouseId, pageNumber, pageSize);
-
-                // Get paginated transactions
                 var (transactions, totalCount) = await _transactionService.GetPagedTransactionsAsync(warehouseId, pageNumber, pageSize);
-                _logger.LogInformation("Index - Retrieved {TransactionCount} transactions, TotalCount: {TotalCount}", transactions.Count(), totalCount);
 
-                // Separate transactions
                 var supplierInTransactions = transactions
                     .Where(t => t.Type == TransactionType.In && t.SuppliersID != null)
                     .ToList();
@@ -285,7 +283,7 @@ namespace IMS.Web.Controllers
                     }
 
                     await _transactionService.TransferBetweenWarehousesAsync(dto);
-                    await _productService.AssignSupplierFromAnotherProductAsync(dto.FromProductId, dto.ToProductId);
+                    await _productHelperService.AssignSupplierFromAnotherProductAsync(dto.FromProductId, dto.ToProductId);
                     TempData["SuccessMessage"] = "Transfer completed successfully!";
                     return RedirectToAction("Index");
                 }
@@ -310,25 +308,8 @@ namespace IMS.Web.Controllers
         {
             try
             {
-                _logger.LogInformation("GetProductsByWarehouse - Fetching products for WarehouseID: {WarehouseID}", warehouseId);
-
-                var warehouseStocks = await _unitOfWork.WarehouseStocks
-                    .Find(ws => ws.WarehouseID == warehouseId)
-                    .Include(ws => ws.Product)
-                    .ToListAsync();
-
-                var products = warehouseStocks
-                    .GroupBy(ws => ws.Product.ProductName.ToLower())
-                    .Select(g => g.First())
-                    .Select(ws => new
-                    {
-                        ProductID = ws.Product.ProductID,
-                        DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
-                    })
-                    .OrderBy(p => p.DisplayText)
-                    .ToList();
-
-                _logger.LogInformation("GetProductsByWarehouse - Fetched {Count} products for WarehouseID {WarehouseID}", products.Count, warehouseId);
+                var products = await _productHelperService.GetAllProductsThatInThisWarehouse(warehouseId);
+                _logger.LogInformation("GetProductsByWarehouse - Found {Count} products for WarehouseID {WarehouseID}", products.Count, warehouseId);
                 return Json(products);
             }
             catch (Exception ex)
@@ -343,32 +324,7 @@ namespace IMS.Web.Controllers
         {
             try
             {
-                _logger.LogInformation("GetMatchingProducts - Fetching matching products for ProductID: {ProductID}, ToWarehouseID: {ToWarehouseID}", productId, toWarehouseId);
-
-                var products = await _productService.GetAllAsync();
-                var fromProduct = products.FirstOrDefault(p => p.ProductID == productId);
-                if (fromProduct == null)
-                {
-                    _logger.LogWarning("GetMatchingProducts - Source product not found for ProductID {ProductID}", productId);
-                    return Json(new List<object>());
-                }
-
-                var toWarehouseStocks = await _unitOfWork.WarehouseStocks
-                    .Find(ws => ws.WarehouseID == toWarehouseId)
-                    .Include(ws => ws.Product)
-                    .ToListAsync();
-
-                var matchingProducts = toWarehouseStocks
-                    .Where(ws => ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())
-                    .Select(ws => new
-                    {
-                        ProductID = ws.Product.ProductID,
-                        DisplayText = $"{ws.Product.ProductName} (Stock: {ws.StockQuantity})"
-                    })
-                    .DistinctBy(p => p.ProductID)
-                    .OrderBy(p => p.DisplayText)
-                    .ToList();
-
+                var matchingProducts = await _productHelperService.GetAllProductsThatMatching(productId, toWarehouseId);
                 _logger.LogInformation("GetMatchingProducts - Found {Count} matching products for ProductID {ProductID} in WarehouseID {WarehouseID}", matchingProducts.Count, productId, toWarehouseId);
                 return Json(matchingProducts);
             }
@@ -430,14 +386,13 @@ namespace IMS.Web.Controllers
 
                 if (selectedWarehouseId.HasValue)
                 {
-                    var warehouseStocksQuery = _unitOfWork.WarehouseStocks.Find(ws => ws.WarehouseID == selectedWarehouseId.Value);
+                    var warehouseStocksQuery = await _unitOfWork.WarehouseStocks.FindAsync(ws => ws.WarehouseID == selectedWarehouseId.Value, ws => ws.Product);
                     if (requireStockForSource)
                     {
-                        warehouseStocksQuery = warehouseStocksQuery.Where(ws => ws.StockQuantity > 0);
+                        warehouseStocksQuery = await _unitOfWork.WarehouseStocks.FindAsync(ws => ws.WarehouseID == selectedWarehouseId.Value, ws => ws.StockQuantity > 0, ws => ws.Product);
                     }
-                    var warehouseStocks = await warehouseStocksQuery.Include(ws => ws.Product).ToListAsync();
 
-                    var availableProducts = warehouseStocks
+                    var availableProducts = warehouseStocksQuery
                         .Select(ws => new
                         {
                             ws.Product.ProductID,
@@ -447,12 +402,12 @@ namespace IMS.Web.Controllers
                         .OrderBy(p => p.DisplayText)
                         .ToList();
 
-                    if (!availableProducts.Any() && warehouseStocks.Any())
+                    if (!availableProducts.Any() && warehouseStocksQuery.Any())
                     {
                         _logger.LogWarning("PopulateViewBagAsync - Mismatch between WarehouseStock ProductIDs and Products table for WarehouseID {WarehouseID}", selectedWarehouseId.Value);
                         ModelState.AddModelError("FromProductId", "No products found for the selected warehouse due to a data mismatch.");
                     }
-                    else if (!warehouseStocks.Any())
+                    else if (!warehouseStocksQuery.Any())
                     {
                         _logger.LogWarning("PopulateViewBagAsync - No products assigned to WarehouseID {WarehouseID}", selectedWarehouseId.Value);
                         ModelState.AddModelError("FromProductId", "The selected warehouse has no products assigned.");
@@ -466,7 +421,7 @@ namespace IMS.Web.Controllers
 
                     if (requireStockForSource && selectedProductId.HasValue)
                     {
-                        var selectedStock = warehouseStocks.FirstOrDefault(ws => ws.ProductID == selectedProductId.Value);
+                        var selectedStock = warehouseStocksQuery.FirstOrDefault(ws => ws.ProductID == selectedProductId.Value);
                         if (selectedStock == null || selectedStock.StockQuantity <= 0)
                         {
                             _logger.LogWarning("PopulateViewBagAsync - Product {ProductID} out of stock in WarehouseID {WarehouseID}. Available: {StockQuantity}", selectedProductId.Value, selectedWarehouseId.Value, selectedStock?.StockQuantity ?? 0);
@@ -489,9 +444,7 @@ namespace IMS.Web.Controllers
                     if (fromProduct != null)
                     {
                         var toWarehouseStocks = await _unitOfWork.WarehouseStocks
-                            .Find(ws => ws.WarehouseID == selectedToWarehouseId.Value)
-                            .Include(ws => ws.Product)
-                            .ToListAsync();
+                            .FindAsync(ws => ws.WarehouseID == selectedToWarehouseId.Value, ws => ws.Product);
 
                         var matchingProducts = toWarehouseStocks
                             .Where(ws => ws.Product.ProductName.ToLower() == fromProduct.ProductName.ToLower())

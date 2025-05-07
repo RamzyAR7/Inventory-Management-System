@@ -1,13 +1,15 @@
 using AutoMapper; // Add this using directive at the top of the file
 using Microsoft.EntityFrameworkCore;
-using IMS.BAL.Services.Interface;
+using IMS.BLL.Services.Interface;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using IMS.DAL.Context;
 using IMS.DAL.UnitOfWork;
-using IMS.BAL.Services;
-using IMS.BAL.Mapping;
-using IMS.BAL.Services.Implementation;
-using IMS.BAL.Interfaces;
+using IMS.BLL.Services;
+using IMS.BLL.Mapping;
+using IMS.BLL.Services.Implementation;
+using IMS.BLL.Interfaces;
+using IMS.BLL.SharedServices.Interface;
+using IMS.BLL.SharedServices.Impelimentation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +19,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<InventoryDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+//main service
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -31,11 +33,19 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IShipmentService, ShipmentService>();
 builder.Services.AddScoped<IDeliveryManService, DeliveryManService>();
-// Register the generic repository is optional
-// builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+// helper services
+builder.Services.AddScoped<IWhoIsUserLoginService, WhoIsUserloginService>();
+builder.Services.AddScoped<IProductHelperService, ProductHelperService>();
+builder.Services.AddScoped<IOrderHelperService, OrderHelperService>();
+builder.Services.AddScoped<IShipmentHelperService, ShipmentHelperService>();
+
+
+// Global services
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddHttpContextAccessor();
+
 // register Authentication and Authorization
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

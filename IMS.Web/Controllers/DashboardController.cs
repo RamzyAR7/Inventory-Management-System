@@ -1,4 +1,4 @@
-﻿using IMS.BAL.Services.Interface;
+﻿using IMS.BLL.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

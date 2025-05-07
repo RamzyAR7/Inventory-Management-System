@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
-using IMS.BAL.DTOs.Order.Request;
-using IMS.BAL.DTOs.Order.Responce;
-using IMS.BAL.Services.Interface;
+using IMS.BLL.DTOs.Order.Request;
+using IMS.BLL.DTOs.Order.Responce;
+using IMS.BLL.Services.Interface;
+using IMS.BLL.SharedServices.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
@@ -16,30 +17,40 @@ using System.Threading.Tasks;
 
 namespace IMS.Web.Controllers
 {
-    [Authorize(Roles = "Admin,Manager,Employee")]
+    [Authorize(Roles = "Admin, Manager, Employee")]
     public class OrdersController : Controller
     {
         private readonly IOrderService _orderService;
+        private readonly IOrderHelperService _orderHelperService;
+        private readonly IWhoIsUserLoginService _userLoginService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(IOrderService orderService, IUnitOfWork unitOfWork,IMapper mapper, ILogger<OrdersController> logger)
+        public OrdersController(IOrderService orderService, IOrderHelperService orderHelperService, IWhoIsUserLoginService userLoginService,IUnitOfWork unitOfWork,IMapper mapper, ILogger<OrdersController> logger)
         {
             _orderService = orderService;
+            _orderHelperService = orderHelperService;
+            _userLoginService = userLoginService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
         }
+
         [HttpGet]
-        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, OrderStatus? statusFilter = null)
+        public async Task<IActionResult> Index(
+            int pageNumber = 1,
+            int pageSize = 10,
+            OrderStatus? statusFilter = null,
+            string sortBy = "OrderDate",
+            bool sortDescending = false)
         {
             try
             {
-                _logger.LogInformation("Index - Retrieving orders for PageNumber: {PageNumber}, PageSize: {PageSize}, StatusFilter: {StatusFilter}",
-                    pageNumber, pageSize, statusFilter);
+                _logger.LogInformation("Index - Retrieving orders for PageNumber: {PageNumber}, PageSize: {PageSize}, StatusFilter: {StatusFilter}, SortBy: {SortBy}, SortDescending: {SortDescending}",
+                    pageNumber, pageSize, statusFilter, sortBy, sortDescending);
 
-                var (orders, totalCount) = await _orderService.GetPagedOrdersAsync(pageNumber, pageSize, statusFilter);
+                var (orders, totalCount) = await _orderService.GetPagedOrdersAsync(pageNumber, pageSize, statusFilter, sortBy, sortDescending);
                 _logger.LogInformation("Index - Retrieved {OrderCount} orders, TotalCount: {TotalCount}", orders.Count(), totalCount);
 
                 ViewBag.OrderStatuses = Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToList();
@@ -48,6 +59,8 @@ namespace IMS.Web.Controllers
                 ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
                 ViewBag.StatusFilter = statusFilter;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
 
                 return View();
             }
@@ -57,9 +70,11 @@ namespace IMS.Web.Controllers
                 TempData["error"] = "Failed to load orders: " + ex.Message;
                 ViewBag.Orders = new List<OrderResponseDto>();
                 ViewBag.TotalCount = 0;
-                ViewBag.PageNumber = 1;
+                ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
                 ViewBag.StatusFilter = statusFilter;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
                 ViewBag.OrderStatuses = Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToList();
                 return View();
             }
@@ -125,9 +140,7 @@ namespace IMS.Web.Controllers
 
             try
             {
-                var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-                orderDto.CreatedByUserID = userId;
-                await _orderService.CreateAsync(orderDto, userId);
+                await _orderService.CreateAsync(orderDto);
                 TempData["success"] = "Order created successfully.";
                 return RedirectToAction(nameof(Index));
             }
@@ -173,21 +186,20 @@ namespace IMS.Web.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Fetch product details for each order detail
-                var orderDto = new OrderReqDto
-                {
-                    OrderID = order.OrderID,
-                    CustomerID = order.CustomerID,
-                    WarehouseID = order.WarehouseID,
-                    CreatedByUserID = order.CreatedByUserID,
-                    OrderDetails = order.OrderDetails.Select(od => new OrderDetailReqDto
-                    {
-                        ProductID = od.ProductID,
-                        Quantity = od.Quantity,
-                        ProductName = _unitOfWork.Products.GetByIdAsync(p => p.ProductID == od.ProductID).Result?.ProductName ?? "Unknown",
-                        UnitPrice = _unitOfWork.Products.GetByIdAsync(p => p.ProductID == od.ProductID).Result?.Price ?? 0m
-                    }).ToList()
-                };
+               var orderDto = new OrderReqDto
+               {
+                   OrderID = order.OrderID,
+                   CustomerID = order.CustomerID,
+                   WarehouseID = order.WarehouseID,
+                   CreatedByUserID = order.CreatedByUserID,
+                   OrderDetails = order.OrderDetails.Select(od => new OrderDetailReqDto
+                   {
+                       ProductID = od.ProductID,
+                       Quantity = od.Quantity,
+                       ProductName = _unitOfWork.Products.GetByExpressionAsync(p => p.ProductID == od.ProductID).Result?.ProductName ?? "Unknown",
+                       UnitPrice = _unitOfWork.Products.GetByExpressionAsync(p => p.ProductID == od.ProductID).Result?.Price ?? 0m
+                   }).ToList()
+               };
 
                 await PopulateViewBagAsync();
                 return View(orderDto);
@@ -307,17 +319,7 @@ namespace IMS.Web.Controllers
         {
             try
             {
-                var products = await _orderService.GetProductsByWarehouseAndCategoryAsync(warehouseId, categoryId);
-                var result = products.Select(p => new
-                {
-                    productID = p.ProductID,
-                    productName = p.ProductName,
-                    categoryName = p.Category?.CategoryName ?? "N/A",
-                    price = p.Price,
-                    stockQuantity = _unitOfWork.WarehouseStocks
-                        .FirstOrDefaultAsync(ws => ws.WarehouseID == warehouseId && ws.ProductID == p.ProductID)
-                        .Result?.StockQuantity ?? 0
-                }).ToList();
+                var result = await _orderHelperService.GetProductsByWarehouseAndCategoryAsync(warehouseId, categoryId);
 
                 return Json(result);
             }
@@ -340,7 +342,7 @@ namespace IMS.Web.Controllers
             try
             {
                 var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-                var (isValid, errorMessage, orderDetail) = await _orderService.ValidateAndAddProductAsync(warehouseId, productId, quantity, userId);
+                var (isValid, errorMessage, orderDetail) = await _orderHelperService.ValidateAndAddProductAsync(warehouseId, productId, quantity, userId);
 
                 if (!isValid)
                 {
@@ -378,7 +380,7 @@ namespace IMS.Web.Controllers
                     return (false, "User not found.");
                 }
 
-                var accessibleWarehouseIds = await _orderService.GetAccessibleWarehouseIdsAsync(user.Role, userId);
+                var accessibleWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(user.Role, userId);
                 if (!accessibleWarehouseIds.Any())
                 {
                     _logger.LogWarning("No accessible warehouses found for user {UserID} with role {Role}", userId, user.Role);

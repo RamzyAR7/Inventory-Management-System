@@ -1,5 +1,5 @@
 ﻿@model OrderReqDto
-@using IMS.BAL.DTOs.Order.Request
+@using IMS.BLL.DTOs.Order.Request
 @using IMS.DAL.Entities
 
 @{
@@ -104,7 +104,7 @@
             </div>
             <div class="modal-body p-4">
                 <!-- Filter Section -->
-                <div class="row mb-4 sticky-top bg-white pt-2 pb-3" style="z-index: 1;">
+                <div class="row mb-4 bg-white pt-2 pb-3" style="z-index: 1;">
                     <div class="col-md-6">
                         <label for="categoryFilter" class="form-label fw-bold text-dark">
                             <i class="fas fa-filter me-2"></i> Filter by Category
@@ -139,7 +139,7 @@
                 <!-- Products Table -->
                 <div class="table-responsive rounded-3 border">
                     <table class="table table-hover mb-0" id="productsTable">
-                        <thead class="table-light sticky-top" style="top: 120px;">
+                        <thead class="table-light sticky-top" style="top: 0; z-index: 2;">
                             <tr>
                                 <th width="25%">Product</th>
                                 <th width="20%">Category</th>
@@ -299,11 +299,12 @@
             overflow-y: auto;
             max-height: calc(100vh - 200px);
             padding-bottom: 80px; /* Space for sticky footer */
+            padding-top: 0; /* Remove top padding to align with header */
         }
 
         .modal-header.sticky-top {
             top: 0;
-            z-index: 2;
+            z-index: 3;
         }
 
         .modal-footer.sticky-bottom {
@@ -312,7 +313,10 @@
         }
 
         .table thead.sticky-top {
-            z-index: 1;
+            top: 0;
+            z-index: 2;
+            position: sticky;
+            background-color: #f8f9fa;
         }
 
         /* Quantity Input */
@@ -355,7 +359,7 @@
             .modal-dialog-scrollable .modal-content {
                 max-height: calc(100vh - 1rem);
             }
-            
+
             .modal-dialog-scrollable .modal-body {
                 max-height: calc(100vh - 150px);
             }
@@ -454,6 +458,7 @@
                     } else {
                         response.forEach(product => {
                             const existingItem = cart.find(item => item.productId === product.productID);
+                            const quantity = existingItem ? existingItem.quantity : 1;
                             const row = `
                                 <tr data-product-id="${product.productID}">
                                     <td>${product.productName}</td>
@@ -463,10 +468,10 @@
                                     <td>
                                         <input type="number" class="form-control quantity-input"
                                                min="1" max="${product.stockQuantity}"
-                                               value="${existingItem ? existingItem.quantity : 1}">
+                                               value="${quantity}">
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary add-product-btn">
+                                        <button class="btn btn-sm btn-${existingItem ? 'success' : 'primary'} add-product-btn">
                                             <i class="fas fa-${existingItem ? 'sync-alt' : 'plus'}"></i> ${existingItem ? 'Update' : 'Add'}
                                         </button>
                                     </td>
@@ -499,20 +504,10 @@
             const quantity = parseInt(quantityInput.val());
             const warehouseId = $('#WarehouseID').val();
 
-            if (isNaN(quantity)) {
-                showToast('Please enter a valid quantity', 'danger');
-                quantityInput.focus();
-                return;
-            }
-
-            if (quantity <= 0) {
-                showToast('Quantity must be greater than 0', 'danger');
-                quantityInput.focus();
-                return;
-            }
-
-            if (quantity > stock) {
-                showToast(`Cannot add ${quantity}. Only ${stock} available in stock`, 'danger');
+            if (isNaN(quantity) || quantity <= 0 || quantity > stock) {
+                showToast(isNaN(quantity) ? 'Please enter a valid quantity' :
+                          quantity <= 0 ? 'Quantity must be greater than 0' :
+                          `Cannot add ${quantity}. Only ${stock} available in stock`, 'danger');
                 quantityInput.focus();
                 return;
             }
@@ -531,8 +526,13 @@
                     if (response.success) {
                         const existingIndex = cart.findIndex(item => item.productId === response.product.productId);
                         if (existingIndex >= 0) {
-                            cart[existingIndex].quantity = response.product.quantity;
-                            cart[existingIndex].totalPrice = response.product.totalPrice;
+                            cart[existingIndex] = {
+                                productId: response.product.productId,
+                                productName: productName,
+                                quantity: response.product.quantity,
+                                unitPrice: response.product.unitPrice,
+                                totalPrice: response.product.totalPrice
+                            };
                         } else {
                             cart.push({
                                 productId: response.product.productId,
@@ -544,6 +544,7 @@
                         }
                         updateSelectedProducts();
                         showToast(`${productName} added to order`, 'success');
+                        // Update modal row button
                         row.find('.add-product-btn')
                            .html('<i class="fas fa-sync-alt"></i> Update')
                            .removeClass('btn-primary')
@@ -595,7 +596,7 @@
             cart.splice(index, 1);
             updateSelectedProducts();
             showToast(`${productName} removed from order`, 'warning');
-            
+
             // Update the button in the modal if it's open
             if ($('#productModal').hasClass('show')) {
                 loadProducts();
