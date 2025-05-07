@@ -37,13 +37,13 @@
             <!-- Sidebar -->
             <nav id="sidebar" class="sidebar js-sidebar">
                 <div class="sidebar-content js-simplebar">
-                    <a class="sidebar-brand" href="@Url.Action()">
+                    <a class="sidebar-brand" href="@Url.Action("Dashboard")">
                         <span class="align-middle">Inventory System</span>
                     </a>
                     <ul class="sidebar-nav">
-                        <li class="sidebar-item @IsActive("Home")">
-                            <a class="sidebar-link" href="@Url.Action()">
-                                <i class="align-middle" data-feather="home"></i> <span class="align-middle">Dashboard</span>
+                        <li class="sidebar-item @IsActive("Dashboard")">
+                            <a class="sidebar-link" href="@Url.Action("Index", "Dashboard")">
+                                <i class="align-middle" data-feather="grid"></i> <span class="align-middle">Dashboard</span>
                             </a>
                         </li>
                         @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
@@ -68,7 +68,7 @@
                             </li>
                             <li class="sidebar-item @IsActive("DeliveryMen")">
                                 <a class="sidebar-link" href="@Url.Action("Index", "DeliveryMen")">
-                                    <i class="align-middle" data-feather="truck"></i> <span class="align-middle">Delivery Men</span>
+                                    <i class="align-middle bi bi-truck"></i> <span class="align-middle">Delivery Men</span>
                                 </a>
                             </li>
                         }
@@ -98,16 +98,6 @@
                         <li class="sidebar-item @IsActive("Shipments")">
                             <a class="sidebar-link" href="@Url.Action("Index", "Shipments")">
                                 <i class="align-middle" data-feather="truck"></i> <span class="align-middle">Shipments</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item @IsActive("Reports")">
-                            <a class="sidebar-link" href="@Url.Action("Index", "Reports")">
-                                <i class="align-middle" data-feather="bar-chart-2"></i> <span class="align-middle">Reports</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item @IsActive("Settings")">
-                            <a class="sidebar-link" href="@Url.Action("Index", "Settings")">
-                                <i class="align-middle" data-feather="settings"></i> <span class="align-middle">Settings</span>
                             </a>
                         </li>
                     </ul>

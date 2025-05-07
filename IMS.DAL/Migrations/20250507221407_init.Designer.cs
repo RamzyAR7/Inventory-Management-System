@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.DAL.Migrations
 {
     [DbContext(typeof(InventoryDbContext))]
-    [Migration("20250503030146_init")]
+    [Migration("20250507221407_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace IMS.DAL.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Category", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Category", b =>
                 {
                     b.Property<Guid>("CategoryID")
                         .ValueGeneratedOnAdd()
@@ -46,7 +46,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Customer", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Customer", b =>
                 {
                     b.Property<Guid>("CustomerID")
                         .ValueGeneratedOnAdd()
@@ -86,7 +86,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.DeliveryMan", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.DeliveryMan", b =>
                 {
                     b.Property<Guid>("DeliveryManID")
                         .ValueGeneratedOnAdd()
@@ -122,7 +122,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("DeliveryMen");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.InventoryTransaction", b =>
                 {
                     b.Property<Guid>("TransactionID")
                         .ValueGeneratedOnAdd()
@@ -164,7 +164,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("InventoryTransactions");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("OrderID")
                         .ValueGeneratedOnAdd()
@@ -201,7 +201,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.OrderDetail", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.OrderDetail", b =>
                 {
                     b.Property<Guid>("OrderDetailID")
                         .ValueGeneratedOnAdd()
@@ -231,7 +231,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("OrderDetails");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Product", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Product", b =>
                 {
                     b.Property<Guid>("ProductID")
                         .ValueGeneratedOnAdd()
@@ -266,7 +266,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Shipment", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Shipment", b =>
                 {
                     b.Property<Guid>("ShipmentID")
                         .ValueGeneratedOnAdd()
@@ -282,9 +282,11 @@ namespace IMS.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("DeliveryName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DeliveryPhoneNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Destination")
@@ -314,7 +316,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("Shipments");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Supplier", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Supplier", b =>
                 {
                     b.Property<Guid>("SupplierID")
                         .ValueGeneratedOnAdd()
@@ -343,7 +345,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("Suppliers");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.SupplierProduct", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.SupplierProduct", b =>
                 {
                     b.Property<Guid>("SupplierID")
                         .HasColumnType("uniqueidentifier");
@@ -358,7 +360,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("SupplierProducts");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("UserID")
                         .ValueGeneratedOnAdd()
@@ -405,17 +407,17 @@ namespace IMS.DAL.Migrations
                     b.HasData(
                         new
                         {
-                            UserID = new Guid("f73f60de-498c-4bdd-bb3e-bfb8d2d386ba"),
-                            CreatedAt = new DateTime(2025, 5, 3, 3, 1, 45, 525, DateTimeKind.Utc).AddTicks(4933),
+                            UserID = new Guid("ac108da2-f18b-4de8-8d49-7e4af6af4a1e"),
+                            CreatedAt = new DateTime(2025, 5, 7, 22, 14, 6, 328, DateTimeKind.Utc).AddTicks(9974),
                             Email = "admin@gmail.com",
-                            HashedPassword = "$2a$11$UhWrBq3nHRfWfBeK9D43OuM8O1bzeit7WdsNKNdUJYA4lEpktp4.K",
+                            HashedPassword = "$2a$11$BkBhc4N3C7yz59AluO2ZdenrLI27FqQI8J.BIM.SBsDIdmAISYwEu",
                             IsActive = true,
                             Role = "Admin",
                             UserName = "Admin"
                         });
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Warehouse", b =>
                 {
                     b.Property<Guid>("WarehouseID")
                         .ValueGeneratedOnAdd()
@@ -443,7 +445,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("Warehouses");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseStock", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.WarehouseStock", b =>
                 {
                     b.Property<Guid>("WarehouseID")
                         .HasColumnType("uniqueidentifier");
@@ -461,7 +463,7 @@ namespace IMS.DAL.Migrations
                     b.ToTable("WarehouseStocks");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseTransfers", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.WarehouseTransfers", b =>
                 {
                     b.Property<Guid>("WarehouseTransferID")
                         .ValueGeneratedOnAdd()
@@ -508,32 +510,32 @@ namespace IMS.DAL.Migrations
                     b.ToTable("WarehouseTransfers");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.DeliveryMan", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.DeliveryMan", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.User", "Manager")
+                    b.HasOne("IMS.Domain.Entities.User", "Manager")
                         .WithMany("DeliveryMen")
                         .HasForeignKey("ManagerID");
 
                     b.Navigation("Manager");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.InventoryTransaction", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.Order", "Order")
+                    b.HasOne("IMS.Domain.Entities.Order", "Order")
                         .WithMany("InventoryTransactions")
                         .HasForeignKey("OrderID");
 
-                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
+                    b.HasOne("IMS.Domain.Entities.Product", "Product")
                         .WithMany("InventoryTransactions")
                         .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Supplier", "Suppliers")
+                    b.HasOne("IMS.Domain.Entities.Supplier", "Suppliers")
                         .WithMany("InventoryTransactions")
                         .HasForeignKey("SuppliersID");
 
-                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
+                    b.HasOne("IMS.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany("InventoryTransactions")
                         .HasForeignKey("WarehouseID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -548,21 +550,21 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Warehouse");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Order", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.User", "CreatedByUser")
+                    b.HasOne("IMS.Domain.Entities.User", "CreatedByUser")
                         .WithMany("Orders")
                         .HasForeignKey("CreatedByUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Customer", "Customer")
+                    b.HasOne("IMS.Domain.Entities.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
+                    b.HasOne("IMS.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany("Orders")
                         .HasForeignKey("WarehouseID")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -575,15 +577,15 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Warehouse");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.OrderDetail", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.OrderDetail", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.Order", "Order")
+                    b.HasOne("IMS.Domain.Entities.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
+                    b.HasOne("IMS.Domain.Entities.Product", "Product")
                         .WithMany("OrderDetails")
                         .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -594,9 +596,9 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Product", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Product", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.Category", "Category")
+                    b.HasOne("IMS.Domain.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -605,15 +607,15 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Shipment", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Shipment", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.DeliveryMan", "DeliveryMan")
+                    b.HasOne("IMS.Domain.Entities.DeliveryMan", "DeliveryMan")
                         .WithMany("Shipments")
                         .HasForeignKey("DeliveryManID");
 
-                    b.HasOne("Inventory_Management_System.Entities.Order", "Order")
+                    b.HasOne("IMS.Domain.Entities.Order", "Order")
                         .WithOne("Shipment")
-                        .HasForeignKey("Inventory_Management_System.Entities.Shipment", "OrderID")
+                        .HasForeignKey("IMS.Domain.Entities.Shipment", "OrderID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -622,15 +624,15 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.SupplierProduct", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.SupplierProduct", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
+                    b.HasOne("IMS.Domain.Entities.Product", "Product")
                         .WithMany("Suppliers")
                         .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Supplier", "Supplier")
+                    b.HasOne("IMS.Domain.Entities.Supplier", "Supplier")
                         .WithMany("SupplierProducts")
                         .HasForeignKey("SupplierID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -641,9 +643,9 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Supplier");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.User", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.User", "Manager")
+                    b.HasOne("IMS.Domain.Entities.User", "Manager")
                         .WithMany()
                         .HasForeignKey("ManagerID")
                         .OnDelete(DeleteBehavior.NoAction);
@@ -651,9 +653,9 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Manager");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Warehouse", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.User", "Manager")
+                    b.HasOne("IMS.Domain.Entities.User", "Manager")
                         .WithMany("ManagedWarehouses")
                         .HasForeignKey("ManagerID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -662,15 +664,15 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Manager");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseStock", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.WarehouseStock", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.Product", "Product")
+                    b.HasOne("IMS.Domain.Entities.Product", "Product")
                         .WithMany("WarehouseStocks")
                         .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "Warehouse")
+                    b.HasOne("IMS.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany("WarehouseStocks")
                         .HasForeignKey("WarehouseID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -681,39 +683,39 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Warehouse");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.WarehouseTransfers", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.WarehouseTransfers", b =>
                 {
-                    b.HasOne("Inventory_Management_System.Entities.Product", "FromProduct")
+                    b.HasOne("IMS.Domain.Entities.Product", "FromProduct")
                         .WithMany("FromWarehouseTransfers")
                         .HasForeignKey("FromProductID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "FromWarehouse")
+                    b.HasOne("IMS.Domain.Entities.Warehouse", "FromWarehouse")
                         .WithMany("FromWarehouseTransfers")
                         .HasForeignKey("FromWarehouseID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.InventoryTransaction", "InTransaction")
+                    b.HasOne("IMS.Domain.Entities.InventoryTransaction", "InTransaction")
                         .WithMany("InTransfers")
                         .HasForeignKey("InTransactionID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.InventoryTransaction", "OutTransaction")
+                    b.HasOne("IMS.Domain.Entities.InventoryTransaction", "OutTransaction")
                         .WithMany("OutTransfers")
                         .HasForeignKey("OutTransactionID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Product", "ToProduct")
+                    b.HasOne("IMS.Domain.Entities.Product", "ToProduct")
                         .WithMany("ToWarehouseTransfers")
                         .HasForeignKey("ToProductID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Inventory_Management_System.Entities.Warehouse", "ToWarehouse")
+                    b.HasOne("IMS.Domain.Entities.Warehouse", "ToWarehouse")
                         .WithMany("ToWarehouseTransfers")
                         .HasForeignKey("ToWarehouseID")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -732,29 +734,29 @@ namespace IMS.DAL.Migrations
                     b.Navigation("ToWarehouse");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Category", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Customer", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Customer", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.DeliveryMan", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.DeliveryMan", b =>
                 {
                     b.Navigation("Shipments");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.InventoryTransaction", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.InventoryTransaction", b =>
                 {
                     b.Navigation("InTransfers");
 
                     b.Navigation("OutTransfers");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Order", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Order", b =>
                 {
                     b.Navigation("InventoryTransactions");
 
@@ -764,7 +766,7 @@ namespace IMS.DAL.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Product", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Product", b =>
                 {
                     b.Navigation("FromWarehouseTransfers");
 
@@ -779,14 +781,14 @@ namespace IMS.DAL.Migrations
                     b.Navigation("WarehouseStocks");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Supplier", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Supplier", b =>
                 {
                     b.Navigation("InventoryTransactions");
 
                     b.Navigation("SupplierProducts");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.User", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.User", b =>
                 {
                     b.Navigation("DeliveryMen");
 
@@ -795,7 +797,7 @@ namespace IMS.DAL.Migrations
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("Inventory_Management_System.Entities.Warehouse", b =>
+            modelBuilder.Entity("IMS.Domain.Entities.Warehouse", b =>
                 {
                     b.Navigation("FromWarehouseTransfers");
 

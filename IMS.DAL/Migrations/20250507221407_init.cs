@@ -308,8 +308,8 @@ namespace IMS.DAL.Migrations
                     DeliveryMethod = table.Column<int>(type: "int", nullable: false),
                     OrderID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DeliveryManID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DeliveryName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DeliveryPhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    DeliveryName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DeliveryPhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -385,7 +385,7 @@ namespace IMS.DAL.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserID", "CreatedAt", "Email", "HashedPassword", "IsActive", "ManagerID", "Role", "UserName" },
-                values: new object[] { new Guid("f73f60de-498c-4bdd-bb3e-bfb8d2d386ba"), new DateTime(2025, 5, 3, 3, 1, 45, 525, DateTimeKind.Utc).AddTicks(4933), "admin@gmail.com", "$2a$11$UhWrBq3nHRfWfBeK9D43OuM8O1bzeit7WdsNKNdUJYA4lEpktp4.K", true, null, "Admin", "Admin" });
+                values: new object[] { new Guid("ac108da2-f18b-4de8-8d49-7e4af6af4a1e"), new DateTime(2025, 5, 7, 22, 14, 6, 328, DateTimeKind.Utc).AddTicks(9974), "admin@gmail.com", "$2a$11$BkBhc4N3C7yz59AluO2ZdenrLI27FqQI8J.BIM.SBsDIdmAISYwEu", true, null, "Admin", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_Email",
