@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.Transactions;
 using IMS.BLL.Interfaces;
-using IMS.BLL.SharedServices.Impelimentation;
 using IMS.BLL.SharedServices.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
@@ -22,9 +21,9 @@ namespace IMS.BLL.Services.Implementation
         private readonly IMapper _mapper;
         private readonly IProductHelperService _productHelperService;
         private readonly IWhoIsUserLoginService _userLoginService;
-        private readonly ILogger _logger;
+        private readonly ILogger<TransactionService> _logger;
 
-        public TransactionService(IUnitOfWork unitOfWork, IProductHelperService productHelperService, IMapper mapper,IWhoIsUserLoginService userLoginService, ILogger logger)
+        public TransactionService(IUnitOfWork unitOfWork, IProductHelperService productHelperService, IMapper mapper, IWhoIsUserLoginService userLoginService, ILogger<TransactionService> logger)
         {
             _unitOfWork = unitOfWork;
             _productHelperService = productHelperService;
@@ -32,7 +31,13 @@ namespace IMS.BLL.Services.Implementation
             _userLoginService = userLoginService;
             _logger = logger;
         }
-        public async Task<(IEnumerable<InventoryTransaction> Items, int TotalCount)> GetPagedTransactionsAsync(Guid? warehouseId, int pageNumber, int pageSize)
+
+        public async Task<(IEnumerable<InventoryTransaction> Items, int TotalCount)> GetPagedTransactionsAsync(
+            Guid? warehouseId,
+            int pageNumber,
+            int pageSize,
+            string searchSupplier = null,
+            string searchCustomer = null)
         {
             var includes = new Expression<Func<InventoryTransaction, object>>[]
             {
@@ -78,13 +83,162 @@ namespace IMS.BLL.Services.Implementation
                 predicate = t => t.WarehouseID == warehouseId.Value;
             }
 
-            var pagedResult = await _unitOfWork.InventoryTransactions.GetPagedAsync(pageNumber, pageSize, predicate, orderBy: null, sortDescending: false, includes);
+            // If predicate is null, fetch all transactions (no filtering by warehouse)
+            var transactionsQuery = predicate != null
+                ? await _unitOfWork.InventoryTransactions.FindAsync(predicate, includes)
+                : await _unitOfWork.InventoryTransactions.GetAllAsync(includes);
 
-            IEnumerable<InventoryTransaction> items = pagedResult.Items;
-            int totalCount = pagedResult.TotalCount;
+            // Apply search filters
+            if (!string.IsNullOrEmpty(searchSupplier))
+            {
+                transactionsQuery = transactionsQuery.Where(t => t.Type == TransactionType.In && t.Suppliers != null && t.Suppliers.SupplierName.ToLower().Contains(searchSupplier.ToLower()));
+            }
+            if (!string.IsNullOrEmpty(searchCustomer))
+            {
+                transactionsQuery = transactionsQuery.Where(t => t.Type == TransactionType.Out && t.Order != null && t.Order.Customer != null && t.Order.Customer.FullName.ToLower().Contains(searchCustomer.ToLower()));
+            }
 
-            _logger.LogInformation("GetPagedTransactionsAsync - Retrieved {ItemCount} transactions, TotalCount: {TotalCount}", items.Count(), totalCount);
-            return (items, totalCount);
+            // Apply pagination manually since we need to filter after includes
+            var totalCount = transactionsQuery.Count();
+            var paginatedTransactions = transactionsQuery
+                .OrderByDescending(t => t.TransactionDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            _logger.LogInformation("GetPagedTransactionsAsync - Retrieved {ItemCount} transactions, TotalCount: {TotalCount}", paginatedTransactions.Count, totalCount);
+            return (paginatedTransactions, totalCount);
+        }
+
+        public async Task<(IEnumerable<InventoryTransaction> InTransactions, IEnumerable<InventoryTransaction> OutTransactions, IEnumerable<WarehouseTransfers> Transfers)> GetLimitedTransactionsAndTransfersAsync(Guid? warehouseId)
+        {
+            var includes = new Expression<Func<InventoryTransaction, object>>[]
+            {
+                t => t.Warehouse,
+                t => t.Product,
+                t => t.Suppliers,
+                t => t.Order,
+                t => t.Order.Customer,
+                t => t.InTransfers,
+                t => t.OutTransfers
+            };
+
+            Expression<Func<InventoryTransaction, bool>> predicate = null;
+
+            var userRole = await _userLoginService.GetCurrentUserRole();
+            var userId = await _userLoginService.GetCurrentUserId();
+            _logger.LogInformation("GetLimitedTransactionsAndTransfersAsync - User role: {UserRole}", userRole);
+
+            if (userRole == "Manager")
+            {
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
+
+                if (!managerWarehouseIds.Any())
+                {
+                    _logger.LogWarning("GetLimitedTransactionsAndTransfersAsync - No warehouses assigned to Manager with UserID: {UserID}", userId);
+                    return (Enumerable.Empty<InventoryTransaction>(), Enumerable.Empty<InventoryTransaction>(), Enumerable.Empty<WarehouseTransfers>());
+                }
+
+                predicate = t => managerWarehouseIds.Contains(t.WarehouseID);
+
+                if (warehouseId.HasValue)
+                {
+                    if (!managerWarehouseIds.Contains(warehouseId.Value))
+                    {
+                        _logger.LogWarning("GetLimitedTransactionsAndTransfersAsync - Manager attempted to access transactions for unauthorized WarehouseID: {WarehouseID}", warehouseId.Value);
+                        throw new UnauthorizedAccessException("You can only view transactions for your own warehouses.");
+                    }
+                    predicate = t => t.WarehouseID == warehouseId.Value;
+                }
+            }
+            else if (warehouseId.HasValue)
+            {
+                predicate = t => t.WarehouseID == warehouseId.Value;
+            }
+
+            // If predicate is null, fetch all transactions (no filtering by warehouse)
+            var transactionsQuery = predicate != null
+                ? await _unitOfWork.InventoryTransactions.FindAsync(predicate, includes)
+                : await _unitOfWork.InventoryTransactions.GetAllAsync(includes);
+
+            var allTransactions = transactionsQuery.OrderByDescending(t => t.TransactionDate).ToList();
+
+            // Split into In and Out transactions
+            var supplierInTransactions = allTransactions
+                .Where(t => t.Type == TransactionType.In && t.SuppliersID != null)
+                .Take(4)
+                .ToList();
+            var customerOutTransactions = allTransactions
+                .Where(t => t.Type == TransactionType.Out && t.OrderID != null)
+                .Take(3)
+                .ToList();
+
+            // Fetch transfers
+            var transfersQuery = await GetAllTransfersAsync();
+            if (warehouseId.HasValue)
+            {
+                transfersQuery = transfersQuery.Where(t => t.FromWarehouseID == warehouseId.Value || t.ToWarehouseID == warehouseId.Value);
+            }
+            var limitedTransfers = transfersQuery.OrderByDescending(t => t.TransferDate).Take(3).ToList();
+
+            return (supplierInTransactions, customerOutTransactions, limitedTransfers);
+        }
+
+        public async Task<(IEnumerable<WarehouseTransfers> Items, int TotalCount)> GetPagedTransfersAsync(Guid? warehouseId, int pageNumber, int pageSize)
+        {
+            var includes = new Expression<Func<WarehouseTransfers, object>>[]
+            {
+                t => t.FromWarehouse,
+                t => t.ToWarehouse,
+                t => t.FromProduct,
+                t => t.ToProduct,
+            };
+
+            Expression<Func<WarehouseTransfers, bool>> predicate = null;
+            var userRole = await _userLoginService.GetCurrentUserRole();
+            var userId = await _userLoginService.GetCurrentUserId();
+            _logger.LogInformation("GetPagedTransfersAsync - User role: {UserRole}", userRole);
+
+            if (userRole == "Manager")
+            {
+                var managerWarehouseIds = await _userLoginService.GetAccessibleWarehouseIdsAsync(userRole, Guid.Parse(userId));
+                if (!managerWarehouseIds.Any())
+                {
+                    _logger.LogWarning("GetPagedTransfersAsync - No warehouses assigned to Manager with UserID: {UserID}", userId);
+                    return (Enumerable.Empty<WarehouseTransfers>(), 0);
+                }
+
+                predicate = t => managerWarehouseIds.Contains(t.FromWarehouseID) || managerWarehouseIds.Contains(t.ToWarehouseID);
+
+                if (warehouseId.HasValue)
+                {
+                    if (!managerWarehouseIds.Contains(warehouseId.Value))
+                    {
+                        _logger.LogWarning("GetPagedTransfersAsync - Manager attempted to access transfers for unauthorized WarehouseID: {WarehouseID}", warehouseId.Value);
+                        throw new UnauthorizedAccessException("You can only view transfers involving your own warehouses.");
+                    }
+                    predicate = t => t.FromWarehouseID == warehouseId.Value || t.ToWarehouseID == warehouseId.Value;
+                }
+            }
+            else if (warehouseId.HasValue)
+            {
+                predicate = t => t.FromWarehouseID == warehouseId.Value || t.ToWarehouseID == warehouseId.Value;
+            }
+
+            // If predicate is null, fetch all transfers (no filtering by warehouse)
+            var transfersQuery = predicate != null
+                ? await _unitOfWork.WarehouseTransfers.FindAsync(predicate, includes)
+                : await _unitOfWork.WarehouseTransfers.GetAllAsync(includes);
+
+            var totalCount = transfersQuery.Count();
+            var paginatedTransfers = transfersQuery
+                .OrderByDescending(t => t.TransferDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            _logger.LogInformation("GetPagedTransfersAsync - Retrieved {ItemCount} transfers, TotalCount: {TotalCount}", paginatedTransfers.Count, totalCount);
+            return (paginatedTransfers, totalCount);
         }
 
         public async Task<InventoryTransaction> GetTransactionByIdAsync(Guid transactionId)

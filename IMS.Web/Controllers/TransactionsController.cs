@@ -28,7 +28,7 @@ namespace IMS.Web.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TransactionsController> _logger;
 
-        public TransactionsController(ITransactionService transactionService, IWarehouseService warehouseService,IProductHelperService productHelperService ,IProductService productService, ISupplierService supplierService, IUnitOfWork unitOfWork, ILogger<TransactionsController> logger)
+        public TransactionsController(ITransactionService transactionService, IWarehouseService warehouseService, IProductHelperService productHelperService, IProductService productService, ISupplierService supplierService, IUnitOfWork unitOfWork, ILogger<TransactionsController> logger)
         {
             _transactionService = transactionService;
             _warehouseService = warehouseService;
@@ -40,26 +40,11 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(Guid? warehouseId = null)
         {
             try
             {
-                var (transactions, totalCount) = await _transactionService.GetPagedTransactionsAsync(warehouseId, pageNumber, pageSize);
-
-                var supplierInTransactions = transactions
-                    .Where(t => t.Type == TransactionType.In && t.SuppliersID != null)
-                    .ToList();
-                var customerOutTransactions = transactions
-                    .Where(t => t.Type == TransactionType.Out && t.OrderID != null)
-                    .ToList();
-
-                // Get transfers
-                var transfers = await _transactionService.GetAllTransfersAsync();
-                if (warehouseId.HasValue)
-                {
-                    transfers = transfers.Where(t => t.FromWarehouseID == warehouseId.Value || t.ToWarehouseID == warehouseId.Value).ToList();
-                }
-                _logger.LogInformation("Index - Retrieved {TransferCount} transfers", transfers.Count());
+                var (supplierInTransactions, customerOutTransactions, transfers) = await _transactionService.GetLimitedTransactionsAndTransfersAsync(warehouseId);
 
                 // Populate warehouses dropdown
                 var warehouses = await _warehouseService.GetAllAsync();
@@ -81,9 +66,6 @@ namespace IMS.Web.Controllers
                 ViewBag.SupplierInTransactions = supplierInTransactions;
                 ViewBag.CustomerOutTransactions = customerOutTransactions;
                 ViewBag.Transfers = transfers;
-                ViewBag.TotalCount = totalCount;
-                ViewBag.PageNumber = pageNumber;
-                ViewBag.PageSize = pageSize;
 
                 return View();
             }
@@ -91,19 +73,22 @@ namespace IMS.Web.Controllers
             {
                 _logger.LogError(ex, "Index - Error retrieving transactions: {Message}", ex.Message);
                 TempData["ErrorMessage"] = "An error occurred while retrieving transactions.";
+                ViewBag.SupplierInTransactions = new List<InventoryTransaction>();
+                ViewBag.CustomerOutTransactions = new List<InventoryTransaction>();
+                ViewBag.Transfers = new List<WarehouseTransfers>();
                 return View();
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> ListTransactions(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> ListTransactions(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10, string searchSupplier = null, string searchCustomer = null)
         {
             try
             {
-                _logger.LogInformation("ListTransactions - Retrieving transactions for WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}", warehouseId, pageNumber, pageSize);
+                _logger.LogInformation("ListTransactions - Retrieving transactions for WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}, SearchSupplier: {SearchSupplier}, SearchCustomer: {SearchCustomer}", warehouseId, pageNumber, pageSize, searchSupplier, searchCustomer);
 
                 // Get paginated transactions
-                var (transactions, totalCount) = await _transactionService.GetPagedTransactionsAsync(warehouseId, pageNumber, pageSize);
+                var (transactions, totalCount) = await _transactionService.GetPagedTransactionsAsync(warehouseId, pageNumber, pageSize, searchSupplier, searchCustomer);
                 _logger.LogInformation("ListTransactions - Retrieved {TransactionCount} transactions, TotalCount: {TotalCount}", transactions.Count(), totalCount);
 
                 // Separate transactions
@@ -119,6 +104,9 @@ namespace IMS.Web.Controllers
                 ViewBag.TotalCount = totalCount;
                 ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
+                ViewBag.WarehouseId = warehouseId;
+                ViewBag.SearchSupplier = searchSupplier;
+                ViewBag.SearchCustomer = searchCustomer;
                 await PopulateViewBagAsync(warehouseId);
 
                 return View();
@@ -126,40 +114,48 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "ListTransactions - Error retrieving transactions: {Message}", ex.Message);
-                TempData["ErrorMessage"] = "An error occurred while retrieving transactions.";
+                TempData["error"] = "An error occurred while retrieving transactions.";
+                ViewBag.SupplierInTransactions = new List<InventoryTransaction>();
+                ViewBag.CustomerOutTransactions = new List<InventoryTransaction>();
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = 1;
+                ViewBag.PageSize = pageSize;
+                ViewBag.WarehouseId = warehouseId;
+                ViewBag.SearchSupplier = searchSupplier;
+                ViewBag.SearchCustomer = searchCustomer;
+                await PopulateViewBagAsync(warehouseId);
                 return View();
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> ListTransfers(int pageNumber = 1, int pageSize = 10)
+        public async Task<IActionResult> ListTransfers(Guid? warehouseId = null, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                _logger.LogInformation("ListTransfers - Retrieving transfers, PageNumber: {PageNumber}, PageSize: {PageSize}", pageNumber, pageSize);
+                _logger.LogInformation("ListTransfers - Retrieving transfers, WarehouseID: {WarehouseID}, PageNumber: {PageNumber}, PageSize: {PageSize}", warehouseId, pageNumber, pageSize);
 
-                // Get transfers (already filtered by TransactionService for Managers)
-                var transfers = await _transactionService.GetAllTransfersAsync();
-                _logger.LogInformation("ListTransfers - Retrieved {TransferCount} transfers", transfers.Count());
-
-                // Apply pagination manually since GetAllTransfersAsync returns IEnumerable
-                var totalCount = transfers.Count();
-                var paginatedTransfers = transfers
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
+                // Get paginated transfers
+                var (transfers, totalCount) = await _transactionService.GetPagedTransfersAsync(warehouseId, pageNumber, pageSize);
+                _logger.LogInformation("ListTransfers - Retrieved {TransferCount} transfers, TotalCount: {TotalCount}", transfers.Count(), totalCount);
 
                 ViewBag.TotalCount = totalCount;
                 ViewBag.PageNumber = pageNumber;
                 ViewBag.PageSize = pageSize;
-                await PopulateViewBagAsync();
+                ViewBag.WarehouseId = warehouseId;
+                await PopulateViewBagAsync(warehouseId);
 
-                return View(paginatedTransfers);
+                return View(transfers);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "ListTransfers - Error retrieving transfers: {Message}", ex.Message);
-                TempData["ErrorMessage"] = "An error occurred while retrieving transfers.";
+                TempData["error"] = "An error occurred while retrieving transfers.";
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = 1;
+                ViewBag.PageSize = pageSize;
+                ViewBag.WarehouseId = warehouseId;
+                await PopulateViewBagAsync(warehouseId);
                 return View(new List<WarehouseTransfers>());
             }
         }
@@ -176,7 +172,7 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "TransactionDetails - Error retrieving transaction details for TransactionID {TransactionID}: {Message}", id, ex.Message);
-                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                TempData["error"] = $"Error: {ex.Message}";
                 return RedirectToAction("Index");
             }
         }
@@ -193,7 +189,7 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "TransferDetails - Error retrieving transfer details for TransferID {TransferID}: {Message}", id, ex.Message);
-                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                TempData["error"] = $"Error: {ex.Message}";
                 return RedirectToAction("Index");
             }
         }
@@ -210,7 +206,7 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "CreateInTransaction GET - Error loading form: {Message}", ex.Message);
-                TempData["ErrorMessage"] = "An error occurred while loading the transaction form.";
+                TempData["error"] = "An error occurred while loading the transaction form.";
                 return View(new CreateInventoryTransactionDto());
             }
         }
@@ -224,13 +220,13 @@ namespace IMS.Web.Controllers
                 {
                     _logger.LogInformation("CreateInTransaction POST - Creating transaction for WarehouseID: {WarehouseID}, ProductID: {ProductID}", dto.WarehouseId, dto.ProductId);
                     await _transactionService.CreateInTransactionAsync(dto);
-                    TempData["SuccessMessage"] = "Transaction completed successfully!";
+                    TempData["Success"] = "Transaction completed successfully!";
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "CreateInTransaction POST - Error creating transaction: {Message}", ex.Message);
-                    TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                    TempData["error"] = $"Error: {ex.Message}";
                 }
             }
             else
@@ -254,7 +250,7 @@ namespace IMS.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "TransferBetweenWarehouses GET - Error loading form: {Message}", ex.Message);
-                TempData["ErrorMessage"] = "An error occurred while loading the transfer form.";
+                TempData["error"] = "An error occurred while loading the transfer form.";
                 return View(new CreateWarehouseTransferDto());
             }
         }
@@ -284,13 +280,13 @@ namespace IMS.Web.Controllers
 
                     await _transactionService.TransferBetweenWarehousesAsync(dto);
                     await _productHelperService.AssignSupplierFromAnotherProductAsync(dto.FromProductId, dto.ToProductId);
-                    TempData["SuccessMessage"] = "Transfer completed successfully!";
+                    TempData["Success"] = "Transfer completed successfully!";
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "TransferBetweenWarehouses POST - Error creating transfer: {Message}", ex.Message);
-                    TempData["ErrorMessage"] = ex.Message;
+                    TempData["error"] = ex.Message;
                     await PopulateViewBagAsync(null, dto.FromWarehouseId, dto.FromProductId, dto.ToWarehouseId, dto.ToProductId, requireStockForSource: true);
                 }
             }
@@ -334,6 +330,7 @@ namespace IMS.Web.Controllers
                 return StatusCode(500, new { error = "Error fetching matching products" });
             }
         }
+
         private async Task PopulateViewBagAsync(Guid? selectedSupplierId = null, Guid? selectedWarehouseId = null, Guid? selectedProductId = null, Guid? selectedToWarehouseId = null, Guid? selectedToProductId = null, bool requireStockForSource = false)
         {
             try
@@ -386,11 +383,13 @@ namespace IMS.Web.Controllers
 
                 if (selectedWarehouseId.HasValue)
                 {
-                    var warehouseStocksQuery = await _unitOfWork.WarehouseStocks.FindAsync(ws => ws.WarehouseID == selectedWarehouseId.Value, ws => ws.Product);
+                    Expression<Func<WarehouseStock, bool>> stockPredicate = ws => ws.WarehouseID == selectedWarehouseId.Value;
                     if (requireStockForSource)
                     {
-                        warehouseStocksQuery = await _unitOfWork.WarehouseStocks.FindAsync(ws => ws.WarehouseID == selectedWarehouseId.Value, ws => ws.StockQuantity > 0, ws => ws.Product);
+                        stockPredicate = ws => ws.WarehouseID == selectedWarehouseId.Value && ws.StockQuantity > 0;
                     }
+
+                    var warehouseStocksQuery = await _unitOfWork.WarehouseStocks.FindAsync(stockPredicate, ws => ws.Product);
 
                     var availableProducts = warehouseStocksQuery
                         .Select(ws => new
@@ -489,4 +488,3 @@ namespace IMS.Web.Controllers
         }
     }
 }
-

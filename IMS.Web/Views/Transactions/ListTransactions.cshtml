@@ -7,11 +7,13 @@
     int pageNumber = (int)ViewBag.PageNumber;
     int pageSize = (int)ViewBag.PageSize;
     int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+    string searchSupplier = ViewBag.SearchSupplier ?? "";
+    string searchCustomer = ViewBag.SearchCustomer ?? "";
+    Guid? warehouseId = ViewBag.WarehouseId;
 }
 
 <div class="container py-4">
     <div class="bg-white p-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
-
         <!-- Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-semibold text-primary mb-0 d-flex align-items-center">
@@ -20,32 +22,54 @@
         </div>
 
         <!-- Alerts -->
-        @if (TempData["SuccessMessage"] != null)
+        @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success rounded-3 small fw-semibold">@TempData["SuccessMessage"]</div>
+            <div class="alert alert-success rounded-3 small fw-semibold">@TempData["Success"]</div>
         }
-        @if (TempData["ErrorMessage"] != null)
+        @if (TempData["error"] != null)
         {
-            <div class="alert alert-danger rounded-3 small fw-semibold">@TempData["ErrorMessage"]</div>
+            <div class="alert alert-danger rounded-3 small fw-semibold">@TempData["error"]</div>
         }
 
-        <!-- Filter -->
-        <form asp-action="Index" method="get" class="mb-4">
-            <div class="form-group mb-2">
-                <label for="warehouseId" class="form-label fw-semibold text-muted d-flex align-items-center">
-                    <i class="fas fa-filter me-2 text-secondary"></i> Filter by Warehouse
-                </label>
-                <div class="input-group">
+        <!-- Filters -->
+        <form asp-action="ListTransactions" method="get" class="mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="warehouseId" class="form-label fw-semibold text-muted d-flex align-items-center">
+                        <i class="fas fa-filter me-2 text-secondary"></i> Filter by Warehouse
+                    </label>
                     <select name="warehouseId" id="warehouseId" asp-items="ViewBag.Warehouses"
                             class="form-select rounded-pill border-primary shadow-sm fw-semibold text-primary"
                             style="max-width: 280px;" onchange="this.form.submit()">
                         <option value="">All Warehouses</option>
                     </select>
                 </div>
-                <input type="hidden" name="pageNumber" value="1" />
+                <div class="col-md-4">
+                    <label for="searchSupplier" class="form-label fw-semibold text-muted d-flex align-items-center">
+                        <i class="fas fa-search me-2 text-secondary"></i> Search In by Supplier
+                    </label>
+                    <input type="text" name="searchSupplier" id="searchSupplier" value="@searchSupplier"
+                           class="form-control rounded-pill border-primary shadow-sm" placeholder="Supplier Name" />
+                </div>
+                <div class="col-md-4">
+                    <label for="searchCustomer" class="form-label fw-semibold text-muted d-flex align-items-center">
+                        <i class="fas fa-search me-2 text-secondary"></i> Search Out by Customer
+                    </label>
+                    <input type="text" name="searchCustomer" id="searchCustomer" value="@searchCustomer"
+                           class="form-control rounded-pill border-primary shadow-sm" placeholder="Customer Name" />
+                </div>
             </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary rounded-pill px-3">
+                    <i class="fas fa-search me-1"></i> Search
+                </button>
+                <a asp-action="ListTransactions" class="btn btn-outline-secondary rounded-pill px-3">
+                    <i class="fas fa-times me-1"></i> Clear
+                </a>
+            </div>
+            <input type="hidden" name="pageNumber" value="1" />
+            <input type="hidden" name="pageSize" value="@pageSize" />
         </form>
-
 
         <!-- In Transactions -->
         <h5 class="fw-semibold text-primary mb-3 mt-5 d-flex align-items-center">
@@ -150,19 +174,53 @@
         <!-- Pagination -->
         @if (totalPages > 1)
         {
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    @for (int i = 1; i <= totalPages; i++)
-                    {
-                        <li class="page-item @(i == pageNumber ? "active" : "")">
-                            <a class="page-link"
-                               asp-action="ListTransactions"
-                               asp-route-warehouseId="@ViewBag.WarehouseId"
-                               asp-route-pageNumber="@i">@i</a>
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <!-- Left-aligned Previous Button -->
+                <nav aria-label="Previous page">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(pageNumber <= 1 ? "disabled" : "")">
+                            <a class="page-link rounded-pill px-3" asp-action="ListTransactions"
+                               asp-route-warehouseId="@warehouseId"
+                               asp-route-searchSupplier="@searchSupplier"
+                               asp-route-searchCustomer="@searchCustomer"
+                               asp-route-pageNumber="@(pageNumber - 1)"
+                               asp-route-pageSize="@pageSize">
+                                <i class="bi bi-chevron-left me-1"></i> Previous
+                            </a>
                         </li>
-                    }
-                </ul>
-            </nav>
+                    </ul>
+                </nav>
+                <!-- Center-aligned Page Size Selector and Page Indicator -->
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small">Items per page:</span>
+                        <select class="form-select form-select-sm" style="width: 70px;"
+                                onchange="window.location.href = '@Url.Action("ListTransactions", new { warehouseId = warehouseId, searchSupplier = searchSupplier, searchCustomer = searchCustomer, pageNumber = 1 })&pageSize=' + this.value">
+                            <option value="5" selected="@(pageSize == 5)">5</option>
+                            <option value="10" selected="@(pageSize == 10)">10</option>
+                            <option value="25" selected="@(pageSize == 25)">25</option>
+                            <option value="50" selected="@(pageSize == 50)">50</option>
+                            <option value="100" selected="@(pageSize == 100)">100</option>
+                        </select>
+                    </div>
+                    <span class="text-muted small">Page @pageNumber of @totalPages</span>
+                </div>
+                <!-- Right-aligned Next Button -->
+                <nav aria-label="Next page">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
+                            <a class="page-link rounded-pill px-3" asp-action="ListTransactions"
+                               asp-route-warehouseId="@warehouseId"
+                               asp-route-searchSupplier="@searchSupplier"
+                               asp-route-searchCustomer="@searchCustomer"
+                               asp-route-pageNumber="@(pageNumber + 1)"
+                               asp-route-pageSize="@pageSize">
+                                Next <i class="bi bi-chevron-right ms-1"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
         }
 
         <!-- Footer Buttons -->
@@ -178,18 +236,12 @@
 </div>
 
 @section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 }
 
-<style>
-    .dropdown .btn-outline-primary {
-        border-width: 1.5px;
-        font-size: 0.95rem;
-        background-color: white;
-    }
-
-    .dropdown-menu .dropdown-item {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-    }
-</style>
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+}

@@ -18,14 +18,6 @@
                 </a>
             </div>
         </div>
-
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger small rounded-3 py-2 px-3 mb-4" role="alert">
-                @TempData["ErrorMessage"]
-            </div>
-        }
-
         <dl class="row mb-0">
             <dt class="col-sm-4 text-muted">Username</dt>
             <dd class="col-sm-8">@Model.UserName</dd>

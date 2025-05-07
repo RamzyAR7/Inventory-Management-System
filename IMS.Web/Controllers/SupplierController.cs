@@ -3,6 +3,9 @@ using IMS.BLL.DTOs.Supplier;
 using IMS.BLL.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq.Expressions;
+using IMS.DAL.Entities;
+using IMS.BLL.Services.Implementation;
 
 namespace IMS.Web.Controllers
 {
@@ -17,12 +20,50 @@ namespace IMS.Web.Controllers
             _supplierService = supplierService;
             _mapper = mapper;
         }
+
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string sortBy = "SupplierName", bool sortDescending = false)
         {
-            var suppliers = await _supplierService.GetAllAsync();
-            return View(suppliers);
+            try
+            {
+                // Define sorting logic
+                Expression<Func<Supplier, object>> orderBy = sortBy switch
+                {
+                    "PhoneNumber" => s => s.PhoneNumber,
+                    "Email" => s => s.Email,
+                    _ => s => s.SupplierName // Default to SupplierName
+                };
+
+                // Fetch paged suppliers using the service
+                (IEnumerable<Supplier> suppliers, int totalCount) = await _supplierService.GetAllPagedAsync(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize,
+                    predicate: null,
+                    orderBy: orderBy,
+                    sortDescending: sortDescending,
+                    includeProperties: new Expression<Func<Supplier, object>>[] { s => s.SupplierProducts, s => s.InventoryTransactions }
+                );
+
+                ViewBag.TotalCount = totalCount;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+
+                return View(suppliers);
+            }
+            catch (Exception)
+            {
+                TempData["error"] = "An unexpected error occurred.";
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = 1;
+                ViewBag.PageSize = pageSize;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+                return View(new List<Supplier>());
+            }
         }
+
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
@@ -32,6 +73,7 @@ namespace IMS.Web.Controllers
 
             return View(supplier);
         }
+
         [HttpGet]
         public IActionResult Create()
         {
@@ -51,13 +93,11 @@ namespace IMS.Web.Controllers
                     return RedirectToAction(nameof(Index));
                 }
                 return View(supplier);
-
             }
             catch (InvalidOperationException ex)
             {
-                TempData["error"] = "Email is Already Exist";
-                return RedirectToAction(nameof(Create));
-
+                TempData["error"] = ex.Message;
+                return View(supplier);
             }
         }
 
@@ -75,14 +115,28 @@ namespace IMS.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, SupplierReqDto supplier)
         {
-            if (ModelState.IsValid)
+            try
             {
-                await _supplierService.UpdateAsync(id, supplier);
-                TempData["success"] = "Supplier edited successfully.";
+                if (ModelState.IsValid)
+                {
+                    await _supplierService.UpdateAsync(id, supplier);
+                    TempData["success"] = "Supplier edited successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(supplier);
+            }
+            catch (NotFoundException ex)
+            {
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
-            return View(supplier);
+            catch (Exception)
+            {
+                TempData["error"] = "An unexpected error occurred.";
+                return View(supplier);
+            }
         }
+
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -97,9 +151,22 @@ namespace IMS.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            await _supplierService.DeleteAsync(id);
-            TempData["success"] = "Supplier deleted successfully.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _supplierService.DeleteAsync(id);
+                TempData["success"] = "Supplier deleted successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (NotFoundException ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

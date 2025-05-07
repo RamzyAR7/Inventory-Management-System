@@ -24,10 +24,31 @@ namespace IMS.BLL.Services.Implementation
             return await _unitOfWork.Suppliers.GetAllAsync();
         }
 
+        public async Task<(IEnumerable<Supplier> Items, int TotalCount)> GetAllPagedAsync(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<Supplier, bool>> predicate = null,
+            Expression<Func<Supplier, object>> orderBy = null,
+            bool sortDescending = false,
+            params Expression<Func<Supplier, object>>[] includeProperties)
+        {
+            return await _unitOfWork.Suppliers.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                predicate,
+                orderBy,
+                sortDescending,
+                includeProperties);
+        }
+
         public async Task<Supplier> GetByIdAsync(Guid id)
         {
-
-            return await _unitOfWork.Suppliers.GetSupplierAndProductsBy(s => s.SupplierID == id);
+            var supplier = await _unitOfWork.Suppliers.GetSupplierAndProductsBy(s => s.SupplierID == id);
+            if (supplier == null)
+            {
+                throw new NotFoundException($"Supplier with ID {id} not found");
+            }
+            return supplier;
         }
 
         public async Task CreateAsync(SupplierReqDto supplierDto)
@@ -55,10 +76,18 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task DeleteAsync(Guid id)
         {
-            var supplier = await _unitOfWork.Suppliers.GetByExpressionAsync(s => s.SupplierID == id);
+            var supplier = await _unitOfWork.Suppliers.GetByExpressionAsync(s => s.SupplierID == id, s => s.SupplierProducts, s => s.InventoryTransactions);
             if (supplier == null)
                 throw new NotFoundException($"Supplier with ID {id} not found");
 
+            if (supplier.SupplierProducts != null && supplier.SupplierProducts.Any())
+            {
+                throw new InvalidOperationException("Can not Delete Supplier that has products");
+            }
+            if (supplier.InventoryTransactions != null && supplier.InventoryTransactions.Any())
+            {
+                throw new InvalidOperationException("Can not Delete Supplier that has transactions");
+            }
             await _unitOfWork.Suppliers.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
         }

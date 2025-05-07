@@ -14,13 +14,13 @@
         </div>
 
        
-        @if (TempData["SuccessMessage"] != null)
+        @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success small rounded-3 py-2 px-3">@TempData["SuccessMessage"]</div>
+            <div class="alert alert-success small rounded-3 py-2 px-3">@TempData["Success"]</div>
         }
-        @if (TempData["ErrorMessage"] != null)
+        @if (TempData["error"] != null)
         {
-            <div class="alert alert-danger small rounded-3 py-2 px-3">@TempData["ErrorMessage"]</div>
+            <div class="alert alert-danger small rounded-3 py-2 px-3">@TempData["error"]</div>
         }
         @if (ViewData.ModelState.Any(x => x.Value.Errors.Any()))
         {

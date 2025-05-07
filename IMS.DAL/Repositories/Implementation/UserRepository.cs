@@ -11,6 +11,7 @@ namespace IMS.DAL.Repositories.Implementation
         public UserRepository(InventoryDbContext context) : base(context)
         {
         }
+
         public async Task<User> GetByUserNameAsync(string userName, params Expression<Func<User, object>>[] includes)
         {
             IQueryable<User> query = _context.Users;
@@ -20,6 +21,7 @@ namespace IMS.DAL.Repositories.Implementation
             }
             return await query.FirstOrDefaultAsync(u => u.UserName == userName);
         }
+
         public async Task<IEnumerable<User>> FindManagerAsync(Expression<Func<User, bool>> predicate)
         {
             return await _context.Users
@@ -27,5 +29,6 @@ namespace IMS.DAL.Repositories.Implementation
                 .Where(predicate)
                 .ToListAsync();
         }
+        
     }
 }

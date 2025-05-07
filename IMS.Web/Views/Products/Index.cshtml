@@ -245,7 +245,7 @@
             <!-- Left-aligned Previous Button -->
             <nav aria-label="Previous page">
                 <ul class="pagination mb-0">
-                    <li class="page-item @(pageNumber <= 1 ? "disabled" : "")">
+                    <a class="page-item @(pageNumber <= 1 ? "disabled" : "")">
                         <a class="page-link rounded-pill px-3" asp-action="Index"
                            asp-route-pageNumber="@(pageNumber - 1)"
                            asp-route-pageSize="@pageSize"
@@ -254,7 +254,7 @@
                            asp-route-sortDescending="@sortDescending">
                             <i class="bi bi-chevron-left me-1"></i> Previous
                         </a>
-                    </li>
+                    </a>
                 </ul>
             </nav>
             <!-- Center-aligned Page Size Selector and Page Indicator -->
@@ -275,7 +275,7 @@
             <!-- Right-aligned Next Button -->
             <nav aria-label="Next page">
                 <ul class="pagination mb-0">
-                    <li class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
+                    <a class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
                         <a class="page-link rounded-pill px-3" asp-action="Index"
                            asp-route-pageNumber="@(pageNumber + 1)"
                            asp-route-pageSize="@pageSize"
@@ -284,7 +284,7 @@
                            asp-route-sortDescending="@sortDescending">
                             Next <i class="bi bi-chevron-right ms-1"></i>
                         </a>
-                    </li>
+                    </a>
                 </ul>
             </nav>
         </div>

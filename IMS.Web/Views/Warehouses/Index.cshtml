@@ -2,6 +2,13 @@
 
 @{
     ViewData["Title"] = "Warehouses";
+    var warehouses = Model ?? Enumerable.Empty<IMS.BLL.DTOs.Warehouse.WarehouseResDto>();
+    var totalCount = ViewBag.TotalCount ?? 0;
+    var pageNumber = ViewBag.PageNumber ?? 1;
+    var pageSize = ViewBag.PageSize ?? 10;
+    var sortBy = ViewBag.SortBy ?? "WarehouseName";
+    var sortDescending = ViewBag.SortDescending ?? false;
+    var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 }
 
 <div class="container py-4">
@@ -10,76 +17,167 @@
             <h3 class="fw-semibold mb-0 d-flex align-items-center" style="color: #608fc8; font-size: 1.5rem;">
                 <i class="bi bi-house-door-fill me-2" style="font-size: 1.6rem;"></i> Warehouses Management
             </h3>
-
-            <a asp-action="Create" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
-                <i class="align-middle me-2" data-feather="plus"></i> Create New
+            <a asp-action="Create" class="btn btn-primary rounded-pill px-3 fw-semibold">
+                <i class="bi bi-plus-lg me-1"></i> New Warehouse
             </a>
         </div>
 
-        @if (TempData["SuccessMessage"] != null)
+        @if (TempData["success"] != null)
         {
-            <div class="text-success small fw-semibold mb-3">
-                @TempData["SuccessMessage"]
+            <div class="alert alert-success small rounded-3 py-2 px-3 mb-3" role="alert">
+                @TempData["success"]
             </div>
         }
-        @if (TempData["ErrorMessage"] != null)
+        @if (TempData["error"] != null)
         {
-            <div class="text-danger small fw-semibold mb-3">
-                @TempData["ErrorMessage"]
+            <div class="alert alert-danger small rounded-3 py-2 px-3 mb-3" role="alert">
+                @TempData["error"]
             </div>
         }
 
         <div class="table-responsive rounded-3 overflow-hidden">
             <table class="table align-middle mb-0">
-                <thead class="bg-light">
-                    <tr style="color: #6c707de6;">
-                        <th>@Html.DisplayNameFor(model => model.WarehouseName)</th>
-                        <th>@Html.DisplayNameFor(model => model.Address)</th>
-                        <th>@Html.DisplayNameFor(model => model.ManagerName)</th>
+                <thead class="bg-light text-muted">
+                    <tr>
+                        <th>
+                            <a asp-action="Index" asp-route-pageNumber="@pageNumber" asp-route-pageSize="@pageSize" asp-route-sortBy="WarehouseName" asp-route-sortDescending="@(sortBy == "WarehouseName" && !sortDescending ? "true" : "false")">
+                                @Html.DisplayNameFor(model => model.WarehouseName)
+                                @if (sortBy == "WarehouseName")
+                                {
+                                    <i class="bi @(sortDescending ? "bi-sort-down" : "bi-sort-up") ms-1"></i>
+                                }
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-route-pageNumber="@pageNumber" asp-route-pageSize="@pageSize" asp-route-sortBy="Address" asp-route-sortDescending="@(sortBy == "Address" && !sortDescending ? "true" : "false")">
+                                @Html.DisplayNameFor(model => model.Address)
+                                @if (sortBy == "Address")
+                                {
+                                    <i class="bi @(sortDescending ? "bi-sort-down" : "bi-sort-up") ms-1"></i>
+                                }
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="Index" asp-route-pageNumber="@pageNumber" asp-route-pageSize="@pageSize" asp-route-sortBy="ManagerName" asp-route-sortDescending="@(sortBy == "ManagerName" && !sortDescending ? "true" : "false")">
+                                @Html.DisplayNameFor(model => model.ManagerName)
+                                @if (sortBy == "ManagerName")
+                                {
+                                    <i class="bi @(sortDescending ? "bi-sort-down" : "bi-sort-up") ms-1"></i>
+                                }
+                            </a>
+                        </th>
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var warehouse in Model)
+                    @if (!warehouses.Any())
                     {
                         <tr>
-                            <td>@warehouse.WarehouseName</td>
-                            <td>@warehouse.Address</td>
-                            <td>
-                                @if (!string.IsNullOrEmpty(warehouse.ManagerName))
-                                {
-                                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-1">@warehouse.ManagerName</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">None</span>
-                                }
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center gap-2">
-                                    <a asp-action="Details" asp-route-id="@warehouse.WarehouseID" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
-                                        <i class="align-middle me-1" data-feather="eye"></i> View
-                                    </a>
-                                    <a asp-action="Edit" asp-route-id="@warehouse.WarehouseID" class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-semibold">
-                                        <i class="align-middle me-1" data-feather="edit"></i> Edit
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@warehouse.WarehouseID" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
-                                        <i class="align-middle me-1" data-feather="trash-2"></i> Delete
-                                    </a>
-                                </div>
+                            <td colspan="4" class="text-center text-muted">
+                                No warehouses found.
                             </td>
                         </tr>
+                    }
+                    else
+                    {
+                        @foreach (var warehouse in warehouses)
+                        {
+                            <tr>
+                                <td>@warehouse.WarehouseName</td>
+                                <td>@warehouse.Address</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(warehouse.ManagerName))
+                                    {
+                                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-2 py-1">@warehouse.ManagerName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">None</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a asp-action="Details" asp-route-id="@warehouse.WarehouseID"
+                                           class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+                                           title="View Details">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@warehouse.WarehouseID"
+                                           class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+                                           title="Edit">
+                                            <i class="bi bi-pencil-square"></i> Edit
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@warehouse.WarehouseID"
+                                           class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold d-flex align-items-center gap-1"
+                                           title="Delete">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
         </div>
+
+        <!-- Bottom Pagination - Split Layout -->
+        @if (totalPages > 1)
+        {
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <!-- Left-aligned Previous Button -->
+                <nav aria-label="Previous page">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(pageNumber <= 1 ? "disabled" : "")">
+                            <a class="page-link rounded-pill px-3" asp-action="Index"
+                               asp-route-pageNumber="@(pageNumber - 1)"
+                               asp-route-pageSize="@pageSize"
+                               asp-route-sortBy="@sortBy"
+                               asp-route-sortDescending="@sortDescending">
+                                <i class="bi bi-chevron-left me-1"></i> Previous
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- Center-aligned Page Size Selector and Page Indicator -->
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small">Items per page:</span>
+                        <select class="form-select form-select-sm" style="width: 70px;"
+                                onchange="window.location.href = '@Url.Action("Index", new { pageNumber = 1, sortBy = sortBy, sortDescending = sortDescending })&pageSize=' + this.value">
+                            <option value="5" selected="@(pageSize == 5)">5</option>
+                            <option value="10" selected="@(pageSize == 10)">10</option>
+                            <option value="25" selected="@(pageSize == 25)">25</option>
+                            <option value="50" selected="@(pageSize == 50)">50</option>
+                            <option value="100" selected="@(pageSize == 100)">100</option>
+                        </select>
+                    </div>
+                    <span class="text-muted small">Page @pageNumber of @totalPages</span>
+                </div>
+                <!-- Right-aligned Next Button -->
+                <nav aria-label="Next page">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(pageNumber >= totalPages ? "disabled" : "")">
+                            <a class="page-link rounded-pill px-3" asp-action="Index"
+                               asp-route-pageNumber="@(pageNumber + 1)"
+                               asp-route-pageSize="@pageSize"
+                               asp-route-sortBy="@sortBy"
+                               asp-route-sortDescending="@sortDescending">
+                                Next <i class="bi bi-chevron-right ms-1"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
     </div>
 </div>
 
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+}
+
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            feather.replace();
-        });
-    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 }

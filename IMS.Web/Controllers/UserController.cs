@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.User;
 using IMS.BLL.Services.Interface;
+using IMS.DAL.Entities;
+using IMS.DAL.Repositories.Implementation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
 
 namespace IMS.Web.Controllers
 {
@@ -21,33 +24,78 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string roleFilter = "", string sortBy = "UserName", bool sortDescending = false)
         {
             try
             {
-                IEnumerable<UserResDto> users;
-                if (User.IsInRole("Admin"))
+                Expression<Func<User, bool>> predicate = null;
+
+                // Apply role-based filtering based on the user's role
+                if (User.IsInRole("Manager"))
                 {
-                    users = await _userService.GetAllUsers(includeManager: true);
+                    predicate = u => u.Role == "Employee";
                 }
-                else if (User.IsInRole("Manager"))
+
+                // Apply additional role filter if provided
+                if (!string.IsNullOrEmpty(roleFilter))
                 {
-                    users = await _userService.GetAllEmployee(includeManager: true);
+                    if (predicate == null)
+                    {
+                        predicate = u => u.Role == roleFilter;
+                    }
+                    else
+                    {
+                        predicate = predicate.And(u => u.Role == roleFilter);
+                    }
                 }
-                else
+
+                // Define sorting logic
+                Expression<Func<User, object>> orderBy = sortBy switch
                 {
-                    return Forbid();
-                }
+                    "Email" => u => u.Email,
+                    "IsActive" => u => u.IsActive,
+                    "Role" => u => u.Role,
+                    _ => u => u.UserName // Default to UserName
+                };
+
+                // Fetch paged users using the service
+                var (users, totalCount) = await _userService.GetAllUsersPaged(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize,
+                    predicate: predicate,
+                    orderBy: orderBy,
+                    sortDescending: sortDescending,
+                    includeProperties: u => u.Manager);
+
+                ViewBag.TotalCount = totalCount;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.RoleFilter = roleFilter;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+
                 return View(users);
             }
             catch (KeyNotFoundException)
             {
                 TempData["error"] = "No users found.";
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = 1;
+                ViewBag.PageSize = pageSize;
+                ViewBag.RoleFilter = roleFilter;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
                 return View(new List<UserResDto>());
             }
             catch (Exception)
             {
                 TempData["error"] = "An unexpected error occurred.";
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = 1;
+                ViewBag.PageSize = pageSize;
+                ViewBag.RoleFilter = roleFilter;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
                 return View(new List<UserResDto>());
             }
         }
@@ -80,8 +128,7 @@ namespace IMS.Web.Controllers
                 var managers = await _userService.GetManagers();
                 if (!managers.Any())
                 {
-                    // ??
-                    TempData["WarningMessage"] = "No managers or admins available. Please create an Admin or Manager first.";
+                    TempData["error"] = "No managers or admins available. Please create an Admin or Manager first.";
                 }
 
                 ViewData["Managers"] = new SelectList(
@@ -141,7 +188,6 @@ namespace IMS.Web.Controllers
             {
                 var result = await _userService.CreateUser(model);
 
-                // Apply ManagerID restriction only for Managers
                 if (User.IsInRole("Manager") && result.ManagerID != Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value))
                 {
                     ModelState.AddModelError(string.Empty, "Managers can only assign themselves as the manager for new users.");
@@ -177,7 +223,7 @@ namespace IMS.Web.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "An unexpected error occurred: " + ex.Message);
+                TempData["error"] = "An unexpected error occurred: " + ex.Message;
                 var managers = await _userService.GetManagers();
                 ViewData["Managers"] = new SelectList(managers.Select(m => new { m.UserID, DisplayName = $"{m.UserName} ({m.Role})" }), "UserID", "DisplayName");
                 return View(model);
@@ -248,7 +294,6 @@ namespace IMS.Web.Controllers
             {
                 var result = await _userService.UpdateUser(id, model);
 
-                // Apply ManagerID restriction only for Managers
                 if (User.IsInRole("Manager") && result.Role != "Employee")
                 {
                     ModelState.AddModelError(string.Empty, "Managers can only edit users with the Employee role.");
@@ -305,7 +350,7 @@ namespace IMS.Web.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "An unexpected error occurred: " + ex.Message);
+                TempData["error"] = "An unexpected error occurred: " + ex.Message;
                 var managers = await _userService.GetManagers();
                 ViewData["Managers"] = new SelectList(managers.Select(m => new { m.UserID, DisplayName = $"{m.UserName} ({m.Role})" }), "UserID", "DisplayName");
                 return View(model);
@@ -351,6 +396,11 @@ namespace IMS.Web.Controllers
             catch (KeyNotFoundException)
             {
                 TempData["error"] = "User not found.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception)

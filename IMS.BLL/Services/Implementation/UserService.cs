@@ -105,6 +105,18 @@ namespace IMS.BLL.Services.Implementation
                 userDto.Password = existingUser.HashedPassword;
             }
 
+            var isValid = await _unitOfWork.Users.GetByExpressionAsync(u => u.UserName == userDto.UserName && u.UserID != id);
+            var isValid2 = await _unitOfWork.Users.GetByExpressionAsync(u => u.Email == userDto.Email && u.UserID != id);
+
+            if (isValid != null)
+            {
+                throw new InvalidOperationException("User with the same username already exists.");
+            }
+            if (isValid2 != null)
+            {
+                throw new InvalidOperationException("User with the same email already exists.");
+            }
+
             _mapper.Map(userDto, existingUser);
 
             if (existingUser.ManagerID.HasValue)
@@ -118,7 +130,7 @@ namespace IMS.BLL.Services.Implementation
                 {
                     throw new InvalidOperationException("Manager role requires an Admin as the manager.");
                 }
-                if (manager.Role == "Employee" && manager.Role != "Manager" && manager.Role != "Admin")
+                if (existingUser.Role == "Employee" && manager.Role != "Manager" && manager.Role != "Admin")
                 {
                     throw new InvalidOperationException("Employee role requires a Manager or Admin as the manager.");
                 }
@@ -132,6 +144,23 @@ namespace IMS.BLL.Services.Implementation
             return _mapper.Map<UserEditDto>(existingUser);
         }
 
+        public async Task<(IEnumerable<UserResDto> Items, int TotalCount)> GetAllUsersPaged(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<User, bool>> predicate = null,
+            Expression<Func<User, object>> orderBy = null,
+            bool sortDescending = false,
+            params Expression<Func<User, object>>[] includeProperties)
+        {
+            var (users, totalCount) = await _unitOfWork.Users.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                predicate,
+                orderBy,
+                sortDescending,
+                includeProperties);
+            return (users.Select(u => _mapper.Map<UserResDto>(u)), totalCount);
+        }
 
         public async Task<IEnumerable<UserResDto>> GetAllUsers(bool includeManager = false)
         {
@@ -142,6 +171,7 @@ namespace IMS.BLL.Services.Implementation
             }
             return _mapper.Map<IEnumerable<UserResDto>>(users);
         }
+
         public async Task<List<ManagerDto>> GetManagers()
         {
             try
@@ -186,35 +216,28 @@ namespace IMS.BLL.Services.Implementation
             return _mapper.Map<UserResDto>(user);
         }
 
-        public async Task<UserResDto> GetUserByName(string username, bool includeManager = false)
-        {
-            var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserName == username, includeManager ? new Expression<Func<User, object>>[] { u => u.Manager } : Array.Empty<Expression<Func<User, object>>>());
-            if (user == null)
-            {
-                throw new KeyNotFoundException($"User with username {username} not found.");
-            }
-            return _mapper.Map<UserResDto>(user);
-        }
-
         public async Task DeleteUserbyId(Guid id)
         {
-            var user = await _unitOfWork.Users.GetByExpressionAsync(e => e.UserID == id);
+            var user = await _unitOfWork.Users.GetByExpressionAsync(e => e.UserID == id, e => e.ManagedWarehouses, e => e.Manager);
             if (user == null)
             {
                 throw new KeyNotFoundException($"User with ID {id} not found.");
             }
-            await _unitOfWork.Users.DeleteAsync(id);
-            await _unitOfWork.SaveAsync();
-        }
 
-        public async Task DeleteUserbyName(string username)
-        {
-            var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.UserName == username);
-            if (user == null)
+            if (user.UserName == "Admin")
             {
-                throw new KeyNotFoundException($"User with username {username} not found.");
+                throw new InvalidOperationException("Deleting the Admin user is forbidden.");
             }
-            await _unitOfWork.Users.DeleteAsync(user.UserID);
+            if (user.ManagedWarehouses != null && user.ManagedWarehouses.Any())
+            {
+                throw new InvalidOperationException("Deleting this user is not allowed because they manage warehouses, but you can deactivate them.");
+            }
+            if (user.Manager != null)
+            {
+                throw new InvalidOperationException("Deleting this user is not allowed because they manage employees, but you can deactivate them.");
+            }
+
+            await _unitOfWork.Users.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
         }
     }

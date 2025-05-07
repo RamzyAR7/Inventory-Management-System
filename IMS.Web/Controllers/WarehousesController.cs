@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.Warehouse;
 using IMS.BLL.Services.Interface;
+using IMS.DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Linq.Expressions;
 
 namespace IMS.Web.Controllers
 {
@@ -13,6 +15,7 @@ namespace IMS.Web.Controllers
         private readonly IWarehouseService _warehouseService;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+
         public WarehousesController(IWarehouseService warehouseService, IMapper mapper, IUserService userService)
         {
             _warehouseService = warehouseService;
@@ -21,12 +24,48 @@ namespace IMS.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string sortBy = "WarehouseName", bool sortDescending = false)
         {
-            var warehouses = await _warehouseService.GetAllAsync();
-            var warehouseDtos = _mapper.Map<IEnumerable<WarehouseResDto>>(warehouses); // Map to DTOs
-            return View(warehouseDtos);
+            try
+            {
+                // Define sorting logic
+                Expression<Func<Warehouse, object>> orderBy = sortBy switch
+                {
+                    "Address" => w => w.Address,
+                    "ManagerName" => w => w.Manager != null ? w.Manager.UserName : "",
+                    _ => w => w.WarehouseName // Default to WarehouseName
+                };
+
+                // Fetch paged warehouses using the service with all named arguments
+                (IEnumerable<WarehouseResDto> warehouses, int totalCount) = await _warehouseService.GetAllPagedAsync(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize,
+                    predicate: null,
+                    orderBy: orderBy,
+                    sortDescending: sortDescending,
+                    includeProperties: new Expression<Func<Warehouse, object>>[] { w => w.Manager, w => w.WarehouseStocks }
+                );
+
+                ViewBag.TotalCount = totalCount;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+
+                return View(warehouses);
+            }
+            catch (Exception)
+            {
+                TempData["error"] = "An unexpected error occurred.";
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = 1;
+                ViewBag.PageSize = pageSize;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+                return View(new List<WarehouseResDto>());
+            }
         }
+
         [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
@@ -36,17 +75,18 @@ namespace IMS.Web.Controllers
 
             return View(warehouse);
         }
+
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var Managers = await _userService.GetManagers();
-            if (Managers == null || !Managers.Any())
+            var managers = await _userService.GetManagers();
+            if (managers == null || !managers.Any())
             {
                 ModelState.AddModelError(string.Empty, "No managers available.");
                 return View(new WarehouseReqDto());
             }
             ViewBag.Managers = new SelectList(
-                Managers.Select(m => new
+                managers.Select(m => new
                 {
                     m.UserID,
                     DisplayName = $"{m.UserName} ({m.Role})"
@@ -61,12 +101,12 @@ namespace IMS.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(WarehouseReqDto warehouseDto)
         {
-            var Managers = await _userService.GetManagers();
+            var managers = await _userService.GetManagers();
 
             if (!ModelState.IsValid)
             {
                 ViewBag.Managers = new SelectList(
-                    Managers.Select(m => new
+                    managers.Select(m => new
                     {
                         m.UserID,
                         DisplayName = $"{m.UserName} ({m.Role})"
@@ -86,7 +126,7 @@ namespace IMS.Web.Controllers
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
                 ViewBag.Managers = new SelectList(
-                    Managers.Select(m => new
+                    managers.Select(m => new
                     {
                         m.UserID,
                         DisplayName = $"{m.UserName} ({m.Role})"
@@ -106,9 +146,9 @@ namespace IMS.Web.Controllers
                 return NotFound();
             var warehouse = _mapper.Map<WarehouseReqDto>(warehouseRes);
 
-            var Managers = await _userService.GetManagers();
+            var managers = await _userService.GetManagers();
             ViewBag.Managers = new SelectList(
-                Managers.Select(m => new
+                managers.Select(m => new
                 {
                     m.UserID,
                     DisplayName = $"{m.UserName} ({m.Role})"
@@ -126,9 +166,9 @@ namespace IMS.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var Managers = await _userService.GetManagers();
+                var managers = await _userService.GetManagers();
                 ViewBag.Managers = new SelectList(
-                    Managers.Select(m => new
+                    managers.Select(m => new
                     {
                         m.UserID,
                         DisplayName = $"{m.UserName} ({m.Role})"
@@ -148,10 +188,15 @@ namespace IMS.Web.Controllers
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
+                return View(warehouse);
             }
-            //TempData["error"] = "An error occurred while updating the warehouse.";
-            return View(warehouse);
+            catch (Exception)
+            {
+                TempData["error"] = "An unexpected error occurred.";
+                return View(warehouse);
+            }
         }
+
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -165,12 +210,12 @@ namespace IMS.Web.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                TempData["error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, "An unexpected error occurred.");
+                TempData["error"] = "An unexpected error occurred.";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -184,19 +229,18 @@ namespace IMS.Web.Controllers
                 var warehouse = await _warehouseService.GetByIdAsync(id);
                 if (warehouse == null)
                     return NotFound();
-                // Check if the warehouse has any associated stocks or shipments
-                if (warehouse.WarehouseStocks.Any())
-                {
-                    ModelState.AddModelError(string.Empty, "Cannot delete a warehouse with associated stocks or shipments.");
-                    return View(warehouse);
-                }
                 await _warehouseService.DeleteAsync(id);
                 TempData["success"] = "Warehouse deleted successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (InvalidOperationException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception)
+            {
+                TempData["error"] = "An unexpected error occurred.";
                 return RedirectToAction(nameof(Index));
             }
         }

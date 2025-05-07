@@ -3,6 +3,7 @@ using IMS.BLL.DTOs.Warehouse;
 using IMS.BLL.Services.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
+using System.Linq.Expressions;
 
 namespace IMS.BLL.Services.Implementation
 {
@@ -20,8 +21,25 @@ namespace IMS.BLL.Services.Implementation
         public async Task<IEnumerable<WarehouseResDto>> GetAllAsync()
         {
             var warehouses = await _unitOfWork.Warehouses.GetAllAsync(w => w.Manager, w => w.WarehouseStocks);
-            var warehouseDtos = _mapper.Map<IEnumerable<WarehouseResDto>>(warehouses);
-            return warehouseDtos;
+            return _mapper.Map<IEnumerable<WarehouseResDto>>(warehouses);
+        }
+
+        public async Task<(IEnumerable<WarehouseResDto> Items, int TotalCount)> GetAllPagedAsync(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<Warehouse, bool>> predicate = null,
+            Expression<Func<Warehouse, object>> orderBy = null,
+            bool sortDescending = false,
+            params Expression<Func<Warehouse, object>>[] includeProperties)
+        {
+            var (warehouses, totalCount) = await _unitOfWork.Warehouses.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                predicate,
+                orderBy,
+                sortDescending,
+                includeProperties);
+            return (_mapper.Map<IEnumerable<WarehouseResDto>>(warehouses), totalCount);
         }
 
         public async Task<WarehouseResDto?> GetByIdAsync(Guid id)
@@ -31,14 +49,13 @@ namespace IMS.BLL.Services.Implementation
             {
                 return null;
             }
-            var warehouseDto = _mapper.Map<WarehouseResDto>(warehouse);
-            return warehouseDto;
+            return _mapper.Map<WarehouseResDto>(warehouse);
         }
 
         public async Task CreateAsync(WarehouseReqDto warehouseDto)
         {
-            var IfExists = await _unitOfWork.Warehouses.GetByExpressionAsync(w => w.WarehouseName == warehouseDto.WarehouseName);
-            if (IfExists != null)
+            var ifExists = await _unitOfWork.Warehouses.GetByExpressionAsync(w => w.WarehouseName == warehouseDto.WarehouseName);
+            if (ifExists != null)
                 throw new InvalidOperationException("A warehouse with this name already exists");
 
             var warehouse = _mapper.Map<Warehouse>(warehouseDto);
@@ -59,9 +76,18 @@ namespace IMS.BLL.Services.Implementation
 
         public async Task DeleteAsync(Guid id)
         {
-            var warehouse = await _unitOfWork.Warehouses.GetByExpressionAsync(w => w.WarehouseID == id);
+            var warehouse = await _unitOfWork.Warehouses.GetByExpressionAsync(w => w.WarehouseID == id, w => w.WarehouseStocks, w => w.FromWarehouseTransfers, w => w.ToWarehouseTransfers, w => w.InventoryTransactions);
             if (warehouse == null)
                 throw new NotFoundException($"Warehouse with ID {id} not found");
+
+            if (warehouse.WarehouseStocks != null && warehouse.WarehouseStocks.Any())
+            {
+                throw new InvalidOperationException("Can't delete this Warehouse because it has products");
+            }
+            if (warehouse.FromWarehouseTransfers != null || warehouse.ToWarehouseTransfers != null || warehouse.InventoryTransactions != null)
+            {
+                throw new InvalidOperationException("Can't delete this Warehouse because it has transactions");
+            }
             await _unitOfWork.Warehouses.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
         }

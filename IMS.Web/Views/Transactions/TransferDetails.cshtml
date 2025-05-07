@@ -5,9 +5,9 @@
 
 <h2>Transfer Details</h2>
 
-@if (TempData["ErrorMessage"] != null)
+@if (TempData["error"] != null)
 {
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    <div class="alert alert-danger">@TempData["error"]</div>
 }
 
 <div class="card">

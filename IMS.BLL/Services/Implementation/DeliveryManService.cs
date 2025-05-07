@@ -101,6 +101,12 @@ namespace IMS.BLL.Services.Implementation
             {
                 throw new InvalidOperationException("deliveryMan with this name already exists");
             }
+            var isVaild = await _unitOfWork.DeliveryMen.FirstOrDefaultAsync(d => d.Email == deliveryManDto.Email || d.PhoneNumber == deliveryManDto.PhoneNumber);
+
+            if (isVaild != null)
+            {
+                throw new InvalidOperationException("the Email or Phone Number Is Already Exist");
+            }
             var deliveryMan = _mapper.Map<DeliveryMan>(deliveryManDto);
             deliveryMan.DeliveryManID = Guid.NewGuid();
             await _unitOfWork.DeliveryMen.AddAsync(deliveryMan);
@@ -113,6 +119,21 @@ namespace IMS.BLL.Services.Implementation
             {
                 throw new NotFoundException($"DeliveryMan with ID {id} not found");
             }
+
+            var duplicateDeliveryMan = await _unitOfWork.DeliveryMen.GetByExpressionAsync(d => d.FullName == deliveryManDto.FullName && d.DeliveryManID != id);
+            if (duplicateDeliveryMan != null)
+            {
+                throw new InvalidOperationException("A DeliveryMan with this name already exists");
+            }
+
+            var isConflict = await _unitOfWork.DeliveryMen.FirstOrDefaultAsync(d =>
+                (d.Email == deliveryManDto.Email || d.PhoneNumber == deliveryManDto.PhoneNumber) && d.DeliveryManID != id);
+
+            if (isConflict != null)
+            {
+                throw new InvalidOperationException("The Email or Phone Number is already in use by another DeliveryMan");
+            }
+
             _mapper.Map(deliveryManDto, existingDeliveryMan);
             await _unitOfWork.DeliveryMen.UpdateAsync(existingDeliveryMan);
             await _unitOfWork.SaveAsync();

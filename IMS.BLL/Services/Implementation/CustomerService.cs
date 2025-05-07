@@ -3,7 +3,7 @@ using IMS.BLL.DTOs.Customer;
 using IMS.BLL.Services.Interface;
 using IMS.DAL.Entities;
 using IMS.DAL.UnitOfWork;
-
+using System.Linq.Expressions;
 
 namespace IMS.BLL.Services.Implementation
 {
@@ -11,7 +11,6 @@ namespace IMS.BLL.Services.Implementation
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-
 
         public CustomerService(IUnitOfWork unitOfWork, IMapper mapper)
         {
@@ -27,18 +26,39 @@ namespace IMS.BLL.Services.Implementation
             return customers.ToList();
         }
 
+        public async Task<(IEnumerable<Customer> Items, int TotalCount)> GetAllPagedAsync(
+            int pageNumber,
+            int pageSize,
+            Expression<Func<Customer, bool>> predicate = null,
+            Expression<Func<Customer, object>> orderBy = null,
+            bool sortDescending = false,
+            params Expression<Func<Customer, object>>[] includeProperties)
+        {
+            return await _unitOfWork.Customers.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                predicate,
+                orderBy,
+                sortDescending,
+                includeProperties);
+        }
+
         public async Task<Customer?> GetByIdAsync(Guid id)
         {
-            return await _unitOfWork.Customers.GetByExpressionAsync(e => e.CustomerID == id, e=> e.Orders);
+            return await _unitOfWork.Customers.GetByExpressionAsync(e => e.CustomerID == id, e => e.Orders);
         }
 
         public async Task CreateAsync(CustomerReqDto customerDto)
         {
             var existingCustomer = await _unitOfWork.Customers.GetByExpressionAsync(e => e.FullName == customerDto.FullName);
-
             if (existingCustomer != null)
             {
                 throw new Exception("Customer already exists");
+            }
+            var isValid = await _unitOfWork.Customers.FirstOrDefaultAsync(e => e.PhoneNumber == customerDto.PhoneNumber);
+            if (isValid != null)
+            {
+                throw new Exception("There is a customer with the same phone number");
             }
             var customer = _mapper.Map<Customer>(customerDto);
             customer.CustomerID = Guid.NewGuid();
@@ -47,7 +67,6 @@ namespace IMS.BLL.Services.Implementation
             await _unitOfWork.SaveAsync();
         }
 
-
         public async Task UpdateAsync(Guid id, CustomerReqDto customerDto)
         {
             var existingCustomer = await _unitOfWork.Customers.GetByExpressionAsync(e => e.CustomerID == id);
@@ -55,8 +74,17 @@ namespace IMS.BLL.Services.Implementation
             {
                 throw new Exception("Customer not found");
             }
+            var isValid = await _unitOfWork.Customers.GetByExpressionAsync(c => c.FullName == customerDto.FullName && c.CustomerID != id);
+            if (isValid != null)
+            {
+                throw new Exception("Customer name is already exists");
+            }
+            var isValid2 = await _unitOfWork.Customers.GetByExpressionAsync(c => c.PhoneNumber == customerDto.PhoneNumber && c.CustomerID != id);
+            if (isValid2 != null)
+            {
+                throw new Exception("Customer phone number is already exists");
+            }
             _mapper.Map(customerDto, existingCustomer);
-            
             await _unitOfWork.Customers.UpdateAsync(existingCustomer);
             await _unitOfWork.SaveAsync();
         }
@@ -70,7 +98,6 @@ namespace IMS.BLL.Services.Implementation
             }
             await _unitOfWork.Customers.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
-
         }
     }
 }

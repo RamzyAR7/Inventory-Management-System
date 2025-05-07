@@ -3,6 +3,8 @@ using IMS.BLL.DTOs.Customer;
 using IMS.BLL.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq.Expressions;
+using IMS.DAL.Entities;
 
 namespace IMS.Web.Controllers
 {
@@ -18,16 +20,53 @@ namespace IMS.Web.Controllers
             _mapper = mapper;
         }
 
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        public async Task<IActionResult> Index(int pageNumber = 1, int pageSize = 10, string sortBy = "FullName", bool sortDescending = false)
         {
-            var customers = await _customerService.GetAllAsync();
+            try
+            {
+                // Define sorting logic
+                Expression<Func<Customer, object>> orderBy = sortBy switch
+                {
+                    "PhoneNumber" => c => c.PhoneNumber,
+                    "Email" => c => c.Email,
+                    "Address" => c => c.Address,
+                    "IsActive" => c => c.IsActive,
+                    _ => c => c.FullName // Default to FullName
+                };
 
-            return View(customers);
+                // Fetch paged customers using the service
+                (IEnumerable<Customer> customers, int totalCount) = await _customerService.GetAllPagedAsync(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize,
+                    predicate: null,
+                    orderBy: orderBy,
+                    sortDescending: sortDescending,
+                    includeProperties: c => c.Orders);
+
+                ViewBag.TotalCount = totalCount;
+                ViewBag.PageNumber = pageNumber;
+                ViewBag.PageSize = pageSize;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+
+                return View(customers);
+            }
+            catch (Exception)
+            {
+                TempData["error"] = "An unexpected error occurred.";
+                ViewBag.TotalCount = 0;
+                ViewBag.PageNumber = 1;
+                ViewBag.PageSize = pageSize;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortDescending = sortDescending;
+                return View(new List<Customer>());
+            }
         }
 
+        [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
-    
             var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
                 return NotFound();
@@ -50,17 +89,16 @@ namespace IMS.Web.Controllers
                 if (ModelState.IsValid)
                 {
                     await _customerService.CreateAsync(customer);
-                    TempData["success"] = "Customers created successfully.";
+                    TempData["success"] = "Customer created successfully.";
                     return RedirectToAction(nameof(Index));
                 }
                 return View(customer);
             }
-            catch(InvalidOperationException ex)
+            catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
                 return View(customer);
             }
-
         }
 
         [HttpGet]
@@ -82,17 +120,10 @@ namespace IMS.Web.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var customerToUpdate = await _customerService.GetByIdAsync(id);
-  
                     await _customerService.UpdateAsync(id, customer);
-                    TempData["success"] = "Customers Edited successfully.";
+                    TempData["success"] = "Customer edited successfully.";
                     return RedirectToAction(nameof(Index));
                 }
-                return View(customer);
-            }
-            catch (InvalidOperationException ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
                 return View(customer);
             }
             catch (Exception ex)
@@ -102,24 +133,30 @@ namespace IMS.Web.Controllers
             }
         }
 
+        [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
+                if (id == Guid.Empty)
+                {
+                    TempData["error"] = "Invalid customer ID.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 var customer = await _customerService.GetByIdAsync(id);
                 if (customer == null)
-                    return NotFound();
+                {
+                    TempData["error"] = "Customer not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 return View(customer);
-            }
-            catch (InvalidOperationException ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return View();
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return View();
+                TempData["error"] = $"An unexpected error occurred: {ex.Message}";
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -136,15 +173,10 @@ namespace IMS.Web.Controllers
                 TempData["success"] = "Customer deleted successfully!";
                 return RedirectToAction(nameof(Index));
             }
-            catch (InvalidOperationException ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return View();
-            }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return View();
+                TempData["error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
             }
         }
     }

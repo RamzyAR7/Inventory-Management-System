@@ -51,7 +51,7 @@ namespace IMS.DAL.Context
                 UserID = Guid.NewGuid(),
                 UserName = "Admin",
                 Email = "admin@gmail.com",
-                HashedPassword =  BCrypt.Net.BCrypt.HashPassword("admin@123"),
+                HashedPassword =  BCrypt.Net.BCrypt.HashPassword("Admin@123"),
                 Role = "Admin",
                 CreatedAt = DateTime.UtcNow
             };
