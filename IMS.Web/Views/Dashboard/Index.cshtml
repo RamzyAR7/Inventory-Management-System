@@ -193,21 +193,57 @@
     </div>
 </div>
 
+@* @section scripts { *@
+@*     <script src="~/js/dashboard/radialChart.js"></script> *@
+@*     <script src="~/js/dashboard/inventoryAnalytics.js"></script> *@
+
+@*     <script> *@
+@*         // Initialize radial charts *@
+@*         $(document).ready(function() { *@
+@*             // Products Radial Chart *@
+@*             initRadialChart('totalProductsRadialChart', 85, '#34c38f'); *@
+
+@*             // Orders Radial Chart *@
+@*             initRadialChart('totalOrdersRadialChart', 75, '#f1b44c'); *@
+
+@*             // Inventory Radial Chart *@
+@*             initRadialChart('totalInventoryRadialChart', 65, '#F0006B'); *@
+@*         }); *@
+@*     </script> *@
+@* } *@
+
 @section scripts {
     <script src="~/js/dashboard/radialChart.js"></script>
     <script src="~/js/dashboard/inventoryAnalytics.js"></script>
-
     <script>
-        // Initialize radial charts
+        // Initialize radial charts with dynamic values
         $(document).ready(function() {
-            // Products Radial Chart
-            initRadialChart('totalProductsRadialChart', 85, '#34c38f');
+            // Calculate percentages based on data
+            // For Products - example calculation: use a ratio to calculate percentage
+            const totalProducts = @Model.TotalProducts;
+            const maxProducts = totalProducts > 0 ? totalProducts * 1.2 : 100; // 20% headroom or default to 100
+            const productsPercentage = Math.min(Math.round((totalProducts / maxProducts) * 100), 100);
 
-            // Orders Radial Chart
-            initRadialChart('totalOrdersRadialChart', 75, '#f1b44c');
+            // For Orders - calculate percentage based on completed vs total
+            const totalOrders = @Model.TotalOrders;
+            const completedOrders = @Model.CompletedOrders;
+            const ordersPercentage = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
 
-            // Inventory Radial Chart
-            initRadialChart('totalInventoryRadialChart', 65, '#F0006B');
+            // For Inventory - calculate based on non-low stock items
+            const totalInventory = @Model.TotalInventory;
+            const lowStockItems = @Model.LowStockItems;
+            const healthyInventoryPercentage = totalInventory > 0 ?
+                Math.round(((totalInventory - lowStockItems) / totalInventory) * 100) : 100;
+
+            // Initialize charts with calculated values
+            initRadialChart('totalProductsRadialChart', productsPercentage, '#34c38f');
+            initRadialChart('totalOrdersRadialChart', ordersPercentage, '#f1b44c');
+            initRadialChart('totalInventoryRadialChart', healthyInventoryPercentage, '#F0006B');
+
+            // Update the UI to show the percentages
+            $('#totalProductsRadialChart .apexcharts-datalabel-label').text(productsPercentage + '%');
+            $('#totalOrdersRadialChart .apexcharts-datalabel-label').text(ordersPercentage + '%');
+            $('#totalInventoryRadialChart .apexcharts-datalabel-label').text(healthyInventoryPercentage + '%');
         });
     </script>
 }
