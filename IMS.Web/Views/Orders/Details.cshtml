@@ -4,6 +4,7 @@
 
 @{
     ViewData["Title"] = "Order Details";
+    var totalPayable = Model.OrderDetails?.Sum(item => item.TotalPrice) ?? 0;
 }
 
 <h1>Order Details</h1>
@@ -22,11 +23,13 @@
         <dt class="col-sm-2">Order ID</dt>
         <dd class="col-sm-10">@Model.OrderID</dd>
         <dt class="col-sm-2">Customer</dt>
-        <dd class="col-sm-10">@Model.CustomerName</dd>
+        <dd class="col-sm-10">@(Model.CustomerName ?? "N/A")</dd>
         <dt class="col-sm-2">Warehouse</dt>
-        <dd class="col-sm-10">@Model.WarehouseName</dd>
+        <dd class="col-sm-10">@(Model.WarehouseName ?? "N/A")</dd>
         <dt class="col-sm-2">Total Amount</dt>
         <dd class="col-sm-10">@Model.TotalAmount.ToString("C")</dd>
+        <dt class="col-sm-2">Total Payable</dt>
+        <dd class="col-sm-10">@totalPayable.ToString("C")</dd>
         <dt class="col-sm-2">Status</dt>
         <dd class="col-sm-10">
             @Model.Status
@@ -57,18 +60,27 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.OrderDetails)
+            @if (Model.OrderDetails != null && Model.OrderDetails.Any())
+            {
+                foreach (var item in Model.OrderDetails)
+                {
+                    <tr>
+                        <td>@(item.ProductName ?? "N/A")</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.UnitPrice.ToString("C")</td>
+                        <td>@item.TotalPrice.ToString("C")</td>
+                    </tr>
+                }
+            }
+            else
             {
                 <tr>
-                    <td>@item.ProductName</td>
-                    <td>@item.Quantity</td>
-                    <td>@item.UnitPrice.ToString("C")</td>
-                    <td>@item.TotalPrice.ToString("C")</td>
+                    <td colspan="4">No items</td>
                 </tr>
             }
         </tbody>
     </table>
-
+    <button class="btn btn-primary" onclick="printRecipe()">Print Recipe</button>
 </div>
 
 <div>
@@ -80,6 +92,114 @@
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Ensure jQuery is available
+        if (typeof jQuery === 'undefined') {
+            console.error('jQuery is not loaded.');
+        }
+
+        // Store order details
+        const orderDetails = {
+            orderId: '@Html.Raw(Json.Serialize(Model.OrderID))',
+            customerName: '@Html.Raw(Json.Serialize(Model.CustomerName ?? "N/A"))',
+            warehouseName: '@Html.Raw(Json.Serialize(Model.WarehouseName ?? "N/A"))',
+            totalAmount: '@Html.Raw(Json.Serialize(Model.TotalAmount.ToString("C")))',
+            totalPayable: '@Html.Raw(Json.Serialize(totalPayable.ToString("C")))',
+            status: '@Html.Raw(Json.Serialize(Model.Status.ToString()))',
+            orderDate: '@Html.Raw(Json.Serialize(Model.OrderDate.ToString("g")))'
+        };
+
+        // Store order items
+        const orderItems = @Html.Raw(Model.OrderDetails != null && Model.OrderDetails.Any()
+            ? Json.Serialize(Model.OrderDetails.Select(item => new
+              {
+                  productName = item.ProductName ?? "N/A",
+                  quantity = item.Quantity,
+                  unitPrice = item.UnitPrice.ToString("C"),
+                  totalPrice = item.TotalPrice.ToString("C")
+              }))
+            : "[]");
+
+        // Log for debugging
+        console.log('orderItems:', orderItems);
+
+        function printRecipe() {
+            const printWindow = window.open('', '', 'height=600,width=800');
+            if (!printWindow) {
+                console.error('Failed to open print window. Check popup blocker.');
+                return;
+            }
+            try {
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Order Recipe</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; margin: 0; }
+                            .print-container { max-width: 800px; margin: 0 auto; }
+                            h1 { text-align: center; margin-bottom: 20px; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                            th { background-color: #f2f2f2; }
+                            dl { margin-bottom: 20px; }
+                            dt { font-weight: bold; display: inline-block; width: 150px; }
+                            dd { display: inline-block; margin-left: 10px; }
+                            @@media print { body { padding: 10px !important; } .no-print { display: none !important; } table { page-break-inside: avoid; } }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="print-container">
+                            <h1>Order Receipt</h1>
+                            <dl>
+                                <dt>Order ID:</dt><dd>${orderDetails.orderId}</dd><br>
+                                <dt>Customer:</dt><dd>${orderDetails.customerName}</dd><br>
+                                <dt>Warehouse:</dt><dd>${orderDetails.warehouseName}</dd><br>
+                                <dt>Total Amount:</dt><dd>${orderDetails.totalAmount}</dd><br>
+                                <dt>Total Payable:</dt><dd>${orderDetails.totalPayable}</dd><br>
+                                <dt>Status:</dt><dd>${orderDetails.status}</dd><br>
+                                <dt>Order Date:</dt><dd>${orderDetails.orderDate}</dd>
+                            </dl>
+                            <h3>Order Items</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${orderItems.length ? orderItems.map(item => `
+                                        <tr>
+                                            <td>${item.productName}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>${item.unitPrice}</td>
+                                            <td>${item.totalPrice}</td>
+                                        </tr>
+                                    `).join('') : '<tr><td colspan="4">No items</td></tr>'}
+                                </tbody>
+                            </table>
+                            <div style="margin-top: 30px; text-align: right;">
+                                <p><strong>Grand Total: ${orderDetails.totalPayable}</strong></p>
+                                <p>Thank you for your business!</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                setTimeout(() => {
+                    try {
+                        printWindow.print();
+                    } catch (e) {
+                        console.error('Print failed:', e);
+                    }
+                }, 500);
+            } catch (e) {
+                console.error('Error writing to print window:', e);
+            }
+        }
+    </script>
 }

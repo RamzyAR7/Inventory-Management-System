@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace IMS.Web.Controllers
@@ -27,7 +28,7 @@ namespace IMS.Web.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(IOrderService orderService, IOrderHelperService orderHelperService, IWhoIsUserLoginService userLoginService,IUnitOfWork unitOfWork,IMapper mapper, ILogger<OrdersController> logger)
+        public OrdersController(IOrderService orderService, IOrderHelperService orderHelperService, IWhoIsUserLoginService userLoginService, IUnitOfWork unitOfWork, IMapper mapper, ILogger<OrdersController> logger)
         {
             _orderService = orderService;
             _orderHelperService = orderHelperService;
@@ -92,6 +93,7 @@ namespace IMS.Web.Controllers
                     TempData["error"] = "Order not found.";
                     return RedirectToAction(nameof(Index));
                 }
+                _logger.LogInformation("Order retrieved: {OrderID}, OrderDetailsCount: {Count}", id, order.OrderDetails?.Count ?? 0);
                 return View(order);
             }
             catch (Exception ex)
@@ -166,6 +168,7 @@ namespace IMS.Web.Controllers
                 return View(orderDto);
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -186,20 +189,20 @@ namespace IMS.Web.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-               var orderDto = new OrderReqDto
-               {
-                   OrderID = order.OrderID,
-                   CustomerID = order.CustomerID,
-                   WarehouseID = order.WarehouseID,
-                   CreatedByUserID = order.CreatedByUserID,
-                   OrderDetails = order.OrderDetails.Select(od => new OrderDetailReqDto
-                   {
-                       ProductID = od.ProductID,
-                       Quantity = od.Quantity,
-                       ProductName = _unitOfWork.Products.GetByExpressionAsync(p => p.ProductID == od.ProductID).Result?.ProductName ?? "Unknown",
-                       UnitPrice = _unitOfWork.Products.GetByExpressionAsync(p => p.ProductID == od.ProductID).Result?.Price ?? 0m
-                   }).ToList()
-               };
+                var orderDto = new OrderReqDto
+                {
+                    OrderID = order.OrderID,
+                    CustomerID = order.CustomerID,
+                    WarehouseID = order.WarehouseID,
+                    CreatedByUserID = order.CreatedByUserID,
+                    OrderDetails = order.OrderDetails.Select(od => new OrderDetailReqDto
+                    {
+                        ProductID = od.ProductID,
+                        Quantity = od.Quantity,
+                        ProductName = _unitOfWork.Products.GetByExpressionAsync(p => p.ProductID == od.ProductID).Result?.ProductName ?? "Unknown",
+                        UnitPrice = _unitOfWork.Products.GetByExpressionAsync(p => p.ProductID == od.ProductID).Result?.Price ?? 0m
+                    }).ToList()
+                };
 
                 await PopulateViewBagAsync();
                 return View(orderDto);
@@ -259,7 +262,7 @@ namespace IMS.Web.Controllers
             try
             {
                 await _orderService.UpdateStatusAsync(id, status);
-                return Json(new { success = true, message = "Order status updated successfully."});
+                return Json(new { success = true, message = "Order status updated successfully." });
             }
             catch (InvalidOperationException ex)
             {
@@ -272,6 +275,7 @@ namespace IMS.Web.Controllers
                 return Json(new { success = false, message = "Failed to update order status: " + ex.Message });
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -314,6 +318,7 @@ namespace IMS.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> GetProductsByWarehouseAndCategory(Guid warehouseId, Guid? categoryId)
         {
@@ -365,6 +370,110 @@ namespace IMS.Web.Controllers
             {
                 _logger.LogError(ex, "Error validating product addition: ProductID {ProductID}, WarehouseID {WarehouseID}.", productId, warehouseId);
                 return Json(new { success = false, message = "An error occurred: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Recipe(Guid id)
+        {
+            try
+            {
+                var order = await _orderService.GetByIdAsync(id);
+                if (order == null)
+                {
+                    _logger.LogWarning("Order not found: {OrderID}.", id);
+                    TempData["error"] = "Order not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(order.WarehouseID);
+                var customer = await _unitOfWork.Customers.GetByIdAsync(order.CustomerID);
+
+                var orderDetailsRows = string.Join("\n", order.OrderDetails.Select(od => $@"\textit{{{od.ProductName}}} & {od.Quantity} & {od.UnitPrice}"));
+
+                var latexContent = @"\documentclass[a4paper,12pt]{article}
+                                % Setting up document class and basic configuration
+                                \usepackage[utf8]{inputenc}
+                                % Ensuring UTF-8 encoding for special characters
+                                \usepackage[T1]{fontenc}
+                                % Improved font rendering
+                                \usepackage{geometry}
+                                % Configuring page layout
+                                \geometry{margin=1in}
+                                \usepackage{booktabs}
+                                % Professional table formatting
+                                \usepackage{longtable}
+                                % Support for tables spanning multiple pages
+                                \usepackage{array}
+                                % Enhanced table column specifications
+                                \usepackage{colortbl}
+                                % Adding color to tables
+                                \usepackage{xcolor}
+                                % Defining colors
+                                \usepackage{fancyhdr}
+                                % Customizing headers and footers
+                                \pagestyle{fancy}
+                                \fancyhf{}
+                                \fancyhead[L]{Order Recipe}
+                                \fancyhead[R]{Date: \today}
+                                \fancyfoot[C]{\thepage}
+                                \usepackage{lastpage}
+                                % Displaying total page count
+                                \usepackage{hyperref}
+                                % Adding hyperlinks
+                                \hypersetup{
+                                    colorlinks=true,
+                                    linkcolor=blue,
+                                    urlcolor=blue
+                                }
+                                % Configuring hyperlinks
+                                % Font configuration at the end
+                                \usepackage{times}
+                                % Using Times New Roman font
+
+                                \begin{document}
+
+                                % Creating the title section
+                                \begin{center}
+                                    \textbf{\Large Order Recipe Report} \\
+                                    \vspace{0.5cm}
+                                    Order ID: \textit{" + order.OrderID + @"} \\
+                                    Date Created: \textit{" + order.OrderDate.ToString("g") + @"} \\
+                                    Status: \textit{" + order.Status + @"}
+                                \end{center}
+
+                                % Adding customer information
+                                \section*{Customer Information}
+                                \begin{itemize}
+                                    \item Customer Name: \textit{" + customer.FullName + @"}
+                                    \item Warehouse: \textit{" + warehouse.WarehouseName + @"}
+                                \end{itemize}
+
+                                % Generating table for order details
+                                \section*{Order Details}
+                                \begin{longtable}{llr}
+                                    \toprule
+                                    Product & Quantity & Unit Price (\$) \\
+                                    \midrule
+                                    \endhead
+                                    \midrule
+                                    \multicolumn{3}{r}{Continued on next page} \\
+                                    \endfoot
+                                    \bottomrule
+                                    \endlastfoot
+                                    " + orderDetailsRows + @"
+                                \end{longtable}
+
+                                \end{document}";
+
+                return Content(latexContent, "text/latex");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading recipe for order: {OrderID}.", id);
+                TempData["error"] = "Failed to load recipe: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
         }
 
