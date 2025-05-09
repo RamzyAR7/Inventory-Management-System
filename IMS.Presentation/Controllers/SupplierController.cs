@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using IMS.Application.Services.Implementation;
 using IMS.Domain.Entities;
 
-namespace IMS.Web.Controllers
+namespace IMS.Presentation.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class SupplierController : Controller

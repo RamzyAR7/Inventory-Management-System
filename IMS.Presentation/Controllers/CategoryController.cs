@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-namespace IMS.Web.Controllers
+namespace IMS.Presentation.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class CategoryController : Controller

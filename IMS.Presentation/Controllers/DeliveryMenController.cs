@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace IMS.Web.Controllers
+namespace IMS.Presentation.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class DeliveryMenController : Controller

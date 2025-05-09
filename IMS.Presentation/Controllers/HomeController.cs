@@ -3,7 +3,7 @@ using IMS.Application.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IMS.Web.Controllers
+namespace IMS.Presentation.Controllers
 {
     [Authorize]
     public class HomeController : Controller

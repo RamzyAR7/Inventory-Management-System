@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace IMS.Web.Controllers
+namespace IMS.Presentation.Controllers
 {
     public class ShipmentsController : Controller
     {

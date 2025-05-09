@@ -3,7 +3,7 @@ using IMS.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IMS.Web.Controllers
+namespace IMS.Presentation.Controllers
 {
     [AllowAnonymous]
     public class AccountController : Controller

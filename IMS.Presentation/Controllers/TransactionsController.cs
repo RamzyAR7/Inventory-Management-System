@@ -16,7 +16,7 @@ using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace IMS.Web.Controllers
+namespace IMS.Presentation.Controllers
 {
     [Authorize(Roles = "Admin, Manager")]
     public class TransactionsController : Controller

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
 using IMS.Domain.Entities;
 
-namespace IMS.Web.Controllers
+namespace IMS.Presentation.Controllers
 {
     [Authorize]
     public class CustomersController : Controller

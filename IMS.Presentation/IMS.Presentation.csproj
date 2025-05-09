@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Inventory_Management_System</RootNamespace>
+    <RootNamespace>IMS.Presentation</RootNamespace>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -73,7 +73,6 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\IMS.Application\IMS.Application.csproj" />
 	  <ProjectReference Include="..\IMS.Domain\IMS.Domain.csproj" />
-	  <ProjectReference Include="..\IMS.Infrastructure\IMS.Infrastructure.csproj" />
 	</ItemGroup>
 
 </Project>
