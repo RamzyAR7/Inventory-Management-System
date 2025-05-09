@@ -107,8 +107,30 @@
 
 @section Scripts {
     <script>
+                // إضافة هذا الكود في قسم Scripts في صفحة تفاصيل الطلب
         document.addEventListener('DOMContentLoaded', function () {
+            // تهيئة أيقونات feather
             feather.replace();
+
+            // إضافة مستمع الحدث لزر الطباعة
+            document.getElementById('printRecipeBtn').addEventListener('click', function() {
+                // الحصول على معرف الطلب من العنصر data-order-id
+                const orderId = this.getAttribute('data-order-id');
+
+                // إنشاء نافذة طباعة جديدة وتحميل محتوى الوصفة
+                const printWindow = window.open(`/Orders/Recipe/${orderId}`, '_blank');
+
+                // عند اكتمال تحميل النافذة، قم بطباعتها
+                printWindow.onload = function() {
+                    setTimeout(function() {
+                        try {
+                            printWindow.print();
+                        } catch (e) {
+                            console.error('Print failed:', e);
+                        }
+                    }, 1000); // انتظر ثانية واحدة للتأكد من تحميل المحتوى
+                };
+            });
         });
     </script>
 }

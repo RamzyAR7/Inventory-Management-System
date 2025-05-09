@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using IMS.BLL.DTOs.Order.Request;
 using IMS.BLL.DTOs.Order.Responce;
+using IMS.BLL.Models;
 using IMS.BLL.Services.Interface;
 using IMS.BLL.SharedServices.Interface;
 using IMS.DAL.UnitOfWork;
@@ -373,8 +374,111 @@ namespace IMS.Web.Controllers
             }
         }
 
+        //[HttpGet]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Recipe(Guid id)
+        //{
+        //    try
+        //    {
+        //        var order = await _orderService.GetByIdAsync(id);
+        //        if (order == null)
+        //        {
+        //            _logger.LogWarning("Order not found: {OrderID}.", id);
+        //            TempData["error"] = "Order not found.";
+        //            return RedirectToAction(nameof(Index));
+        //        }
+
+        //        var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(order.WarehouseID);
+        //        var customer = await _unitOfWork.Customers.GetByIdAsync(order.CustomerID);
+
+        //        var orderDetailsRows = string.Join("\n", order.OrderDetails.Select(od => $@"\textit{{{od.ProductName}}} & {od.Quantity} & {od.UnitPrice}"));
+
+        //        var latexContent = @"\documentclass[a4paper,12pt]{article}
+        //                        % Setting up document class and basic configuration
+        //                        \usepackage[utf8]{inputenc}
+        //                        % Ensuring UTF-8 encoding for special characters
+        //                        \usepackage[T1]{fontenc}
+        //                        % Improved font rendering
+        //                        \usepackage{geometry}
+        //                        % Configuring page layout
+        //                        \geometry{margin=1in}
+        //                        \usepackage{booktabs}
+        //                        % Professional table formatting
+        //                        \usepackage{longtable}
+        //                        % Support for tables spanning multiple pages
+        //                        \usepackage{array}
+        //                        % Enhanced table column specifications
+        //                        \usepackage{colortbl}
+        //                        % Adding color to tables
+        //                        \usepackage{xcolor}
+        //                        % Defining colors
+        //                        \usepackage{fancyhdr}
+        //                        % Customizing headers and footers
+        //                        \pagestyle{fancy}
+        //                        \fancyhf{}
+        //                        \fancyhead[L]{Order Recipe}
+        //                        \fancyhead[R]{Date: \today}
+        //                        \fancyfoot[C]{\thepage}
+        //                        \usepackage{lastpage}
+        //                        % Displaying total page count
+        //                        \usepackage{hyperref}
+        //                        % Adding hyperlinks
+        //                        \hypersetup{
+        //                            colorlinks=true,
+        //                            linkcolor=blue,
+        //                            urlcolor=blue
+        //                        }
+        //                        % Configuring hyperlinks
+        //                        % Font configuration at the end
+        //                        \usepackage{times}
+        //                        % Using Times New Roman font
+
+        //                        \begin{document}
+
+        //                        % Creating the title section
+        //                        \begin{center}
+        //                            \textbf{\Large Order Recipe Report} \\
+        //                            \vspace{0.5cm}
+        //                            Order ID: \textit{" + order.OrderID + @"} \\
+        //                            Date Created: \textit{" + order.OrderDate.ToString("g") + @"} \\
+        //                            Status: \textit{" + order.Status + @"}
+        //                        \end{center}
+
+        //                        % Adding customer information
+        //                        \section*{Customer Information}
+        //                        \begin{itemize}
+        //                            \item Customer Name: \textit{" + customer.FullName + @"}
+        //                            \item Warehouse: \textit{" + warehouse.WarehouseName + @"}
+        //                        \end{itemize}
+
+        //                        % Generating table for order details
+        //                        \section*{Order Details}
+        //                        \begin{longtable}{llr}
+        //                            \toprule
+        //                            Product & Quantity & Unit Price (\$) \\
+        //                            \midrule
+        //                            \endhead
+        //                            \midrule
+        //                            \multicolumn{3}{r}{Continued on next page} \\
+        //                            \endfoot
+        //                            \bottomrule
+        //                            \endlastfoot
+        //                            " + orderDetailsRows + @"
+        //                        \end{longtable}
+
+        //                        \end{document}";
+
+        //        return Content(latexContent, "text/latex");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error loading recipe for order: {OrderID}.", id);
+        //        TempData["error"] = "Failed to load recipe: " + ex.Message;
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //}
+
         [HttpGet]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Recipe(Guid id)
         {
             try
@@ -390,84 +494,26 @@ namespace IMS.Web.Controllers
                 var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(order.WarehouseID);
                 var customer = await _unitOfWork.Customers.GetByIdAsync(order.CustomerID);
 
-                var orderDetailsRows = string.Join("\n", order.OrderDetails.Select(od => $@"\textit{{{od.ProductName}}} & {od.Quantity} & {od.UnitPrice}"));
+                // إنشاء نموذج عرض للطباعة بدلاً من LaTeX
+                var viewModel = new OrderRecipeViewModel
+                {
+                    OrderID = order.OrderID,
+                    OrderDate = order.OrderDate,
+                    // تحويل Enum إلى String
+                    Status = order.Status.ToString(),
+                    CustomerName = customer.FullName,
+                    WarehouseName = warehouse.WarehouseName,
+                    TotalAmount = order.OrderDetails.Sum(od => od.Quantity * od.UnitPrice),
+                    // تحويل OrderDetailResponseItem إلى OrderDetailViewModel
+                    OrderDetails = order.OrderDetails.Select(od => new OrderDetailViewModel
+                    {
+                        ProductName = od.ProductName,
+                        Quantity = od.Quantity,
+                        UnitPrice = od.UnitPrice
+                    }).ToList()
+                };
 
-                var latexContent = @"\documentclass[a4paper,12pt]{article}
-                                % Setting up document class and basic configuration
-                                \usepackage[utf8]{inputenc}
-                                % Ensuring UTF-8 encoding for special characters
-                                \usepackage[T1]{fontenc}
-                                % Improved font rendering
-                                \usepackage{geometry}
-                                % Configuring page layout
-                                \geometry{margin=1in}
-                                \usepackage{booktabs}
-                                % Professional table formatting
-                                \usepackage{longtable}
-                                % Support for tables spanning multiple pages
-                                \usepackage{array}
-                                % Enhanced table column specifications
-                                \usepackage{colortbl}
-                                % Adding color to tables
-                                \usepackage{xcolor}
-                                % Defining colors
-                                \usepackage{fancyhdr}
-                                % Customizing headers and footers
-                                \pagestyle{fancy}
-                                \fancyhf{}
-                                \fancyhead[L]{Order Recipe}
-                                \fancyhead[R]{Date: \today}
-                                \fancyfoot[C]{\thepage}
-                                \usepackage{lastpage}
-                                % Displaying total page count
-                                \usepackage{hyperref}
-                                % Adding hyperlinks
-                                \hypersetup{
-                                    colorlinks=true,
-                                    linkcolor=blue,
-                                    urlcolor=blue
-                                }
-                                % Configuring hyperlinks
-                                % Font configuration at the end
-                                \usepackage{times}
-                                % Using Times New Roman font
-
-                                \begin{document}
-
-                                % Creating the title section
-                                \begin{center}
-                                    \textbf{\Large Order Recipe Report} \\
-                                    \vspace{0.5cm}
-                                    Order ID: \textit{" + order.OrderID + @"} \\
-                                    Date Created: \textit{" + order.OrderDate.ToString("g") + @"} \\
-                                    Status: \textit{" + order.Status + @"}
-                                \end{center}
-
-                                % Adding customer information
-                                \section*{Customer Information}
-                                \begin{itemize}
-                                    \item Customer Name: \textit{" + customer.FullName + @"}
-                                    \item Warehouse: \textit{" + warehouse.WarehouseName + @"}
-                                \end{itemize}
-
-                                % Generating table for order details
-                                \section*{Order Details}
-                                \begin{longtable}{llr}
-                                    \toprule
-                                    Product & Quantity & Unit Price (\$) \\
-                                    \midrule
-                                    \endhead
-                                    \midrule
-                                    \multicolumn{3}{r}{Continued on next page} \\
-                                    \endfoot
-                                    \bottomrule
-                                    \endlastfoot
-                                    " + orderDetailsRows + @"
-                                \end{longtable}
-
-                                \end{document}";
-
-                return Content(latexContent, "text/latex");
+                return View(viewModel);
             }
             catch (Exception ex)
             {
@@ -476,7 +522,6 @@ namespace IMS.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
-
         private async Task<(bool hasAccess, string errorMessage)> PopulateViewBagAsync()
         {
             try

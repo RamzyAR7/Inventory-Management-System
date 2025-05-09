@@ -80,7 +80,9 @@
             }
         </tbody>
     </table>
-    <button class="btn btn-primary" onclick="printRecipe()">Print Recipe</button>
+    @* <button class="btn btn-primary" onclick="printRecipe()">Print Recipe</button> *@
+    <a href="@Url.Action("Recipe", "Orders", new { id = Model.OrderID })" target="_blank" class="btn btn-primary">Print Recipe</a>
+
 </div>
 
 <div>
