@@ -306,6 +306,12 @@ namespace IMS.BLL.Services.Implementation
                     throw new Exception("Product not found in manager's warehouse");
                 }
             }
+            // Check if the product is in use in any transactions
+            var transactions = await _unitOfWork.InventoryTransactions.FindAsync(it => it.ProductID == id);
+            if (transactions != null && transactions.Any())
+            {
+                throw new InvalidOperationException("Cannot delete this product because it is in use in transactions you can In Active it.");
+            }
 
             // Delete related SupplierProducts
             var supplierProducts = await _unitOfWork.SupplierProducts.FindAsync(sp => sp.ProductID == id);
