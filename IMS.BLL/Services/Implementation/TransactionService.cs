@@ -489,9 +489,6 @@ namespace IMS.BLL.Services.Implementation
                 throw new KeyNotFoundException("Source or destination warehouse not found.");
             }
 
-            _logger.LogInformation("Transfer details: FromWarehouseID: {FromWarehouseID}, ToWarehouseID: {ToWarehouseID}, FromProductID: {FromProductID}, ToProductID: {ToProductID}, Quantity: {Quantity}",
-                fromWarehouse.WarehouseID, toWarehouse.WarehouseID, dto.FromProductId, dto.ToProductId, dto.Quantity);
-
             if (fromWarehouse.WarehouseID == toWarehouse.WarehouseID)
             {
                 _logger.LogWarning("Attempted transfer to the same warehouse: {WarehouseID}", fromWarehouse.WarehouseID);
@@ -500,7 +497,6 @@ namespace IMS.BLL.Services.Implementation
 
             var userRole = await _userLoginService.GetCurrentUserRole();
             var userId = await _userLoginService.GetCurrentUserId();
-
             if (string.IsNullOrEmpty(userId))
             {
                 _logger.LogWarning("User not authenticated for transfer");
@@ -534,7 +530,7 @@ namespace IMS.BLL.Services.Implementation
                 throw new KeyNotFoundException($"Destination product with ID {dto.ToProductId} not found.");
             }
 
-            if (toProduct.ProductName.ToLower() != fromProduct.ProductName.ToLower())
+            if (!string.Equals(toProduct.ProductName, fromProduct.ProductName, StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogWarning("Product name mismatch. Source: {SourceProductName}, Destination: {DestProductName}", fromProduct.ProductName, toProduct.ProductName);
                 throw new InvalidOperationException($"Source and destination products must have the same name. Source: {fromProduct.ProductName}, Destination: {toProduct.ProductName}");
@@ -559,9 +555,6 @@ namespace IMS.BLL.Services.Implementation
                 _logger.LogWarning("Destination product {ProductName} not assigned to warehouse {WarehouseName}", toProduct.ProductName, toWarehouse.WarehouseName);
                 throw new InvalidOperationException($"Destination product '{toProduct.ProductName}' is not assigned to warehouse '{toWarehouse.WarehouseName}'.");
             }
-
-            _logger.LogInformation("toWarehouseStock exists: {Exists}, ProductID: {ProductID}, StockQuantity: {StockQuantity}",
-                toWarehouseStock != null, dto.ToProductId, toWarehouseStock?.StockQuantity ?? 0);
 
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
@@ -605,6 +598,9 @@ namespace IMS.BLL.Services.Implementation
 
                 await _productHelperService.UpdateWarehouseStockAsync(fromWarehouse.WarehouseID, dto.FromProductId, -dto.Quantity);
                 await _productHelperService.UpdateWarehouseStockAsync(toWarehouse.WarehouseID, dto.ToProductId, dto.Quantity);
+
+                // Call AssignSupplierFromAnotherProductAsync inside the transaction
+                await _productHelperService.AssignSupplierFromAnotherProductAsync(dto.FromProductId, dto.ToProductId);
 
                 await _unitOfWork.SaveAsync();
                 await _unitOfWork.CommitTransactionAsync();

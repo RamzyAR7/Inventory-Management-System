@@ -277,16 +277,21 @@ namespace IMS.Web.Controllers
                         throw new Exception("Source or destination product not found.");
                     }
 
-                    if (fromProduct.ProductName.ToLower() != toProduct.ProductName.ToLower())
+                    if (!string.Equals(fromProduct.ProductName, toProduct.ProductName, StringComparison.OrdinalIgnoreCase))
                     {
                         _logger.LogWarning("TransferBetweenWarehouses POST - Product name mismatch. Source: {SourceProductName}, Destination: {DestProductName}", fromProduct.ProductName, toProduct.ProductName);
                         throw new Exception("Source and destination products must have the same name.");
                     }
 
                     await _transactionService.TransferBetweenWarehousesAsync(dto);
-                    await _productHelperService.AssignSupplierFromAnotherProductAsync(dto.FromProductId, dto.ToProductId);
                     TempData["Success"] = "Transfer completed successfully!";
                     return RedirectToAction("Index");
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError(ex, "TransferBetweenWarehouses POST - Database error during transfer: {Message}", ex.Message);
+                    TempData["error"] = "A database error occurred. Please try again or contact support.";
+                    await PopulateViewBagAsync(null, dto.FromWarehouseId, dto.FromProductId, dto.ToWarehouseId, dto.ToProductId, requireStockForSource: true);
                 }
                 catch (Exception ex)
                 {

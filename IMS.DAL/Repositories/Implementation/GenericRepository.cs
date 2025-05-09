@@ -201,6 +201,7 @@ namespace IMS.DAL.Repositories.Implementation
 
             foreach (var prop in values.Properties)
             {
+                // Only update scalar properties, not navigation properties
                 if (entry.Metadata.FindNavigation(prop.Name) == null && !keyProperties.Any(kp => kp.Name == prop.Name))
                 {
                     entry.CurrentValues[prop.Name] = values[prop.Name];

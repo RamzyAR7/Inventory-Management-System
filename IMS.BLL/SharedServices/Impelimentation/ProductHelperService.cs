@@ -27,9 +27,9 @@ namespace IMS.BLL.SharedServices.Impelimentation
             _logger = logger;
         }
 
-        public async Task AssignSupplierFromAnotherProductAsync(Guid sourceProductId, Guid targetProductId) // Mark method as async
+        public async Task AssignSupplierFromAnotherProductAsync(Guid sourceProductId, Guid targetProductId)
         {
-            // Fetch the source product (Elmarg product) to get its SupplierID
+            // Fetch the source product and its suppliers
             var sourceProduct = await _unitOfWork.Products.FirstOrDefaultAsync(p => p.ProductID == sourceProductId, p => p.Suppliers);
 
             if (sourceProduct == null)
@@ -42,7 +42,7 @@ namespace IMS.BLL.SharedServices.Impelimentation
                 throw new InvalidOperationException($"Source product '{sourceProduct.ProductName}' does not have any suppliers assigned.");
             }
 
-            // Fetch the target product (Elsherok product)
+            // Fetch the target product
             var targetProduct = await _unitOfWork.Products.FirstOrDefaultAsync(p => p.ProductID == targetProductId);
 
             if (targetProduct == null)
@@ -56,17 +56,24 @@ namespace IMS.BLL.SharedServices.Impelimentation
                 throw new InvalidOperationException($"Products must have the same name. Source: {sourceProduct.ProductName}, Target: {targetProduct.ProductName}");
             }
 
-            // Assign the suppliers from the source product to the target product
-            targetProduct.Suppliers = sourceProduct.Suppliers.Select(s => new SupplierProduct
+            // Fetch existing supplier-product relationships for the target product
+            var existingSupplierProducts = await _unitOfWork.SupplierProducts.FindAsync(sp => sp.ProductID == targetProductId);
+
+            // Add new supplier relationships, avoiding duplicates
+            foreach (var sourceSupplier in sourceProduct.Suppliers)
             {
-                SupplierID = s.SupplierID,
-                ProductID = targetProduct.ProductID
-            }).ToList();
+                if (!existingSupplierProducts.Any(sp => sp.SupplierID == sourceSupplier.SupplierID && sp.ProductID == targetProductId))
+                {
+                    var newSupplierProduct = new SupplierProduct
+                    {
+                        SupplierID = sourceSupplier.SupplierID,
+                        ProductID = targetProductId
+                    };
+                    await _unitOfWork.SupplierProducts.AddAsync(newSupplierProduct);
+                }
+            }
 
-            await _unitOfWork.Products.UpdateAsync(targetProduct);
-
-            await _unitOfWork.SaveAsync();
-            _logger.LogInformation("Assigned suppliers from ProductID {SourceProductId} to ProductID {TargetProductId}", sourceProductId, targetProductId);
+            _logger.LogInformation("Prepared to assign suppliers from ProductID {SourceProductId} to ProductID {TargetProductId}", sourceProductId, targetProductId);
         }
 
         public async Task UpdateWarehouseStockAsync(Guid warehouseId, Guid productId, int quantityChange)

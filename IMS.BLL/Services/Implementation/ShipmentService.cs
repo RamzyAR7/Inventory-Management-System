@@ -163,6 +163,17 @@ namespace IMS.BLL.Services.Implementation
                         if (shipment.Order != null)
                         {
                             var transactions = await _unitOfWork.InventoryTransactions.FindAsync(t => t.OrderID == shipment.OrderID && t.Type == TransactionType.Out);
+                            var shipment1 = await _unitOfWork.Shipments.GetByExpressionAsync(
+                                s => s.ShipmentID == shipmentId,
+                                s => s.DeliveryMan
+                            );
+
+                            if (shipment1?.DeliveryMan != null)
+                            {
+                                shipment1.DeliveryMan.Status = DeliveryManStatus.Free;
+                                await _unitOfWork.DeliveryMen.UpdateAsync(shipment1.DeliveryMan);
+                            }
+
                             foreach (var trans in transactions)
                             {
                                 var stock = await _unitOfWork.WarehouseStocks.GetByCompositeKeyAsync(shipment.Order.WarehouseID, trans.ProductID);
