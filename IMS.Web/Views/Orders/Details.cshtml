@@ -7,90 +7,106 @@
     var totalPayable = Model.OrderDetails?.Sum(item => item.TotalPrice) ?? 0;
 }
 
-<h1>Order Details</h1>
+<div class="container mt-4">
+    <h1>Order Details</h1>
 
-@if (TempData["error"] != null)
-{
-    <div class="alert alert-danger" role="alert">@TempData["error"]</div>
-}
-@if (TempData["success"] != null)
-{
-    <div class="alert alert-success" role="alert">@TempData["success"]</div>
-}
-
-<div>
-    <dl class="row">
-        <dt class="col-sm-2">Order ID</dt>
-        <dd class="col-sm-10">@Model.OrderID</dd>
-        <dt class="col-sm-2">Customer</dt>
-        <dd class="col-sm-10">@(Model.CustomerName ?? "N/A")</dd>
-        <dt class="col-sm-2">Warehouse</dt>
-        <dd class="col-sm-10">@(Model.WarehouseName ?? "N/A")</dd>
-        <dt class="col-sm-2">Total Amount</dt>
-        <dd class="col-sm-10">@Model.TotalAmount.ToString("C")</dd>
-        <dt class="col-sm-2">Total Payable</dt>
-        <dd class="col-sm-10">@totalPayable.ToString("C")</dd>
-        <dt class="col-sm-2">Status</dt>
-        <dd class="col-sm-10">
-            @Model.Status
-            <form asp-action="UpdateStatus" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to update the status to ' + this.status.value + '?');">
-                <input type="hidden" name="id" value="@Model.OrderID" />
-                <select name="status" class="form-control d-inline w-auto">
-                    @foreach (var status in Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToList())
-                    {
-                        <option value="@status" selected="@(Model.Status == status)">@status</option>
-                    }
-                </select>
-                <button type="submit" class="btn btn-sm btn-primary" aria-label="Update Status">Update</button>
-                @Html.AntiForgeryToken()
-            </form>
-        </dd>
-        <dt class="col-sm-2">Order Date</dt>
-        <dd class="col-sm-10">@Model.OrderDate.ToString("g")</dd>
-    </dl>
-
-    <h4>Order Items</h4>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>Total Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model.OrderDetails != null && Model.OrderDetails.Any())
-            {
-                foreach (var item in Model.OrderDetails)
-                {
-                    <tr>
-                        <td>@(item.ProductName ?? "N/A")</td>
-                        <td>@item.Quantity</td>
-                        <td>@item.UnitPrice.ToString("C")</td>
-                        <td>@item.TotalPrice.ToString("C")</td>
-                    </tr>
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="4">No items</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    @* <button class="btn btn-primary" onclick="printRecipe()">Print Recipe</button> *@
-    <a href="@Url.Action("Recipe", "Orders", new { id = Model.OrderID })" target="_blank" class="btn btn-primary">Print Recipe</a>
-
-</div>
-
-<div>
-    <a asp-action="Index" class="btn btn-secondary" aria-label="Back to Orders List">Back to List</a>
-    @if (Model.Status == OrderStatus.Pending)
+    @if (TempData["error"] != null)
     {
-        <a asp-action="Edit" asp-route-id="@Model.OrderID" class="btn btn-warning" aria-label="Edit Order">Edit</a>
+        <div class="alert alert-danger" role="alert">@TempData["error"]</div>
     }
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success" role="alert">@TempData["success"]</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-2">Order ID</dt>
+                <dd class="col-sm-10">@Model.OrderID</dd>
+                <dt class="col-sm-2">Customer</dt>
+                <dd class="col-sm-10">@(Model.CustomerName ?? "N/A")</dd>
+                <dt class="col-sm-2">Warehouse</dt>
+                <dd class="col-sm-10">@(Model.WarehouseName ?? "N/A")</dd>
+                <dt class="col-sm-2">Total Amount</dt>
+                <dd class="col-sm-10">@Model.TotalAmount.ToString("C")</dd>
+                <dt class="col-sm-2">Total Payable</dt>
+                <dd class="col-sm-10">@totalPayable.ToString("C")</dd>
+                <dt class="col-sm-2">Status</dt>
+                <dd class="col-sm-10">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">@Model.Status</span>
+                        <form asp-action="UpdateStatus" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to update the status to ' + this.status.value + '?');">
+                            <input type="hidden" name="id" value="@Model.OrderID" />
+                            <select name="status" class="form-select d-inline w-auto">
+                                @foreach (var status in Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>().ToList())
+                                {
+                                    <option value="@status" selected="@(Model.Status == status)">@status</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary ms-2" aria-label="Update Status">Update</button>
+                            @Html.AntiForgeryToken()
+                        </form>
+                    </div>
+                </dd>
+                <dt class="col-sm-2">Order Date</dt>
+                <dd class="col-sm-10">@Model.OrderDate.ToString("g")</dd>
+            </dl>
+
+            <h4>Order Items</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.OrderDetails != null && Model.OrderDetails.Any())
+                        {
+                            foreach (var item in Model.OrderDetails)
+                            {
+                                <tr>
+                                    <td>@(item.ProductName ?? "N/A")</td>
+                                    <td>@item.Quantity</td>
+                                    <td>@item.UnitPrice.ToString("C")</td>
+                                    <td>@item.TotalPrice.ToString("C")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center">No items</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <div>
+            <a asp-action="Index" class="btn btn-secondary" aria-label="Back to Orders List">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            @if (Model.Status == OrderStatus.Pending)
+            {
+                <a asp-action="Edit" asp-route-id="@Model.OrderID" class="btn btn-warning ms-2" aria-label="Edit Order">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+            }
+        </div>
+        <div>
+            <a href="@Url.Action("Recipe", "Orders", new { id = Model.OrderID })" target="_blank" class="btn btn-primary">
+                <i class="bi bi-printer"></i> Print Recipe
+            </a>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
