@@ -183,10 +183,12 @@ namespace IMS.BLL.Services.Implementation
 
             var supplierInTransactions = allTransactions
                 .Where(t => t.Type == TransactionType.In && t.SuppliersID != null)
+                .OrderByDescending(t => t.TransactionDate)
                 .Take(4)
                 .ToList();
             var customerOutTransactions = allTransactions
                 .Where(t => t.Type == TransactionType.Out && t.OrderID != null)
+                .OrderByDescending(t => t.TransactionDate)
                 .Take(3)
                 .ToList();
 
@@ -195,7 +197,10 @@ namespace IMS.BLL.Services.Implementation
             {
                 transfersQuery = transfersQuery.Where(t => t.FromWarehouseID == warehouseId.Value || t.ToWarehouseID == warehouseId.Value);
             }
-            var limitedTransfers = transfersQuery.OrderByDescending(t => t.TransferDate).Take(3).ToList();
+            var limitedTransfers = transfersQuery
+                .OrderByDescending(t => t.TransferDate)
+                .Take(3)
+                .ToList();
 
             return (supplierInTransactions, customerOutTransactions, limitedTransfers);
         }
