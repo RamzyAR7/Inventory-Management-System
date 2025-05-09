@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using IMS.BLL.DTOs.Supplier;
-using IMS.BLL.Services.Interface;
+using IMS.Application.DTOs.Supplier;
+using IMS.Application.Services.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
-using IMS.BLL.Services.Implementation;
+using IMS.Application.Services.Implementation;
 using IMS.Domain.Entities;
 
 namespace IMS.Web.Controllers

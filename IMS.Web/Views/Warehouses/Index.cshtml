@@ -1,8 +1,8 @@
-﻿@model IEnumerable<IMS.BLL.DTOs.Warehouse.WarehouseResDto>
+﻿@model IEnumerable<IMS.Application.DTOs.Warehouse.WarehouseResDto>
 
 @{
     ViewData["Title"] = "Warehouses";
-    var warehouses = Model ?? Enumerable.Empty<IMS.BLL.DTOs.Warehouse.WarehouseResDto>();
+    var warehouses = Model ?? Enumerable.Empty<IMS.Application.DTOs.Warehouse.WarehouseResDto>();
     var totalCount = ViewBag.TotalCount ?? 0;
     var pageNumber = ViewBag.PageNumber ?? 1;
     var pageSize = ViewBag.PageSize ?? 10;

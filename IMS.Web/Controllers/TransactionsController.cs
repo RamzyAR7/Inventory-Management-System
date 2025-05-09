@@ -1,9 +1,9 @@
-﻿using IMS.BLL.DTOs.Transactions;
-using IMS.BLL.DTOs.Warehouse;
-using IMS.BLL.Interfaces;
-using IMS.BLL.Services.Interface;
-using IMS.BLL.SharedServices.Interface;
-using IMS.DAL.UnitOfWork;
+﻿using IMS.Application.DTOs.Transactions;
+using IMS.Application.DTOs.Warehouse;
+using IMS.Application.Interfaces;
+using IMS.Application.Services.Interface;
+using IMS.Application.SharedServices.Interface;
+using IMS.Infrastructure.UnitOfWork;
 using IMS.Domain.Entities;
 using IMS.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;

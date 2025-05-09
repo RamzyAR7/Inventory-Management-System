@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using IMS.BLL.DTOs.Products;
-using IMS.BLL.DTOs.Warehouse;
-using IMS.BLL.Services.Interface;
-using IMS.DAL.UnitOfWork;
+using IMS.Application.DTOs.Products;
+using IMS.Application.DTOs.Warehouse;
+using IMS.Application.Services.Interface;
+using IMS.Infrastructure.UnitOfWork;
 using IMS.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

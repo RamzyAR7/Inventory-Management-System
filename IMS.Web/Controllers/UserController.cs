@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using IMS.BLL.DTOs.User;
-using IMS.BLL.Services.Interface;
-using IMS.DAL.Repositories.Implementation;
+using IMS.Application.Services.Interface;
+using IMS.Application.DTOs.User;
+using IMS.Infrastructure.Repositories.Implementation;
 using IMS.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

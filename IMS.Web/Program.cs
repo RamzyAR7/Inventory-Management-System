@@ -1,15 +1,15 @@
 using AutoMapper; // Add this using directive at the top of the file
 using Microsoft.EntityFrameworkCore;
-using IMS.BLL.Services.Interface;
+using IMS.Application.Services.Interface;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using IMS.DAL.Context;
-using IMS.DAL.UnitOfWork;
-using IMS.BLL.Services;
-using IMS.BLL.Mapping;
-using IMS.BLL.Services.Implementation;
-using IMS.BLL.Interfaces;
-using IMS.BLL.SharedServices.Interface;
-using IMS.BLL.SharedServices.Impelimentation;
+using IMS.Infrastructure.Context;
+using IMS.Infrastructure.UnitOfWork;
+using IMS.Application.Services;
+using IMS.Application.Mapping;
+using IMS.Application.Services.Implementation;
+using IMS.Application.Interfaces;
+using IMS.Application.SharedServices.Interface;
+using IMS.Application.SharedServices.Impelimentation;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,8 +1,8 @@
-﻿@model IEnumerable<IMS.BLL.DTOs.User.UserResDto>
+﻿@model IEnumerable<IMS.Application.DTOs.User.UserResDto>
 
 @{
     ViewData["Title"] = "Users";
-    var users = Model ?? Enumerable.Empty<IMS.BLL.DTOs.User.UserResDto>();
+    var users = Model ?? Enumerable.Empty<IMS.Application.DTOs.User.UserResDto>();
     var totalCount = ViewBag.TotalCount ?? 0;
     var pageNumber = ViewBag.PageNumber ?? 1;
     var pageSize = ViewBag.PageSize ?? 10;

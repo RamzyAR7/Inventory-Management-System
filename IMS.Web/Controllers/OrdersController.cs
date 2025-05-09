@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
-using IMS.BLL.DTOs.Order.Request;
-using IMS.BLL.DTOs.Order.Responce;
-using IMS.BLL.Models;
-using IMS.BLL.Services.Interface;
-using IMS.BLL.SharedServices.Interface;
-using IMS.DAL.UnitOfWork;
+using IMS.Application.DTOs.Order.Request;
+using IMS.Application.DTOs.Order.Responce;
+using IMS.Application.Models;
+using IMS.Application.Services.Interface;
+using IMS.Application.SharedServices.Interface;
+using IMS.Infrastructure.UnitOfWork;
 using IMS.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
