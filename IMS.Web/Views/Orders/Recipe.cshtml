@@ -1,0 +1,129 @@
+﻿@model IMS.BLL.Models.OrderRecipeViewModel
+@{
+    Layout = null; // لا نحتاج إلى التخطيط الأساسي للطباعة
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Recipe - @Model.OrderID</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .total-row {
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        @@media print {
+            .no-print{
+            display: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Order Recipe Report</h1>
+        <p>Order ID: @Model.OrderID</p>
+        <p>Date Created: @Model.OrderDate.ToString("g")</p>
+        <p>Status: @Model.Status</p>
+    </div>
+    <div class="info-section">
+        <div class="info-title">Customer Information</div>
+        <p>Customer Name: @Model.CustomerName</p>
+        <p>Warehouse: @Model.WarehouseName</p>
+    </div>
+    <div class="info-section">
+        <div class="info-title">Order Details</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Unit Price ($)</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.OrderDetails)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.UnitPrice.ToString("C")</td>
+                        <td>@((item.Quantity * item.UnitPrice).ToString("C"))</td>
+                    </tr>
+                }
+                <tr class="total-row">
+                    <td colspan="3" style="text-align: right;">Total Amount:</td>
+                    <td>@Model.TotalAmount.ToString("C")</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="footer">
+        <p>&copy; @DateTime.Now.Year - Inventory Management System</p>
+    </div>
+    <button class="no-print" onclick="window.print();" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px;">
+        Print Now
+    </button>
+    <script>
+        // طباعة تلقائية عند تحميل الصفحة
+        window.onload = function() {
+            // تأخير بسيط للتأكد من تحميل كل المحتوى
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
+</body>
+</html>
