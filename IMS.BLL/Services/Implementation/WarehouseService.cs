@@ -84,10 +84,13 @@ namespace IMS.BLL.Services.Implementation
             {
                 throw new InvalidOperationException("Can't delete this Warehouse because it has products");
             }
-            if (warehouse.FromWarehouseTransfers != null || warehouse.ToWarehouseTransfers != null || warehouse.InventoryTransactions != null)
+            if ((warehouse.FromWarehouseTransfers != null && warehouse.FromWarehouseTransfers.Any()) ||
+                (warehouse.ToWarehouseTransfers != null && warehouse.ToWarehouseTransfers.Any()) ||
+                (warehouse.InventoryTransactions != null && warehouse.InventoryTransactions.Any()))
             {
                 throw new InvalidOperationException("Can't delete this Warehouse because it has transactions");
             }
+
             await _unitOfWork.Warehouses.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
         }
