@@ -11,17 +11,14 @@ namespace IMS.BLL.Models
     {
         public Guid OrderID { get; set; }
         public DateTime OrderDate { get; set; }
-        // تغيير النوع من Enum إلى string
-        public string Status { get; set; }
+         public string Status { get; set; }
         public string CustomerName { get; set; }
         public string WarehouseName { get; set; }
         public decimal TotalAmount { get; set; }
-        // استخدام OrderDetailViewModel بدلاً من OrderDetail
-        public List<OrderDetailViewModel> OrderDetails { get; set; }
+         public List<OrderDetailViewModel> OrderDetails { get; set; }
     }
 
-    // إنشاء نموذج منفصل لتفاصيل الطلب
-    public class OrderDetailViewModel
+     public class OrderDetailViewModel
     {
         public string ProductName { get; set; }
         public int Quantity { get; set; }

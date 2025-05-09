@@ -107,20 +107,20 @@
 
 @section Scripts {
     <script>
-                // إضافة هذا الكود في قسم Scripts في صفحة تفاصيل الطلب
+               // Add this code in the Scripts section of the order details page
         document.addEventListener('DOMContentLoaded', function () {
-            // تهيئة أيقونات feather
+           // Configure feather icons
             feather.replace();
 
-            // إضافة مستمع الحدث لزر الطباعة
+           // Add an event listener for the print button
             document.getElementById('printRecipeBtn').addEventListener('click', function() {
-                // الحصول على معرف الطلب من العنصر data-order-id
+               // Get the order ID from the data-order-id element
                 const orderId = this.getAttribute('data-order-id');
 
-                // إنشاء نافذة طباعة جديدة وتحميل محتوى الوصفة
+               // Create a new print window and load the recipe content
                 const printWindow = window.open(`/Orders/Recipe/${orderId}`, '_blank');
 
-                // عند اكتمال تحميل النافذة، قم بطباعتها
+              // When the window is fully loaded, print it.
                 printWindow.onload = function() {
                     setTimeout(function() {
                         try {
@@ -128,7 +128,7 @@
                         } catch (e) {
                             console.error('Print failed:', e);
                         }
-                    }, 1000); // انتظر ثانية واحدة للتأكد من تحميل المحتوى
+                    }, 1000); // Wait 1 second to ensure the content is loaded
                 };
             });
         });
