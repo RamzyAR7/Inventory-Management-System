@@ -392,17 +392,14 @@ namespace IMS.Presentation.Controllers
                 var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(order.WarehouseID);
                 var customer = await _unitOfWork.Customers.GetByIdAsync(order.CustomerID);
 
-                // إنشاء نموذج عرض للطباعة بدلاً من LaTeX
                 var viewModel = new OrderRecipeViewModel
                 {
                     OrderID = order.OrderID,
                     OrderDate = order.OrderDate,
-                    // تحويل Enum إلى String
                     Status = order.Status.ToString(),
                     CustomerName = customer.FullName,
                     WarehouseName = warehouse.WarehouseName,
                     TotalAmount = order.OrderDetails.Sum(od => od.Quantity * od.UnitPrice),
-                    // تحويل OrderDetailResponseItem إلى OrderDetailViewModel
                     OrderDetails = order.OrderDetails.Select(od => new OrderDetailViewModel
                     {
                         ProductName = od.ProductName,
