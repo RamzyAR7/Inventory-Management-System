@@ -19,15 +19,17 @@ namespace IMS.Application.Services.Implementation
         private readonly IWhoIsUserLoginService _userLoginService;
         private readonly IOrderService _orderService;
         private readonly IShipmentHelperService _shipmentHelperService;
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<ShipmentService> _logger;
 
-        public ShipmentService(IUnitOfWork unitOfWork, IWhoIsUserLoginService userLoginService,IOrderService orderService, IShipmentHelperService shipmentHelperService,IMapper mapper, ILogger<ShipmentService> logger, IHttpContextAccessor httpContextAccessor)
+        public ShipmentService(IUnitOfWork unitOfWork, IWhoIsUserLoginService userLoginService, IDashboardUpdateNotifier dashboardUpdateNotifier,IOrderService orderService, IShipmentHelperService shipmentHelperService,IMapper mapper, ILogger<ShipmentService> logger, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _userLoginService = userLoginService;
             _orderService = orderService;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
             _shipmentHelperService = shipmentHelperService;
             _mapper = mapper;
             _logger = logger;
@@ -209,6 +211,8 @@ namespace IMS.Application.Services.Implementation
 
                 await _unitOfWork.Shipments.UpdateAsync(shipment);
                 await _unitOfWork.SaveAsync();
+                _logger.LogInformation("UpdateShipmentStatusAsync - Shipment status updated for ShipmentID: {ShipmentID}, NewStatus: {NewStatus}", shipmentId, newStatus);
+                await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
             }
             catch (Exception ex)
             {
@@ -259,6 +263,8 @@ namespace IMS.Application.Services.Implementation
             shipment.Status = ShipmentStatus.InTransit;
             await _unitOfWork.Shipments.UpdateAsync(shipment);
             await _unitOfWork.SaveAsync();
+            _logger.LogInformation("UpdateDeliveryMethoud - Shipment updated for ShipmentID: {ShipmentID}, NewDeliveryMethod: {NewDeliveryMethod}", shipmentDto.ShipmentID, shipmentDto.DeliveryMethod);
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
 
         public async Task DeleteShipmentAsync(Guid shipmentId)
@@ -281,6 +287,7 @@ namespace IMS.Application.Services.Implementation
                 await _unitOfWork.Shipments.DeleteAsync(shipment.ShipmentID);
                 await _unitOfWork.SaveAsync();
                 _logger.LogInformation("DeleteShipmentAsync - Successfully deleted shipment for ShipmentID: {ShipmentID}", shipmentId);
+                await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
             }
             catch (Exception ex)
             {

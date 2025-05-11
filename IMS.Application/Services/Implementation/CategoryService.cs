@@ -4,6 +4,7 @@ using IMS.Application.Services.Interface;
 using IMS.Infrastructure.UnitOfWork;
 using IMS.Domain.Entities;
 using System.CodeDom;
+using IMS.Application.SharedServices.Interface;
 
 namespace IMS.Application.Services.Implementation
 {
@@ -11,11 +12,13 @@ namespace IMS.Application.Services.Implementation
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
 
-        public CategoryService(IMapper mapper, IUnitOfWork unitOfWork)
+        public CategoryService(IMapper mapper, IUnitOfWork unitOfWork, IDashboardUpdateNotifier dashboardUpdateNotifier)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
         }
 
         public async Task<IEnumerable<CategoryResDto>> GetAllCategories()
@@ -41,6 +44,7 @@ namespace IMS.Application.Services.Implementation
             category.CategoryID = Guid.NewGuid();
             await _unitOfWork.Categories.AddAsync(category);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
         public async Task UpdateCategory(Guid id, CategoryReqDto categoryDto)
         {
@@ -50,6 +54,7 @@ namespace IMS.Application.Services.Implementation
             _mapper.Map(categoryDto, category);
             await _unitOfWork.Categories.UpdateAsync(category);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
         public async Task DeleteCategory(Guid id)
         {
@@ -58,6 +63,7 @@ namespace IMS.Application.Services.Implementation
                 throw new NotFoundException($"Category with ID {id} not found");
             await _unitOfWork.Categories.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
     }
 }

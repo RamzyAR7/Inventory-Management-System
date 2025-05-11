@@ -6,6 +6,7 @@ using IMS.Domain.Entities;
 using IMS.Domain.Enums;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using System.Linq.Expressions;
+using IMS.Application.SharedServices.Interface;
 
 namespace IMS.Application.Services.Implementation
 {
@@ -13,11 +14,13 @@ namespace IMS.Application.Services.Implementation
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
 
-        public DeliveryManService(IUnitOfWork unitOfWork, IMapper mapper)
+        public DeliveryManService(IUnitOfWork unitOfWork, IMapper mapper, IDashboardUpdateNotifier dashboardUpdateNotifier)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
         }
 
         public async Task<IEnumerable<DeliveryMan>> GetAllAsync()
@@ -112,6 +115,7 @@ namespace IMS.Application.Services.Implementation
             deliveryMan.DeliveryManID = Guid.NewGuid();
             await _unitOfWork.DeliveryMen.AddAsync(deliveryMan);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
         public async Task UpdateAsync(Guid id, DeliveryManReqDto deliveryManDto)
         {
@@ -138,6 +142,7 @@ namespace IMS.Application.Services.Implementation
             _mapper.Map(deliveryManDto, existingDeliveryMan);
             await _unitOfWork.DeliveryMen.UpdateAsync(existingDeliveryMan);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
         public async Task DeleteAsync(Guid id)
         {
@@ -160,6 +165,7 @@ namespace IMS.Application.Services.Implementation
             }
             await _unitOfWork.DeliveryMen.DeleteAsync(deliveryMan.DeliveryManID);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
 
         }
     }

@@ -10,14 +10,16 @@ using IMS.Application.Services.Implementation;
 using IMS.Application.Interfaces;
 using IMS.Application.SharedServices.Interface;
 using IMS.Application.SharedServices.Impelimentation;
+using IMS.Application.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddDbContext<InventoryDbContext>(options =>
+builder.Services.AddDbContextFactory<InventoryDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 //main service
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -39,12 +41,17 @@ builder.Services.AddScoped<IWhoIsUserLoginService, WhoIsUserloginService>();
 builder.Services.AddScoped<IProductHelperService, ProductHelperService>();
 builder.Services.AddScoped<IOrderHelperService, OrderHelperService>();
 builder.Services.AddScoped<IShipmentHelperService, ShipmentHelperService>();
+builder.Services.AddScoped<IDashboardUpdateNotifier, DashboardUpdateNotifier>();
 
 
 // Global services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddHttpContextAccessor();
+
+// Add SignalR
+builder.Services.AddSignalR();
+
 
 // register Authentication and Authorization
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -61,6 +68,7 @@ builder.Services.AddSingleton<ILogger>(sp => sp.GetRequiredService<ILogger<Trans
 
 
 var app = builder.Build();
+app.MapHub<DashboardHub>("/dashboardHub");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

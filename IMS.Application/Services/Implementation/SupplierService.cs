@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using IMS.Application.Services.Interface;
 using IMS.Domain.Entities;
+using IMS.Application.SharedServices.Interface;
 
 namespace IMS.Application.Services.Implementation
 {
@@ -12,11 +13,12 @@ namespace IMS.Application.Services.Implementation
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-
-        public SupplierService(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
+        public SupplierService(IUnitOfWork unitOfWork, IMapper mapper, IDashboardUpdateNotifier dashboardUpdateNotifier)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
         }
 
         public async Task<IEnumerable<Supplier>> GetAllAsync()
@@ -61,6 +63,7 @@ namespace IMS.Application.Services.Implementation
             supplier.SupplierID = Guid.NewGuid();
             await _unitOfWork.Suppliers.AddAsync(supplier);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
 
         public async Task UpdateAsync(Guid id, SupplierReqDto supplierDto)
@@ -72,6 +75,7 @@ namespace IMS.Application.Services.Implementation
             _mapper.Map(supplierDto, supplier);
             await _unitOfWork.Suppliers.UpdateAsync(supplier);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
 
         public async Task DeleteAsync(Guid id)
@@ -90,6 +94,7 @@ namespace IMS.Application.Services.Implementation
             }
             await _unitOfWork.Suppliers.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
     }
 

@@ -5,6 +5,7 @@ using IMS.Application.Services.Interface;
 using IMS.Infrastructure.UnitOfWork;
 using IMS.Domain.Entities;
 using System.Linq.Expressions;
+using IMS.Application.SharedServices.Interface;
 
 namespace IMS.Application.Services.Implementation
 {
@@ -12,11 +13,13 @@ namespace IMS.Application.Services.Implementation
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
 
-        public UserService(IUnitOfWork unitOfWork, IMapper mapper)
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IDashboardUpdateNotifier dashboardUpdateNotifier)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
         }
 
         private async Task CheckForManagerCycle(Guid userId, Guid? managerId)
@@ -84,6 +87,7 @@ namespace IMS.Application.Services.Implementation
 
             await _unitOfWork.Users.AddAsync(user);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
 
             return _mapper.Map<UserResDto>(user);
         }
@@ -140,6 +144,7 @@ namespace IMS.Application.Services.Implementation
 
             await _unitOfWork.Users.UpdateAsync(existingUser);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
 
             return _mapper.Map<UserEditDto>(existingUser);
         }

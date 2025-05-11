@@ -19,13 +19,15 @@ namespace IMS.Application.Services.Implementation
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IWhoIsUserLoginService _userLoginService;
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
         private readonly ILogger<ProductService> _logger;
         
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper,IWhoIsUserLoginService whoIsUserLoginService, ILogger<ProductService> logger)
+        public ProductService(IUnitOfWork unitOfWork, IDashboardUpdateNotifier dashboardUpdateNotifier, IMapper mapper,IWhoIsUserLoginService whoIsUserLoginService, ILogger<ProductService> logger)
         {
             _unitOfWork = unitOfWork;
             _userLoginService = whoIsUserLoginService;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
             _mapper = mapper;
             _logger = logger;
         }
@@ -211,6 +213,8 @@ namespace IMS.Application.Services.Implementation
             }
 
             await _unitOfWork.SaveAsync();
+            _logger.LogInformation("Product created: {ProductID}", product.ProductID);
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
 
         public async Task UpdateAsync(Guid id, ProductReqDto productDto)
@@ -273,6 +277,7 @@ namespace IMS.Application.Services.Implementation
             try
             {
                 await _unitOfWork.SaveAsync();
+                _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
                 _logger.LogInformation("Changes saved successfully for ProductID: {ProductID}", id);
             }
             catch (Exception ex)
@@ -331,6 +336,8 @@ namespace IMS.Application.Services.Implementation
             await _unitOfWork.Products.DeleteAsync(id);
 
             await _unitOfWork.SaveAsync();
+            _logger.LogInformation("Product deleted: {ProductID}", id);
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
 
     }

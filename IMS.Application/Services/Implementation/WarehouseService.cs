@@ -4,6 +4,7 @@ using IMS.Application.Services.Interface;
 using IMS.Infrastructure.UnitOfWork;
 using IMS.Domain.Entities;
 using System.Linq.Expressions;
+using IMS.Application.SharedServices.Interface;
 
 namespace IMS.Application.Services.Implementation
 {
@@ -11,11 +12,13 @@ namespace IMS.Application.Services.Implementation
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
 
-        public WarehouseService(IUnitOfWork unitOfWork, IMapper mapper)
+        public WarehouseService(IUnitOfWork unitOfWork, IMapper mapper, IDashboardUpdateNotifier dashboardUpdateNotifier)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
         }
 
         public async Task<IEnumerable<WarehouseResDto>> GetAllAsync()
@@ -62,6 +65,7 @@ namespace IMS.Application.Services.Implementation
             warehouse.WarehouseID = Guid.NewGuid();
             await _unitOfWork.Warehouses.AddAsync(warehouse);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
 
         public async Task UpdateAsync(Guid id, WarehouseReqDto warehouseDto)
@@ -72,6 +76,7 @@ namespace IMS.Application.Services.Implementation
             _mapper.Map(warehouseDto, existingWarehouse);
             await _unitOfWork.Warehouses.UpdateAsync(existingWarehouse);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
 
         public async Task DeleteAsync(Guid id)
@@ -93,6 +98,7 @@ namespace IMS.Application.Services.Implementation
 
             await _unitOfWork.Warehouses.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
     }
 }

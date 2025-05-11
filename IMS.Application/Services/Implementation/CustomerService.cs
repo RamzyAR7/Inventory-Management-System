@@ -4,6 +4,7 @@ using IMS.Application.Services.Interface;
 using IMS.Infrastructure.UnitOfWork;
 using IMS.Domain.Entities;
 using System.Linq.Expressions;
+using IMS.Application.SharedServices.Interface;
 
 namespace IMS.Application.Services.Implementation
 {
@@ -11,11 +12,13 @@ namespace IMS.Application.Services.Implementation
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
 
-        public CustomerService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CustomerService(IUnitOfWork unitOfWork, IMapper mapper, IDashboardUpdateNotifier dashboardUpdateNotifier)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
         }
 
         public async Task<IEnumerable<Customer>> GetAllAsync()
@@ -65,6 +68,7 @@ namespace IMS.Application.Services.Implementation
             customer.CreatedAt = DateTime.UtcNow;
             await _unitOfWork.Customers.AddAsync(customer);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
 
         public async Task UpdateAsync(Guid id, CustomerReqDto customerDto)
@@ -87,6 +91,7 @@ namespace IMS.Application.Services.Implementation
             _mapper.Map(customerDto, existingCustomer);
             await _unitOfWork.Customers.UpdateAsync(existingCustomer);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
 
         public async Task DeleteAsync(Guid id)
@@ -98,6 +103,7 @@ namespace IMS.Application.Services.Implementation
             }
             await _unitOfWork.Customers.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
     }
 }

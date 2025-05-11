@@ -21,6 +21,7 @@ namespace IMS.Application.Services.Implementation
         private readonly IUnitOfWork _unitOfWork;
         private readonly IWhoIsUserLoginService _userLoginService;
         private readonly IOrderHelperService _orderHelperService;
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
         private readonly IMapper _mapper;
         private readonly ILogger<OrderService> _logger;
 
@@ -28,11 +29,13 @@ namespace IMS.Application.Services.Implementation
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IWhoIsUserLoginService userLoginService,
+            IDashboardUpdateNotifier dashboardUpdateNotifier,
             IOrderHelperService orderHelperService,
             ILogger<OrderService> logger)
         {
             _unitOfWork = unitOfWork;
             _userLoginService = userLoginService;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
             _orderHelperService = orderHelperService;
             _mapper = mapper;
             _logger = logger;
@@ -210,6 +213,7 @@ namespace IMS.Application.Services.Implementation
                 // Add order to context
                 await _unitOfWork.Orders.AddAsync(order);
                 await _unitOfWork.SaveAsync();
+                await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
             }
             catch (Exception ex)
             {
@@ -330,6 +334,7 @@ namespace IMS.Application.Services.Implementation
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveAsync();
                 await _unitOfWork.CommitTransactionAsync();
+                await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
                 _logger.LogInformation("Order status updated: {OrderID}, New Status: {Status}.", orderId, newStatus);
             }
             catch (Exception ex)
@@ -394,6 +399,7 @@ namespace IMS.Application.Services.Implementation
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveAsync();
                 await _unitOfWork.CommitTransactionAsync();
+                await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
                 _logger.LogInformation("Order edited successfully: {OrderID}.", order.OrderID);
             }
             catch (Exception ex)
@@ -429,6 +435,7 @@ namespace IMS.Application.Services.Implementation
             }
             await _unitOfWork.Orders.DeleteAsync(id);
             await _unitOfWork.SaveAsync();
+            await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
         }
     }
 }

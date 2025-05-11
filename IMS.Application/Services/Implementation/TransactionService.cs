@@ -22,12 +22,14 @@ namespace IMS.Application.Services.Implementation
         private readonly IMapper _mapper;
         private readonly IProductHelperService _productHelperService;
         private readonly IWhoIsUserLoginService _userLoginService;
+        private readonly IDashboardUpdateNotifier _dashboardUpdateNotifier;
         private readonly ILogger<TransactionService> _logger;
 
-        public TransactionService(IUnitOfWork unitOfWork, IProductHelperService productHelperService, IMapper mapper, IWhoIsUserLoginService userLoginService, ILogger<TransactionService> logger)
+        public TransactionService(IUnitOfWork unitOfWork, IProductHelperService productHelperService, IDashboardUpdateNotifier dashboardUpdateNotifier,IMapper mapper, IWhoIsUserLoginService userLoginService, ILogger<TransactionService> logger)
         {
             _unitOfWork = unitOfWork;
             _productHelperService = productHelperService;
+            _dashboardUpdateNotifier = dashboardUpdateNotifier;
             _mapper = mapper;
             _userLoginService = userLoginService;
             _logger = logger;
@@ -459,6 +461,7 @@ namespace IMS.Application.Services.Implementation
                 await _unitOfWork.SaveAsync();
                 await _unitOfWork.CommitTransactionAsync();
                 _logger.LogInformation("In transaction completed successfully for TransactionID: {TransactionID}", inventoryTransaction.TransactionID);
+                await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
             }
             catch (Exception ex)
             {
@@ -610,6 +613,7 @@ namespace IMS.Application.Services.Implementation
                 await _unitOfWork.SaveAsync();
                 await _unitOfWork.CommitTransactionAsync();
                 _logger.LogInformation("Transfer completed successfully for WarehouseTransferID: {WarehouseTransferID}", warehouseTransfer.WarehouseTransferID);
+                await _dashboardUpdateNotifier.NotifyDashboardUpdateAsync();
             }
             catch (Exception ex)
             {
