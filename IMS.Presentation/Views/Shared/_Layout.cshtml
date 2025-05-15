@@ -29,7 +29,6 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <partial name="_Notification" />
     <div class="wrapper">
         @if (User.Identity?.IsAuthenticated ?? false)
         {
@@ -141,6 +140,7 @@
 
             <main class="content">
                 <div class="container-fluid p-0">
+                    <partial name="_Notification" />
                     @RenderBody()
                 </div>
             </main>
