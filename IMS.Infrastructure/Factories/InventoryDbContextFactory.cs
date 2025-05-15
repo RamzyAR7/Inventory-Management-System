@@ -10,12 +10,17 @@ using System.Threading.Tasks;
 
 namespace IMS.Infrastructure.Factories
 {
-    public class InventoryDbContextFactory : IDesignTimeDbContextFactory<InventoryDbContext>
+    public class InventoryDbContextFactory : IDesignTimeDbContextFactory<InventoryDbContext> 
     {
         public InventoryDbContext CreateDbContext(string[] args)
         {
+
+            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "../IMS.Presentation");
+ 
+            //Console.WriteLine($"BasePath = {basePath}");
+
             IConfigurationRoot configuration = new ConfigurationBuilder()
-                .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../IMS.Web"))
+                .SetBasePath(basePath)
                 .AddJsonFile("appsettings.json")
                 .Build();
 
