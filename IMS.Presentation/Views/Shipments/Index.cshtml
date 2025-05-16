@@ -57,12 +57,60 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Warehouse</th>
-                            <th>Destination</th>
-                            <th>Items</th>
-                            <th>Status</th>
+                            <th>
+                                <a href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = statusFilter, sortBy = "OrderDate", sortDescending = sortBy == "OrderDate" ? !sortDescending : false })" class="text-decoration-none text-dark">
+                                    Date
+                                    @if (sortBy == "OrderDate")
+                                    {
+                                        <i class="bi @(sortDescending ? "bi-caret-down-fill" : "bi-caret-up-fill")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = statusFilter, sortBy = "CustomerName", sortDescending = sortBy == "CustomerName" ? !sortDescending : false })" class="text-decoration-none text-dark">
+                                    Customer
+                                    @if (sortBy == "CustomerName")
+                                    {
+                                        <i class="bi @(sortDescending ? "bi-caret-down-fill" : "bi-caret-up-fill")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = statusFilter, sortBy = "WarehouseName", sortDescending = sortBy == "WarehouseName" ? !sortDescending : false })" class="text-decoration-none text-dark">
+                                    Warehouse
+                                    @if (sortBy == "WarehouseName")
+                                    {
+                                        <i class="bi @(sortDescending ? "bi-caret-down-fill" : "bi-caret-up-fill")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = statusFilter, sortBy = "Destination", sortDescending = sortBy == "Destination" ? !sortDescending : false })" class="text-decoration-none text-dark">
+                                    Destination
+                                    @if (sortBy == "Destination")
+                                    {
+                                        <i class="bi @(sortDescending ? "bi-caret-down-fill" : "bi-caret-up-fill")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = statusFilter, sortBy = "ItemCount", sortDescending = sortBy == "ItemCount" ? !sortDescending : false })" class="text-decoration-none text-dark">
+                                    Items
+                                    @if (sortBy == "ItemCount")
+                                    {
+                                        <i class="bi @(sortDescending ? "bi-caret-down-fill" : "bi-caret-up-fill")"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a href="@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = statusFilter, sortBy = "Status", sortDescending = sortBy == "Status" ? !sortDescending : false })" class="text-decoration-none text-dark">
+                                    Status
+                                    @if (sortBy == "Status")
+                                    {
+                                        <i class="bi @(sortDescending ? "bi-caret-down-fill" : "bi-caret-up-fill")"></i>
+                                    }
+                                </a>
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -431,7 +479,6 @@
                 searching: false,
                 info: false,
                 columnDefs: [
-                    { orderable: true, targets: [1, 2, 3, 4, 5, 6] }, // Sortable: Date, Customer, Warehouse, Destination, Items, Status
                     { orderable: false, targets: [0, 7] }, // Non-sortable: #, Actions
                     { responsivePriority: 1, targets: [0, 7] }, // #, Actions
                     { responsivePriority: 2, targets: [2, 6] } // Customer, Status
@@ -445,27 +492,8 @@
                 }
             });
 
-            // Handle column sorting
-            $('#shipmentsTable thead th').on('click', function () {
-                const columnIndex = table.column(this).index();
-                const columnMap = [
-                    '',                 // 0 (#)
-                    'OrderDate',       // 1
-                    'CustomerName',    // 2
-                    'WarehouseName',   // 3
-                    'Destination',     // 4
-                    'ItemCount',       // 5
-                    'Status',          // 6
-                    ''                 // 7 (Actions)
-                ];
-                const columnName = columnMap[columnIndex];
-                if (columnName) {
-                    const currentSortBy = '@sortBy';
-                    const currentSortDescending = @Json.Serialize(sortDescending);
-                    const newSortDescending = currentSortBy === columnName ? !currentSortDescending : false;
-                    window.location.href = '@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = statusFilter })&sortBy=' + columnName + '&sortDescending=' + newSortDescending;
-                }
-            });
+            // Remove DataTables' default sorting, since sorting is now server-side
+            $('#shipmentsTable thead th').off('click');
 
             // Handle status change
             $(document).on('change', '.status-select', function () {

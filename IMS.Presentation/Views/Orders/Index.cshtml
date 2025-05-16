@@ -58,13 +58,104 @@
                 <table class="table table-bordered table-hover" id="ordersTable" width="100%" cellspacing="0">
                     <thead class="table-light">
                         <tr>
-                            <th>#</th>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Warehouse</th>
-                            <th>Total Amount</th>
-                            <th>Status</th>
-                            <th>Created By</th>
+                            <th>
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@pageNumber"
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-statusFilter="@statusFilter"
+                                   asp-route-sortBy="OrderID"
+                                   asp-route-sortDescending="@(sortBy == "OrderID" ? !sortDescending : false)">
+                                    #
+                                    @if (sortBy == "OrderID")
+                                    {
+                                        <span class="ms-1">@((sortDescending) ? "▼" : "▲")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@pageNumber"
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-statusFilter="@statusFilter"
+                                   asp-route-sortBy="OrderDate"
+                                   asp-route-sortDescending="@(sortBy == "OrderDate" ? !sortDescending : false)">
+                                    Date
+                                    @if (sortBy == "OrderDate")
+                                    {
+                                        <span class="ms-1">@((sortDescending) ? "▼" : "▲")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@pageNumber"
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-statusFilter="@statusFilter"
+                                   asp-route-sortBy="CustomerName"
+                                   asp-route-sortDescending="@(sortBy == "CustomerName" ? !sortDescending : false)">
+                                    Customer
+                                    @if (sortBy == "CustomerName")
+                                    {
+                                        <span class="ms-1">@((sortDescending) ? "▼" : "▲")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@pageNumber"
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-statusFilter="@statusFilter"
+                                   asp-route-sortBy="WarehouseName"
+                                   asp-route-sortDescending="@(sortBy == "WarehouseName" ? !sortDescending : false)">
+                                    Warehouse
+                                    @if (sortBy == "WarehouseName")
+                                    {
+                                        <span class="ms-1">@((sortDescending) ? "▼" : "▲")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@pageNumber"
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-statusFilter="@statusFilter"
+                                   asp-route-sortBy="TotalAmount"
+                                   asp-route-sortDescending="@(sortBy == "TotalAmount" ? !sortDescending : false)">
+                                    Total Amount
+                                    @if (sortBy == "TotalAmount")
+                                    {
+                                        <span class="ms-1">@((sortDescending) ? "▼" : "▲")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@pageNumber"
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-statusFilter="@statusFilter"
+                                   asp-route-sortBy="Status"
+                                   asp-route-sortDescending="@(sortBy == "Status" ? !sortDescending : false)">
+                                    Status
+                                    @if (sortBy == "Status")
+                                    {
+                                        <span class="ms-1">@((sortDescending) ? "▼" : "▲")</span>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index"
+                                   asp-route-pageNumber="@pageNumber"
+                                   asp-route-pageSize="@pageSize"
+                                   asp-route-statusFilter="@statusFilter"
+                                   asp-route-sortBy="CreatedByUserName"
+                                   asp-route-sortDescending="@(sortBy == "CreatedByUserName" ? !sortDescending : false)">
+                                    Created By
+                                    @if (sortBy == "CreatedByUserName")
+                                    {
+                                        <span class="ms-1">@((sortDescending) ? "▼" : "▲")</span>
+                                    }
+                                </a>
+                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -429,7 +520,6 @@
                 searching: false,
                 info: false,
                 columnDefs: [
-                    { orderable: true, targets: [1, 2, 3, 4, 5, 6] }, // Sortable: Date, Customer, Warehouse, Total Amount, Status, Created By
                     { orderable: false, targets: [0, 7] }, // Non-sortable: #, Actions
                     { responsivePriority: 1, targets: [0, 7] }, // #, Actions
                     { responsivePriority: 2, targets: [2, 5] } // Customer, Status
@@ -443,27 +533,8 @@
                 }
             });
 
-            // Handle column sorting
-            $('#ordersTable thead th').on('click', function () {
-                const columnIndex = table.column(this).index();
-                const columnMap = [
-                    '',                  // 0 (#)
-                    'OrderDate',        // 1
-                    'CustomerName',     // 2
-                    'WarehouseName',    // 3
-                    'TotalAmount',      // 4
-                    'Status',           // 5
-                    'CreatedByUserName',// 6
-                    ''                  // 7 (Actions)
-                ];
-                const columnName = columnMap[columnIndex];
-                if (columnName) {
-                    const currentSortBy = '@sortBy';
-                    const currentSortDescending = @Json.Serialize(sortDescending);
-                    const newSortDescending = currentSortBy === columnName ? !currentSortDescending : false;
-                    window.location.href = '@Url.Action("Index", new { pageNumber = 1, pageSize = pageSize, statusFilter = statusFilter })&sortBy=' + columnName + '&sortDescending=' + newSortDescending;
-                }
-            });
+            // Remove DataTables sorting, since sorting is now server-side
+            $('#ordersTable thead th').off('click');
 
             // Handle status change
             $(document).on('change', '.status-select', function () {
